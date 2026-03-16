@@ -1,12 +1,12 @@
 interface PieceProps {
   isWhite: boolean
-  size: number
+  size: number | string
 }
 
 interface Props {
   type: string
   color: string
-  size?: number
+  size?: number | string
 }
 
 export default function PieceSvg({ type, color, size = 45 }: Props) {

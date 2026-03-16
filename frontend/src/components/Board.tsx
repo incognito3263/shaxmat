@@ -75,20 +75,20 @@ export default function Board() {
   const displayCols = isFlipped ? [...COLS].reverse() : COLS
 
   return (
-    <div className="flex flex-col items-center gap-2 select-none">
-      <div className="flex items-stretch h-[clamp(440px,70vw,640px)]">
+    <div className="flex flex-col items-center gap-2 select-none w-full max-w-[100vw] overflow-hidden">
+      <div className="flex items-stretch h-[min(85vw,500px)] sm:h-[clamp(440px,70vw,640px)] w-full justify-center px-2">
         <EvalBar />
         
-        <div className="relative" style={{ boxShadow: '0 24px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04)' }}>
-          <div className="absolute -left-6 top-0 flex flex-col h-full pointer-events-none">
+        <div className="relative" style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}>
+          <div className="absolute -left-4 sm:-left-6 top-0 flex flex-col h-full pointer-events-none text-[10px] sm:text-xs">
             {displayRows.map((row) => (
-              <div key={row} className="flex-1 flex items-center justify-center board-label" style={{ color: '#4A5568' }}>
+              <div key={row} className="flex-1 flex items-center justify-center board-label opacity-40">
                 {row}
               </div>
             ))}
           </div>
 
-          <div className="grid rounded-lg overflow-hidden" style={{ gridTemplateColumns: 'repeat(8, 1fr)' }}>
+          <div className="grid rounded-md overflow-hidden" style={{ gridTemplateColumns: 'repeat(8, 1fr)' }}>
             {displayRows.flatMap((row) =>
               displayCols.map((col) => {
                 const actualColIdx = COLS.indexOf(col)
@@ -127,9 +127,9 @@ export default function Board() {
             )}
           </div>
 
-          <div className="flex mt-1">
+          <div className="flex mt-1 w-full justify-around">
             {displayCols.map((c) => (
-              <div key={c} className="board-label" style={{ width: 'clamp(44px, 7vw, 64px)', textAlign: 'center', color: '#4A5568' }}>
+              <div key={c} className="board-label opacity-40 text-[10px] sm:text-xs" style={{ width: '12%', textAlign: 'center' }}>
                 {c}
               </div>
             ))}
@@ -164,51 +164,47 @@ function Square({ square, light, isSelected, isLegal, isCapture, isKingInCheck, 
 
   return (
     <motion.div
-      className={`sq relative ${isKingInCheck ? 'check-pulse' : ''}`}
+      className={`sq relative ${isKingInCheck ? 'check-pulse' : ''} cursor-pointer`}
       style={{
-        width: 'clamp(56px, 8.5vw, 84px)',
-        height: 'clamp(56px, 8.5vw, 84px)',
+        width: 'clamp(40px, 10.5vw, 75px)',
+        height: 'clamp(40px, 10.5vw, 75px)',
         backgroundColor: bgColor,
-        outline: isSelected ? '2px solid #F5C518' : 'none',
+        outline: isSelected ? '2px solid rgba(245,197,24,0.8)' : 'none',
         outlineOffset: '-2px',
         zIndex: isSelected ? 2 : 1,
       }}
       onClick={handleClick}
-      whileHover={{ filter: 'brightness(1.12)' }}
       transition={{ duration: 0.1 }}
     >
       {isLastMove && !isSelected && (
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(245,197,24,0.12)' }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(245,197,24,0.15)' }} />
       )}
       {isSelected && (
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(245,197,24,0.18)' }} />
       )}
       {isLegal && !piece && (
-        <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-          <div className="rounded-full" style={{ width: '30%', height: '30%', background: 'rgba(59,158,255,0.65)' }} />
-        </motion.div>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full bg-blue-400/50 w-[30%] h-[30%]" />
+        </div>
       )}
       {isCapture && (
-        <div className="absolute inset-0 pointer-events-none" style={{ borderRadius: 0, boxShadow: 'inset 0 0 0 3px rgba(59,158,255,0.7)' }} />
+        <div className="absolute inset-0 pointer-events-none border-[3px] border-blue-400/50" />
       )}
-      <AnimatePresence mode="popLayout">
-        {piece && (
-          <motion.div
-            key={`${piece.type}-${piece.color}`}
-            layoutId={`${piece.type}-${piece.color}-${piece.type==='P'||piece.type==='S' ? square : ''}`}
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ zIndex: 10 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30, opacity: { duration: 0.1 } }}
-          >
-            <div className={piece.color === 'white' ? 'glow-white' : 'glow-cyan'} style={{ lineHeight: 0 }}>
-              <PieceSvg type={piece.type} color={piece.color} size={72} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      
+      {piece && (
+        <motion.div
+          key={`${piece.color}-${piece.type}-${square}`} 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          className="absolute inset-0 flex items-center justify-center p-[10%]"
+          style={{ zIndex: 10 }}
+        >
+          <div className={piece.color === 'white' ? 'glow-white' : 'glow-cyan'}>
+            <PieceSvg type={piece.type} color={piece.color} size="100%" />
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }

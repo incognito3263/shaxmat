@@ -332,6 +332,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const wsHost = import.meta.env.PROD ? window.location.host : `${window.location.hostname}:8000`
     const wsUrl = `${protocol}//${wsHost}/ws/${publicId}`
     const socket = new WebSocket(wsUrl)
+    let pingInterval: any;
     
     socket.onopen = () => {
       console.log("DEBUG: WS Connected successfully");
@@ -339,6 +340,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (gid && get().isSpectator) {
         socket.send(JSON.stringify({ type: 'spectate', game_id: gid }))
       }
+
+      // Heartbeat to keep connection alive
+      pingInterval = setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: 'ping' }));
+        }
+      }, 30000);
     };
 
     socket.onmessage = async (event) => {
@@ -411,6 +419,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     socket.onclose = (e) => {
       console.log("DEBUG: WS Disconnected. Attempting reconnect in 3s...", e.reason);
+      clearInterval(pingInterval);
       setTimeout(() => {
         const currentUser = get().user;
         if (currentUser) get().initSocket(currentUser.public_id);

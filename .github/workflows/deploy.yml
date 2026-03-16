@@ -23,14 +23,17 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ${{ secrets.PROJECT_PATH }}
-            git pull origin main
+            
+            # Serverda git konfiguratsiyasini to'g'irlash
+            git config --global --add safe.directory ${{ secrets.PROJECT_PATH }}
+            
+            # GitHub'dagi yangiliklarni majburan olish (Conflict-larni chetlab o'tish uchun)
+            git fetch --all
+            git reset --hard origin/main
             
             # Docker konteynerlarni yangilash
             docker-compose down
             docker-compose up -d --build
             
-            # Backend migratsiyalarini ishga tushirish (ixtiyoriy)
-            docker-compose exec -T backend alembic upgrade head
-            
-            # Eskirgan docker image-larni tozalash (joyni tejash uchun)
+            # Eskirgan docker image-larni tozalash
             docker image prune -f
