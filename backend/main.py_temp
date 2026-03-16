@@ -1,0 +1,45 @@
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, status, File, UploadFile
+import shutil
+import uuid
+import asyncio
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from typing import Dict, List, Any
+import json
+import random
+import string
+import bcrypt
+import os
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
+
+from database import engine, Base, get_db
+from models import User, Game, Notification
+from routers import game
+import schemas
+from websocket_manager import manager
+
+# Security setup
+SECRET_KEY = "shaxmat-plus-super-secret-key"
+ALGORITHM = "HS256"
+
+def get_password_hash(password: str):
+    pwd_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(pwd_bytes, salt)
+    return hashed.decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str):
+    password_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=30))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+@app.get("/") # Error here, app not defined yet
