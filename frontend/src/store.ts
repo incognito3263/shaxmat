@@ -132,13 +132,6 @@ interface GameStore {
   respondToInvite: (accept: boolean) => void
 }
 
-// Detect environment
-const IS_PROD = import.meta.env.PROD;
-// In single server setup, we use the same host for everything
-const BACKEND_URL = IS_PROD ? window.location.host : window.location.hostname + ':8000';
-const BACKEND_HTTP = IS_PROD ? `${window.location.protocol}//${BACKEND_URL}` : `http://${BACKEND_URL}`;
-const BACKEND_WS = IS_PROD ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${BACKEND_URL}` : `ws://${BACKEND_URL}`;
-
 const API_BASE = '/game'
 
 function squareToRowCol(square: string): [number, number] {
@@ -335,8 +328,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     
     console.log(`DEBUG: Initializing WS for ${publicId}`);
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    // Connect directly to backend port 8000
-    const wsUrl = `${protocol}//${window.location.hostname}:8000/ws/${publicId}`
+    // In production (Docker/same-origin), use same host so nginx can proxy; in dev use port 8000
+    const wsHost = import.meta.env.PROD ? window.location.host : `${window.location.hostname}:8000`
+    const wsUrl = `${protocol}//${wsHost}/ws/${publicId}`
     const socket = new WebSocket(wsUrl)
     
     socket.onopen = () => {
@@ -653,7 +647,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   fetchGame: async () => {
-    const { gameId, vsAI, aiMove } = get()
+    const { gameId, aiMove } = get()
     if (!gameId) {
       console.warn("DEBUG: fetchGame called but gameId is null");
       return

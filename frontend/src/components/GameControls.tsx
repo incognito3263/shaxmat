@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useGameStore } from '../store'
 
 export default function GameControls() {
-  const { game, newGame, loading, vsAI, toggleAI, goBackToMenu, resign, offerDraw, boardTheme, setTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
+  const { game, goBackToMenu, resign, offerDraw, boardTheme, setTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
 
   const themes = [
     { id: 'default', label: t.default },

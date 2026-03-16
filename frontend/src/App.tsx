@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useGameStore, getUserTitle } from './store'
+import type { Language } from './translations'
 import Board from './components/Board'
 import GameControls from './components/GameControls'
 import MoveHistory from './components/MoveHistory'
@@ -413,7 +414,7 @@ function LiveGames() {
 }
 
 function Leaderboard() {
-  const { leaderboard, t, user, friends, followUser, sendFriendRequest, setNotification } = useGameStore()
+  const { leaderboard, t, user, friends, sendFriendRequest, setNotification } = useGameStore()
 
   if (!leaderboard || leaderboard.length === 0) return null
   
@@ -501,7 +502,7 @@ function ModeSelection() {
   const [difficulty, setDifficulty] = useState('normal')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [foundUser, setFoundUser] = useState<any>(null)
-  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, followUser, friends, sendFriendRequest, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
+  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, friends, sendFriendRequest, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
 
   useEffect(() => {
     fetchLeaderboard()
@@ -707,7 +708,7 @@ function ModeSelection() {
 }
 
 function ViewSwitcher() {
-  const { viewMode, setViewMode, t } = useGameStore()
+  const { viewMode, setViewMode } = useGameStore()
   return (
     <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
       <button
@@ -841,7 +842,7 @@ function InviteModal() {
 }
 
 function Chat() {
-  const { chatMessages, sendChatMessage, t, user } = useGameStore()
+  const { chatMessages, sendChatMessage, user } = useGameStore()
   const [text, setText] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -1125,8 +1126,16 @@ function SearchingModal() {
 }
 
 function FriendRequestModal() {
-  const { friendRequest, respondToFriendRequest, t } = useGameStore()
+  const { friendRequest, pendingRequests, fetchFriendRequests, respondToFriendRequest, t } = useGameStore()
+
+  useEffect(() => {
+    if (friendRequest) fetchFriendRequests()
+  }, [friendRequest, fetchFriendRequests])
+
   if (!friendRequest) return null
+
+  const request = pendingRequests?.find(r => r.from_user?.public_id === friendRequest.from_id)
+  const requestId = request?.id
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -1143,13 +1152,13 @@ function FriendRequestModal() {
         </p>
         <div className="flex gap-3">
           <button 
-            onClick={() => respondToFriendRequest(false)}
+            onClick={() => requestId != null && respondToFriendRequest(requestId, false)}
             className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-800 hover:bg-white/5 transition-all"
           >
             {t.decline}
           </button>
           <button 
-            onClick={() => respondToFriendRequest(true)}
+            onClick={() => requestId != null && respondToFriendRequest(requestId, true)}
             className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-accentCyan text-black hover:brightness-110 transition-all"
           >
             {t.accept}
@@ -1338,7 +1347,6 @@ function GameInfo() {
 
 export default function App() {
   const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, t, setLanguage, isSpectator } = useGameStore()
-  const inviteRequest = useGameStore(s => s.inviteRequest)
 
   useEffect(() => {
     const saved = localStorage.getItem('shaxmat_user')

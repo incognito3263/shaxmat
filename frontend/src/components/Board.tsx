@@ -90,7 +90,7 @@ export default function Board() {
 
           <div className="grid rounded-lg overflow-hidden" style={{ gridTemplateColumns: 'repeat(8, 1fr)' }}>
             {displayRows.flatMap((row) =>
-              displayCols.map((col, colIdx) => {
+              displayCols.map((col) => {
                 const actualColIdx = COLS.indexOf(col)
                 const square = col + row
                 const light = isLightSquare(row, actualColIdx)
