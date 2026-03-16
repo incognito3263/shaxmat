@@ -1,114 +1,118 @@
-# Chess Nexus — Deploy to Server with Domain
+# Chess Nexus — Serverda Deploy Qilish
 
-This guide explains how to deploy **Chess Nexus** to a VPS/cloud server with your own domain and HTTPS.
-
-## Prerequisites
-
-- A VPS (Ubuntu 22.04 recommended) — e.g. DigitalOcean, Linode, AWS EC2, etc.
-- A domain name pointing to your server’s IP (A record)
-- SSH access to the server
+Bu qo'llanma **Chess Nexus** loyihasini VPS/serverga domain bilan deploy qilish va ishlab turgan loyihani yangilash bo'yicha to'liq ko'rsatma.
 
 ---
 
-## 1. Server Setup
+## Arxitektura
 
-### 1.1 Connect and update
+```mermaid
+flowchart LR
+    subgraph Internet
+        User[Foydalanuvchi]
+    end
+    
+    subgraph Server
+        Nginx[Nginx :80/:443]
+        Frontend[Frontend :3000]
+        Backend[Backend :8000]
+        DB[(PostgreSQL :5432)]
+    end
+    
+    User -->|HTTPS| Nginx
+    Nginx -->|/| Frontend
+    Nginx -->|/login /game /ws ...| Backend
+    Backend --> DB
+```
+
+| Xizmat | Port | Vazifasi |
+|--------|------|----------|
+| Nginx | 80, 443 | Reverse proxy, SSL |
+| Frontend | 3000 | React SPA (Docker) |
+| Backend | 8000 | FastAPI |
+| PostgreSQL | 5432 | Baza |
+
+---
+
+## Talablar
+
+- Ubuntu 22.04 VPS (DigitalOcean, Linode, Hetzner va h.k.)
+- Domen (A record server IP ga yo'naltirilgan)
+- SSH kirish
+
+---
+
+## 1. Birinchi marta deploy
+
+### 1.1 Serverga ulanish va asosiy o'rnatish
 
 ```bash
 ssh root@YOUR_SERVER_IP
 apt update && apt upgrade -y
+apt install -y docker.io docker-compose nginx certbot python3-certbot-nginx
+systemctl enable docker nginx
+systemctl start docker nginx
 ```
 
-### 1.2 Install Docker and Docker Compose
+### 1.2 Loyihani yuklash
 
 ```bash
-apt install -y docker.io docker-compose
-systemctl enable docker
-systemctl start docker
-```
-
-### 1.3 Install Nginx and Certbot (for SSL)
-
-```bash
-apt install -y nginx certbot python3-certbot-nginx
-```
-
----
-
-## 2. Deploy the Application
-
-### 2.1 Clone the project
-
-```bash
-cd /opt
+mkdir -p /var/www
+cd /var/www
 git clone https://github.com/YOUR_USERNAME/shaxmat.git
 cd shaxmat
 ```
 
-Or upload the project with `scp` / `rsync`:
+Yoki `rsync` bilan:
 
 ```bash
-rsync -avz --exclude node_modules --exclude venv ./ user@YOUR_SERVER_IP:/opt/shaxmat/
+rsync -avz --exclude node_modules --exclude venv --exclude .git ./ user@YOUR_SERVER_IP:/var/www/shaxmat/
 ```
 
-### 2.2 Create production environment file
+### 1.3 Docker konteynerlarini ishga tushirish
 
 ```bash
-cd /opt/shaxmat
-nano .env
-```
-
-Add:
-
-```env
-DATABASE_URL=postgresql://shaxmat_user:shaxmat@db:5432/shaxmat_plus_db
-SECRET_KEY=a81860510039c82ea4512ababf16c06551ca7798762acbc380603913e86cbcb3
-```
-
-Generate a secret key:
-
-```bash
-openssl rand -hex 32
-```
-
-### 2.3 Update docker-compose for production
-
-Create `docker-compose.prod.yml` or adjust `docker-compose.yml`:
-
-- Use stronger DB password
-- Remove `--reload` from uvicorn
-- Optionally add restart policies
-
-### 2.4 Build and run
-
-```bash
+cd /var/www/shaxmat
 docker compose up -d --build
 ```
 
-Check that containers are running:
+Konteynerlar holatini tekshirish:
 
 ```bash
 docker compose ps
 ```
 
----
+`db`, `backend`, `frontend` — barchasi `Up` bo'lishi kerak.
 
-## 3. Configure Nginx and Domain
+### 1.4 Baza jadvallarini yaratish (muhim)
 
-### 3.1 Create Nginx site config
+Birinchi deploy da jadvallar bo'lmasa, ularni yaratish kerak:
+
+```bash
+docker compose exec backend python init_db.py
+```
+
+Tekshirish:
+
+```bash
+docker compose exec db psql -U shaxmat_user -d shaxmat_plus_db -c "\dt"
+```
+
+`users`, `games`, `moves`, `follows`, `friend_requests`, `notifications`, `board_states` ko'rinishi kerak.
+
+### 1.5 Nginx sozlash
 
 ```bash
 nano /etc/nginx/sites-available/chess-nexus
 ```
 
-Use this config (replace `YOUR_DOMAIN.com` with your domain):
+Quyidagini kiriting (domeningizni almashtiring):
 
 ```nginx
 server {
     listen 80;
-    server_name YOUR_DOMAIN.com www.YOUR_DOMAIN.com;
+    server_name newchess.uz www.newchess.uz;
 
-    # Frontend (React SPA)
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -118,15 +122,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Backend API
-    location /game {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
+    location /game { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
     location /signup { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
     location /login { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
     location /users { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
@@ -136,7 +132,6 @@ server {
     location /update-profile { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
     location /uploads { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
 
-    # WebSocket
     location /ws {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -150,33 +145,21 @@ server {
 }
 ```
 
-### 3.2 Enable site and test
+Sahifani yoqish va nginxni qayta yuklash:
 
 ```bash
-ln -s /etc/nginx/sites-available/chess-nexus /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/chess-nexus /etc/nginx/sites-enabled/
 nginx -t
 systemctl reload nginx
 ```
 
-### 3.3 Obtain SSL certificate
+### 1.6 SSL (HTTPS)
 
 ```bash
-certbot --nginx -d YOUR_DOMAIN.com -d www.YOUR_DOMAIN.com
+certbot --nginx -d newchess.uz -d www.newchess.uz
 ```
 
-Follow the prompts. Certbot will update Nginx for HTTPS.
-
----
-
-## 4. Frontend Production Build
-
-The frontend must use the same origin for API and WebSocket in production. The app already uses `window.location.host` in production mode, so when served from your domain it will call the same domain.
-
-Ensure the frontend Docker image is built with production settings (already configured in the Dockerfile).
-
----
-
-## 5. Firewall
+### 1.7 Firewall
 
 ```bash
 ufw allow 22
@@ -187,31 +170,103 @@ ufw enable
 
 ---
 
-## 6. Useful Commands
+## 2. Ishlab turgan loyihani yangilash
 
-| Action | Command |
-|--------|---------|
-| View logs | `docker compose logs -f` |
-| Restart | `docker compose restart` |
+Kod o'zgarganda yoki yangi versiya deploy qilishda:
+
+### 2.1 Loyihani yangilash
+
+```bash
+cd /var/www/shaxmat
+git pull origin main
+```
+
+Yoki `rsync` bilan:
+
+```bash
+rsync -avz --exclude node_modules --exclude venv --exclude .git ./ user@YOUR_SERVER_IP:/var/www/shaxmat/
+```
+
+### 2.2 Rebuild va qayta ishga tushirish
+
+```bash
+cd /var/www/shaxmat
+docker compose down
+docker compose up -d --build
+```
+
+### 2.3 Yangi jadval/migratsiya bo'lsa
+
+Agar model o'zgargan bo'lsa:
+
+```bash
+docker compose exec backend python init_db.py
+```
+
+**Eslatma:** `init_db.py` mavjud jadvallarni o'chirmaydi, faqat yangi jadvallarni yaratadi.
+
+---
+
+## 3. Foydali buyruqlar
+
+| Vazifa | Buyruq |
+|--------|--------|
+| Konteynerlar holati | `docker compose ps` |
+| Loglar | `docker compose logs -f` |
+| Faqat backend loglari | `docker compose logs backend -f --tail 50` |
+| Barchasini qayta ishga tushirish | `docker compose restart` |
 | Rebuild | `docker compose up -d --build` |
-| Stop | `docker compose down` |
+| To'xtatish | `docker compose down` |
+| Baza bilan to'xtatish | `docker compose down -v` |
 
 ---
 
-## 7. Domain DNS
+## 4. Baza tekshirish
 
-Point your domain to the server:
+### Foydalanuvchilar ro'yxati
 
-| Type | Name | Value |
-|------|------|-------|
-| A | @ | YOUR_SERVER_IP |
-| A | www | YOUR_SERVER_IP |
+```bash
+docker compose exec db psql -U shaxmat_user -d shaxmat_plus_db -c "SELECT id, username, public_id FROM users;"
+```
+
+### Jadvallar ro'yxati
+
+```bash
+docker compose exec db psql -U shaxmat_user -d shaxmat_plus_db -c "\dt"
+```
+
+### Backend qaysi bazaga ulanganini tekshirish
+
+```bash
+docker compose exec backend env | grep DATABASE
+```
+
+Batafsil debug uchun: [DEBUG.md](DEBUG.md)
 
 ---
 
-## 8. Security Checklist
+## 5. DNS sozlash
 
-- [ ] Change `shaxmat_password` in docker-compose
-- [ ] Set strong `SECRET_KEY` in `.env`
-- [ ] Use HTTPS only (Certbot handles this)
-- [ ] Keep the server and Docker images updated
+| Turi | Name | Qiymat |
+|------|------|--------|
+| A | @ | SERVER_IP |
+| A | www | SERVER_IP |
+
+---
+
+## 6. Xavfsizlik
+
+- [ ] `docker-compose.yml` da `shaxmat_password` ni kuchli parolga almashtiring
+- [ ] HTTPS ishlatilayotganini tekshiring
+- [ ] Server va Docker imajlarini muntazam yangilang
+
+---
+
+## 7. Muammolarni bartaraf etish
+
+| Muammo | Yechim |
+|--------|--------|
+| 502 Bad Gateway | `docker compose ps` — backend ishlayaptimi? `docker compose logs backend` |
+| Login ishlamaydi | [DEBUG.md](DEBUG.md) — baza jadvallari bormi? `init_db.py` ishlatildimi? |
+| WebSocket ulanishi yo'q | Nginx `/ws` proxy to'g'ri sozlanganini tekshiring |
+| Frontend yangilanmaydi | `docker compose up -d --build` — frontend qayta build qiling |

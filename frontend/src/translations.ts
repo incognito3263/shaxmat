@@ -110,7 +110,7 @@ export const translations = {
   },
   uz: {
     title: "CHESS NEXUS",
-    subtitle: "Yangi O'lcham",
+    subtitle: "Yangi O'lcha",
     login: "Kirish",
     signup: "Ro'yxatdan o'tish",
     username: "Foydalanuvchi nomi",
