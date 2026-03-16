@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useGameStore } from '../store'
 import PieceSvg from './pieces/PieceSvg'
 import Board3D from './Board3D'
@@ -32,14 +32,16 @@ function EvalBar() {
   const percentage = ((clampedEval + 5) / 10) * 100
   
   return (
-    <div className="w-2 h-full bg-[#1E2D40] rounded-full overflow-hidden flex flex-col-reverse border border-white/5 relative mr-4">
+    <div className="w-1.5 sm:w-2 h-full bg-[#1E2D40] rounded-full overflow-hidden flex flex-col-reverse border border-white/5 relative mr-2 sm:mr-4">
       <motion.div 
-        className="w-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+        className="w-full bg-white shadow-[0_0:10px_rgba(255,255,255,0.3)]"
         animate={{ height: `${percentage}%` }}
         transition={{ type: "spring", stiffness: 50, damping: 20 }}
       />
       <div className="absolute inset-0 flex flex-col justify-between items-center py-2 pointer-events-none">
-        <span className="text-[8px] font-black text-black mix-blend-difference">{(evaluation || 0) > 0 ? `+${(evaluation || 0).toFixed(1)}` : (evaluation || 0).toFixed(1)}</span>
+        <span className="text-[7px] sm:text-[8px] font-black text-black mix-blend-difference">
+          {(evaluation || 0) > 0 ? `+${(evaluation || 0).toFixed(1)}` : (evaluation || 0).toFixed(1)}
+        </span>
       </div>
     </div>
   )
@@ -65,7 +67,7 @@ export default function Board() {
 
   const activeBoard = (reviewMode && reviewBoardData) ? reviewBoardData.board : game.board;
   const activeTurn = (reviewMode && reviewBoardData) ? reviewBoardData.turn : game.turn;
-  const activeLastMove = (reviewMode && reviewBoardData) ? reviewBoardData.last_move : game.last_move;
+  const activeLastMove = (reviewMode && reviewBoardData) ? (reviewBoardData.last_move || game.last_move) : game.last_move;
   const inCheck = reviewMode ? false : game.in_check;
   const kingSquare = inCheck ? findKingSquare(activeBoard, activeTurn) : null
 
@@ -75,20 +77,25 @@ export default function Board() {
   const displayCols = isFlipped ? [...COLS].reverse() : COLS
 
   return (
-    <div className="flex flex-col items-center gap-2 select-none w-full max-w-[100vw] overflow-hidden">
-      <div className="flex items-stretch h-[min(85vw,500px)] sm:h-[clamp(440px,70vw,640px)] w-full justify-center px-2">
+    <div className="flex flex-col items-center gap-2 select-none w-full max-w-4xl mx-auto px-1">
+      {/* Board Wrapper */}
+      <div className="flex items-stretch w-full aspect-[9/10] sm:aspect-square max-h-[85vh] justify-center relative">
         <EvalBar />
         
-        <div className="relative" style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}>
-          <div className="absolute -left-4 sm:-left-6 top-0 flex flex-col h-full pointer-events-none text-[10px] sm:text-xs">
+        {/* The Grid Container */}
+        <div className="relative flex-1 max-w-[min(100%,700px)] aspect-[8/10] sm:aspect-[8/10] bg-[#1E2D40] rounded-sm sm:rounded-md shadow-2xl overflow-visible border border-white/5">
+          
+          {/* Numbers (Vertical Labels) */}
+          <div className="absolute -left-4 sm:-left-7 top-0 h-full flex flex-col pointer-events-none">
             {displayRows.map((row) => (
-              <div key={row} className="flex-1 flex items-center justify-center board-label opacity-40">
+              <div key={row} className="flex-1 flex items-center justify-center text-[9px] sm:text-xs font-bold text-gray-500">
                 {row}
               </div>
             ))}
           </div>
 
-          <div className="grid rounded-md overflow-hidden" style={{ gridTemplateColumns: 'repeat(8, 1fr)' }}>
+          {/* Main 8x10 Grid */}
+          <div className="grid grid-cols-8 grid-rows-10 h-full w-full overflow-hidden rounded-sm sm:rounded-md">
             {displayRows.flatMap((row) =>
               displayCols.map((col) => {
                 const actualColIdx = COLS.indexOf(col)
@@ -127,9 +134,10 @@ export default function Board() {
             )}
           </div>
 
-          <div className="flex mt-1 w-full justify-around">
+          {/* Letters (Horizontal Labels) */}
+          <div className="absolute -bottom-5 sm:-bottom-7 left-0 w-full flex pointer-events-none">
             {displayCols.map((c) => (
-              <div key={c} className="board-label opacity-40 text-[10px] sm:text-xs" style={{ width: '12%', textAlign: 'center' }}>
+              <div key={c} className="flex-1 text-center text-[9px] sm:text-xs font-bold text-gray-500">
                 {c}
               </div>
             ))}
@@ -163,49 +171,43 @@ function Square({ square, light, isSelected, isLegal, isCapture, isKingInCheck, 
   const bgColor = light ? theme.light : theme.dark
 
   return (
-    <motion.div
-      className={`sq relative ${isKingInCheck ? 'check-pulse' : ''} cursor-pointer`}
-      style={{
-        width: 'clamp(40px, 10.5vw, 75px)',
-        height: 'clamp(40px, 10.5vw, 75px)',
-        backgroundColor: bgColor,
-        outline: isSelected ? '2px solid rgba(245,197,24,0.8)' : 'none',
-        outlineOffset: '-2px',
-        zIndex: isSelected ? 2 : 1,
-      }}
+    <div
+      className={`relative aspect-square flex items-center justify-center cursor-pointer transition-colors duration-200 ${isKingInCheck ? 'check-pulse' : ''}`}
+      style={{ backgroundColor: bgColor }}
       onClick={handleClick}
-      transition={{ duration: 0.1 }}
     >
+      {/* Highlights */}
       {isLastMove && !isSelected && (
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(245,197,24,0.15)' }} />
+        <div className="absolute inset-0 bg-yellow-400/20 pointer-events-none" />
       )}
       {isSelected && (
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(245,197,24,0.18)' }} />
-      )}
-      {isLegal && !piece && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="rounded-full bg-blue-400/50 w-[30%] h-[30%]" />
-        </div>
-      )}
-      {isCapture && (
-        <div className="absolute inset-0 pointer-events-none border-[3px] border-blue-400/50" />
+        <div className="absolute inset-0 bg-yellow-400/30 border-2 border-yellow-400/60 z-10 pointer-events-none" />
       )}
       
+      {/* Move Hints */}
+      {isLegal && !piece && (
+        <div className="w-[25%] h-[25%] rounded-full bg-blue-500/40 pointer-events-none z-10" />
+      )}
+      {isCapture && (
+        <div className="absolute inset-0 border-[3px] border-blue-500/40 pointer-events-none z-10" />
+      )}
+
+      {/* Piece Render */}
       {piece && (
         <motion.div
-          key={`${piece.color}-${piece.type}-${square}`} 
-          initial={{ opacity: 0, scale: 0.8 }}
+          key={`${piece.color}-${piece.type}-${square}`}
+          initial={{ opacity: 0, scale: 0.6 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          className="absolute inset-0 flex items-center justify-center p-[10%]"
-          style={{ zIndex: 10 }}
+          exit={{ opacity: 0, scale: 0.6 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="w-full h-full flex items-center justify-center p-[10%] relative z-20"
         >
-          <div className={piece.color === 'white' ? 'glow-white' : 'glow-cyan'}>
+          <div className={piece.color === 'white' ? 'glow-white' : 'glow-cyan'} style={{ width: '100%', height: '100%' }}>
             <PieceSvg type={piece.type} color={piece.color} size="100%" />
           </div>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   )
 }
 
