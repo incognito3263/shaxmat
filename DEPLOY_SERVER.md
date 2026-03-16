@@ -106,7 +106,7 @@ Use this config (replace `YOUR_DOMAIN.com` with your domain):
 ```nginx
 server {
     listen 80;
-    server_name YOUR_DOMAIN.com www.YOUR_DOMAIN.com;
+    server_name newchess.uz www.newchess.uz;
 
     # Frontend (React SPA)
     location / {
@@ -161,7 +161,7 @@ systemctl reload nginx
 ### 3.3 Obtain SSL certificate
 
 ```bash
-certbot --nginx -d YOUR_DOMAIN.com -d www.YOUR_DOMAIN.com
+certbot --nginx -d YOUR_DOMAIN.com -d www.newchess.uz
 ```
 
 Follow the prompts. Certbot will update Nginx for HTTPS.

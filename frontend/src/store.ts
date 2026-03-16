@@ -134,6 +134,17 @@ interface GameStore {
 
 const API_BASE = '/game'
 
+function getApiErrorMessage(data: unknown, fallback: string): string {
+  if (!data || typeof data !== 'object') return fallback
+  const d = (data as { detail?: unknown }).detail
+  if (typeof d === 'string') return d
+  if (Array.isArray(d) && d.length > 0) {
+    const first = d[0] as { msg?: string; loc?: string[] }
+    return first.msg || (first.loc ? first.loc.join('. ') + ' – required' : fallback)
+  }
+  return fallback
+}
+
 function squareToRowCol(square: string): [number, number] {
   const col = square.charCodeAt(0) - 97
   const row = parseInt(square.slice(1), 10) - 1
@@ -214,15 +225,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        throw new Error(data.detail || 'Signup failed')
+        throw new Error(getApiErrorMessage(data, 'Signup failed'))
       }
       if (!data.user) throw new Error('Invalid response from server')
       set({ user: data.user, token: data.access_token })
       localStorage.setItem('shaxmat_token', data.access_token)
       localStorage.setItem('shaxmat_user', JSON.stringify(data.user))
       get().initSocket(data.user.public_id)
-    } catch (e: any) {
-      set({ error: e.message })
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Network error'
+      set({ error: msg })
     } finally {
       set({ loading: false })
     }
@@ -238,15 +250,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        throw new Error(data.detail || 'Login failed')
+        throw new Error(getApiErrorMessage(data, 'Incorrect username or password'))
       }
       if (!data.user) throw new Error('Invalid response from server')
       set({ user: data.user, token: data.access_token })
       localStorage.setItem('shaxmat_token', data.access_token)
       localStorage.setItem('shaxmat_user', JSON.stringify(data.user))
       get().initSocket(data.user.public_id)
-    } catch (e: any) {
-      set({ error: e.message })
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Network error. Check if backend is running.'
+      set({ error: msg })
     } finally {
       set({ loading: false })
     }
