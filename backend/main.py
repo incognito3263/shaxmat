@@ -44,7 +44,25 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Ensure tables are created
     Base.metadata.create_all(bind=engine)
+    
+    # Run manual migrations for new columns
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        # Add time_increment if missing
+        try:
+            conn.execute(text("ALTER TABLE games ADD COLUMN IF NOT EXISTS time_increment INTEGER DEFAULT 0"))
+            conn.commit()
+        except Exception as e:
+            print(f"DEBUG: Migration time_increment: {e}")
+            
+        # Add stats_updated if missing
+        try:
+            conn.execute(text("ALTER TABLE games ADD COLUMN IF NOT EXISTS stats_updated BOOLEAN DEFAULT 0"))
+            conn.commit()
+        except Exception as e:
+            print(f"DEBUG: Migration stats_updated: {e}")
     
     # Heartbeat task to keep WS connections alive
     async def heartbeat():
