@@ -47,22 +47,28 @@ async def lifespan(app: FastAPI):
     # Ensure tables are created
     Base.metadata.create_all(bind=engine)
     
-    # Run manual migrations for new columns
-    from sqlalchemy import text
-    with engine.connect() as conn:
-        # Add time_increment if missing
-        try:
-            conn.execute(text("ALTER TABLE games ADD COLUMN IF NOT EXISTS time_increment INTEGER DEFAULT 0"))
-            conn.commit()
-        except Exception as e:
-            print(f"DEBUG: Migration time_increment: {e}")
+    # Run robust migrations for new columns
+    from sqlalchemy import text, inspect
+    try:
+        with engine.connect() as conn:
+            inspector = inspect(engine)
+            columns = [c['name'] for c in inspector.get_columns('games')]
             
-        # Add stats_updated if missing
-        try:
-            conn.execute(text("ALTER TABLE games ADD COLUMN IF NOT EXISTS stats_updated BOOLEAN DEFAULT 0"))
-            conn.commit()
-        except Exception as e:
-            print(f"DEBUG: Migration stats_updated: {e}")
+            # Add time_increment if missing
+            if 'time_increment' not in columns:
+                print("DEBUG: Adding time_increment column...")
+                conn.execute(text("ALTER TABLE games ADD COLUMN time_increment INTEGER DEFAULT 0"))
+                conn.commit()
+                print("DEBUG: time_increment added.")
+                
+            # Add stats_updated if missing
+            if 'stats_updated' not in columns:
+                print("DEBUG: Adding stats_updated column...")
+                conn.execute(text("ALTER TABLE games ADD COLUMN stats_updated BOOLEAN DEFAULT FALSE"))
+                conn.commit()
+                print("DEBUG: stats_updated added.")
+    except Exception as e:
+        print(f"DEBUG: Migration error: {e}")
     
     # Heartbeat task to keep WS connections alive
     async def heartbeat():
