@@ -14,9 +14,9 @@ class Piece:
         raise NotImplementedError
 
     def clone(self) -> 'Piece':
-        """Return a shallow copy of this piece."""
-        p = self.__class__.__new__(self.__class__)
-        p.__dict__.update(self.__dict__)
+        """Return a copy of this piece. Much faster than __dict__.update."""
+        p = self.__class__(self.color, self.position)
+        p.has_moved = self.has_moved
         return p
 
     def to_dict(self) -> dict:

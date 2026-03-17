@@ -73,6 +73,16 @@ class Board:
                     pieces.append(p)
         return pieces
 
+    def copy(self) -> 'Board':
+        """Return a copy of the board with cloned pieces. Much faster than deepcopy."""
+        new_board = Board()
+        for r in range(BOARD_ROWS):
+            for c in range(BOARD_COLS):
+                p = self._grid[r][c]
+                if p:
+                    new_board._grid[r][c] = p.clone()
+        return new_board
+
     # ── Serialisation ─────────────────────────────────────────────────────────
     def to_dict(self) -> List[List[Optional[dict]]]:
         """Return 10×8 list-of-lists; row 0 = rank 1."""

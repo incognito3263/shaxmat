@@ -41,9 +41,21 @@ class GameState:
         self.winner: Optional[str] = None
         self.captured_pieces: Dict[str, List[str]] = {"white": [], "black": []}
         self.last_move: Optional[Dict] = None
+        
+        # Cache king positions for speed
+        self._king_pos = {"white": None, "black": None}
+        self._update_king_cache()
 
         # Record initial position
         self.position_history.append(_ZOBRIST.hash(self))
+
+    def _update_king_cache(self):
+        # We look manually here, then use it elsewhere
+        for r in range(self.board.BOARD_ROWS):
+            for c in range(self.board.BOARD_COLS):
+                p = self.board.get_piece_at(r, c)
+                if p and p.type == 'K':
+                    self._king_pos[p.color] = (r, c)
 
     # ── Convenience properties ────────────────────────────────────────────────
     @property
@@ -68,6 +80,10 @@ class GameState:
 
     # ── King position ─────────────────────────────────────────────────────────
     def get_king_position(self, color: str) -> Optional[Tuple[int, int]]:
+        # Use cache if available
+        if hasattr(self, '_king_pos') and self._king_pos.get(color):
+            return self._king_pos[color]
+
         for r in range(self.board.BOARD_ROWS):
             for c in range(self.board.BOARD_COLS):
                 p = self.board.get_piece_at(r, c)
@@ -77,26 +93,55 @@ class GameState:
 
     # ── Attack detection ──────────────────────────────────────────────────────
     def is_square_attacked_by(self, row: int, col: int, attacker_color: str) -> bool:
-        """True if (row,col) is attacked by any piece of attacker_color."""
+        """Optimized attack detection: scan outwards from the square."""
         board = self.board
         opp = attacker_color
+        
+        # 1. Pawns & Suppliers
+        pawn_dir = -1 if opp == 'white' else 1
+        # Attacking pawns
+        for dc in [-1, 1]:
+            p = board.get_piece_at(row + pawn_dir, col + dc)
+            if p and p.type == 'P' and p.color == opp: return True
+        # Attacking suppliers
+        p_sup = board.get_piece_at(row + pawn_dir, col)
+        if p_sup and p_sup.type == 'S' and p_sup.color == opp: return True
 
-        for r in range(board.BOARD_ROWS):
-            for c in range(board.BOARD_COLS):
+        # 2. Knights
+        for dr, dc in [(2,1),(2,-1),(-2,1),(-2,-1),(1,2),(1,-2),(-1,2),(-1,-2)]:
+            p = board.get_piece_at(row + dr, col + dc)
+            if p and p.type == 'N' and p.color == opp: return True
+
+        # 3. King (adjacent squares)
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                if dr == 0 and dc == 0: continue
+                p = board.get_piece_at(row + dr, col + dc)
+                if p and p.type == 'K' and p.color == opp: return True
+
+        # 4. Sliders (Rook, Bishop, Queen)
+        # Orthogonal (Rook, Queen)
+        for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:
+            r, c = row + dr, col + dc
+            while board.is_valid_position(r, c):
                 p = board.get_piece_at(r, c)
-                if not p or p.color != opp:
-                    continue
-                if p.type == 'P':
-                    d = 1 if p.color == 'white' else -1
-                    if row == r + d and col in (c - 1, c + 1):
-                        return True
-                elif p.type == 'S':
-                    d = 1 if p.color == 'white' else -1
-                    if row == r + d and col == c:
-                        return True
-                else:
-                    if (row, col) in p.get_valid_moves(board):
-                        return True
+                if p:
+                    if p.color == opp and p.type in ('R', 'Q'): return True
+                    break
+                r += dr
+                c += dc
+        
+        # Diagonal (Bishop, Queen)
+        for dr, dc in [(1,1),(1,-1),(-1,1),(-1,-1)]:
+            r, c = row + dr, col + dc
+            while board.is_valid_position(r, c):
+                p = board.get_piece_at(r, c)
+                if p:
+                    if p.color == opp and p.type in ('B', 'Q'): return True
+                    break
+                r += dr
+                c += dc
+
         return False
 
     def is_in_check(self, color: str) -> bool:
@@ -174,13 +219,68 @@ class GameState:
         return True
 
     def _is_legal(self, move: Move) -> bool:
-        """True if move doesn't leave own king in check."""
-        sim = self._simulate(move)
-        return not sim.is_in_check(self.turn)
+        """Optimized: check legality without cloning the entire state."""
+        board = self.board
+        fr, fc = move.from_pos
+        tr, tc = move.to_pos
+        piece = board.get_piece_at(fr, fc)
+        if not piece: return False
+        
+        color = piece.color
+        target_piece = board.get_piece_at(tr, tc)
+        
+        # 1. Temporarily make the move
+        orig_king_pos = self._king_pos[color]
+        board._grid[tr][tc] = piece
+        board._grid[fr][fc] = None
+        if piece.type == 'K':
+            self._king_pos[color] = (tr, tc)
+            
+        # Special case: en passant capture
+        ep_captured_pawn = None
+        if move.is_en_passant:
+            d = 1 if color == 'white' else -1
+            ep_captured_pawn = board.get_piece_at(tr - d, tc)
+            board._grid[tr - d][tc] = None
+
+        # 2. Check if king is safe
+        in_check = self.is_in_check(color)
+        
+        # 3. Undo the move
+        board._grid[fr][fc] = piece
+        board._grid[tr][tc] = target_piece
+        self._king_pos[color] = orig_king_pos
+        if move.is_en_passant:
+            d = 1 if color == 'white' else -1
+            board._grid[tr - d][tc] = ep_captured_pawn
+            
+        return not in_check
+
+    def copy(self) -> 'GameState':
+        """Manual shallow-copy of GameState for performance."""
+        sim = GameState.__new__(GameState)
+        sim.board = self.board.copy()
+        sim.turn = self.turn
+        sim.castling_rights = self.castling_rights.copy()
+        sim.en_passant_target = self.en_passant_target
+        sim.halfmove_clock = self.halfmove_clock
+        sim.fullmove_number = self.fullmove_number
+        sim.move_history = self.move_history.copy()
+        sim.position_history = self.position_history.copy()
+        sim.game_over = self.game_over
+        sim.result = self.result
+        sim.winner = self.winner
+        sim.captured_pieces = {
+            "white": self.captured_pieces["white"].copy(),
+            "black": self.captured_pieces["black"].copy()
+        }
+        sim.last_move = self.last_move
+        sim._king_pos = self._king_pos.copy()
+        return sim
 
     def _simulate(self, move: Move) -> 'GameState':
-        """Apply move on a deep-copied state and return it (no legality check)."""
-        sim = deepcopy(self)
+        """Apply move on a copied state and return it (no legality check)."""
+        sim = self.copy()
         sim._apply_unchecked(move)
         return sim
 
@@ -312,6 +412,10 @@ class GameState:
         board.set_piece_at(tr, tc, piece)
         board.set_piece_at(fr, fc, None)
         piece.has_moved = True
+        
+        # Update king cache if king moved
+        if piece.type == 'K':
+            self._king_pos[color] = (tr, tc)
 
         # En passant capture
         if move.is_en_passant:
