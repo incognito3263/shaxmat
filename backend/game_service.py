@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 from engine import GameState, Move
-from models import Game
+from models import Game, User
 from database import SessionLocal
 
 
@@ -38,15 +38,65 @@ def save_game_to_db(game_id: int, gs: GameState):
         if not game:
             return
         
-        game.last_move_at = datetime.utcnow()
+        # Calculate time spent on the move
+        now = datetime.utcnow()
+        elapsed = int((now - game.last_move_at).total_seconds())
+        
+        # Subtract time from the player who just MOVED
+        # gs.turn has already switched to the next player
+        if game.status == "active" and len(gs.move_history) > 0:
+            if gs.turn == "black": # White just moved
+                game.white_time_left = max(0, game.white_time_left - elapsed + game.time_increment)
+            else: # Black just moved
+                game.black_time_left = max(0, game.black_time_left - elapsed + game.time_increment)
+            
+            # Check for flag fall
+            if game.white_time_left <= 0:
+                game.status = "timeout"
+                game.winner = "black"
+                gs.game_over = True
+                gs.result = "timeout"
+                gs.winner = "black"
+            elif game.black_time_left <= 0:
+                game.status = "timeout"
+                game.winner = "white"
+                gs.game_over = True
+                gs.result = "timeout"
+                gs.winner = "white"
+
+        game.last_move_at = now
         
         d = gs.to_dict()
         game.board_state = d
         game.turn = d["turn"]
         game.halfmove_clock = d["halfmove_clock"]
         game.fullmove_number = d["fullmove_number"]
-        game.status = d["result"] or "active"
-        game.winner = d["winner"]
+        if game.status == "active": # Only update if not already set by timeout
+            game.status = d["result"] or "active"
+            game.winner = d["winner"]
+
+        # ── Statistics Update ────────────────────────────────────────────────
+        if gs.game_over and not game.stats_updated:
+            print(f"DEBUG: Updating stats for game {game.id}. Result: {gs.result}, Winner: {gs.winner}")
+            
+            w_player = db.query(User).filter(User.id == game.white_player_id).first() if game.white_player_id else None
+            b_player = db.query(User).filter(User.id == game.black_player_id).first() if game.black_player_id else None
+
+            if gs.result in ["checkmate", "timeout", "resigned"]:
+                # If resigned, gs.winner should be set by the caller
+                winner = gs.winner
+                if winner == "white":
+                    if w_player: w_player.wins += 1
+                    if b_player: b_player.losses += 1
+                elif winner == "black":
+                    if b_player: b_player.wins += 1
+                    if w_player: w_player.losses += 1
+            elif gs.result in ["stalemate", "draw_50", "draw_repetition", "draw_insufficient", "draw_agreement"]:
+                if w_player: w_player.draws += 1
+                if b_player: b_player.draws += 1
+            
+            game.stats_updated = True
+            print(f"DEBUG: Stats updated flag set for game {game.id}")
         
         db.commit()
     finally:
@@ -58,6 +108,7 @@ def create_new_game(
     white_player_id: Optional[int] = None,
     black_player_id: Optional[int] = None,
     time_limit: int = 600,
+    time_increment: int = 0,
     ai_difficulty: str = "normal"
 ) -> tuple[GameState, int]:
     gs = GameState()
@@ -72,6 +123,7 @@ def create_new_game(
             black_player_id=black_player_id,
             white_time_left=time_limit,
             black_time_left=time_limit,
+            time_increment=time_increment,
             last_move_at=datetime.utcnow(),
             board_state=gs.to_dict(),
             halfmove_clock=0,

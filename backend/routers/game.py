@@ -49,6 +49,7 @@ def create_game(req: CreateGameRequest, db: Session = Depends(get_db)):
         white_player_id=white_id,
         black_player_id=black_id,
         time_limit=req.time_limit,
+        time_increment=req.time_increment or 0,
         ai_difficulty=req.ai_difficulty
     )
     put_game_state(game_id, gs)
@@ -153,6 +154,26 @@ def get_game(game_id: int, db: Session = Depends(get_db)):
     from engine.ai import evaluate_board
     eval_score = evaluate_board(gs) / 100.0 # Convert centipawns to pawns
 
+    # Calculate live clocks
+    w_time = game.white_time_left
+    b_time = game.black_time_left
+    if game.status == "active":
+        elapsed = int((datetime.utcnow() - game.last_move_at).total_seconds())
+        if gs.turn == "white":
+            w_time = max(0, w_time - elapsed)
+        else:
+            b_time = max(0, b_time - elapsed)
+        
+        # Check for flag fall (timeout)
+        if w_time <= 0 or b_time <= 0:
+            game.winner = "black" if w_time <= 0 else "white"
+            gs.game_over = True
+            gs.result = "timeout"
+            gs.winner = game.winner
+            put_game_state(game_id, gs)
+            # Refresh to get latest state including stats_updated
+            db.refresh(game)
+
     return GameResponse(
         id=game_id,
         game_mode=game.game_mode,
@@ -165,6 +186,9 @@ def get_game(game_id: int, db: Session = Depends(get_db)):
         fullmove_number=d.get("fullmove_number", 1),
         legal_moves=legal_map,
         in_check=gs.is_in_check(gs.turn),
+        white_time_left=w_time,
+        black_time_left=b_time,
+        time_increment=game.time_increment or 0,
         white_player_id=game.white_player_id,
         black_player_id=game.black_player_id,
         white_player_public_id=white_public_id,
@@ -174,9 +198,7 @@ def get_game(game_id: int, db: Session = Depends(get_db)):
         ai_difficulty=game.ai_difficulty,
         evaluation=eval_score,
         captured_pieces=d.get("captured_pieces"),
-        last_move=d.get("last_move"),
-        white_time_left=600,
-        black_time_left=600
+        last_move=d.get("last_move")
     )
 
 
@@ -203,7 +225,7 @@ async def make_move(game_id: int, req: MoveRequest, db: Session = Depends(get_db
     # This handles time subtraction and persistence
     put_game_state(game_id, gs)
     
-    # CRITICAL: Refresh the game object to get updated player IDs and status
+    # CRITICAL: Refresh the game object to get updated status and player IDs
     db.refresh(game)
 
     # Persist move record
@@ -218,27 +240,6 @@ async def make_move(game_id: int, req: MoveRequest, db: Session = Depends(get_db
         promotion=req.promotion,
     )
     db.add(m)
-    
-    # Check if game just ended
-    if gs.game_over and game.status == "active":
-        game.status = gs.result
-        game.winner = gs.winner
-        
-        # Update user stats only in Person vs Person mode
-        if game.game_mode == "Person":
-            w_player = db.query(User).filter(User.id == game.white_player_id).first()
-            b_player = db.query(User).filter(User.id == game.black_player_id).first()
-            
-            if game.status == "checkmate":
-                if game.winner == "white":
-                    if w_player: w_player.wins += 1
-                    if b_player: b_player.losses += 1
-                elif game.winner == "black":
-                    if b_player: b_player.wins += 1
-                    if w_player: w_player.losses += 1
-            elif game.status in ["stalemate", "draw_50", "draw_repetition", "draw_insufficient"]:
-                if w_player: w_player.draws += 1
-                if b_player: b_player.draws += 1
 
     db.commit()
 
@@ -312,6 +313,7 @@ def ai_move(game_id: int, db: Session = Depends(get_db)):
         raise HTTPException(500, "AI generated an illegal move")
 
     put_game_state(game_id, gs)
+    db.refresh(game)
 
     # Persist move record
     m = MoveModel(
@@ -338,6 +340,7 @@ def ai_move(game_id: int, db: Session = Depends(get_db)):
     }
 
 
+
 @router.post("/{game_id}/resign")
 async def resign_game(game_id: int, user_id: int, db: Session = Depends(get_db)):
     game = db.query(Game).filter(Game.id == game_id).first()
@@ -349,50 +352,28 @@ async def resign_game(game_id: int, user_id: int, db: Session = Depends(get_db))
 
     # Determine winner
     winner = "black" if user_id == game.white_player_id else "white"
-    game.status = "resigned"
-    game.winner = winner
     
-    # Update stats
-    if game.game_mode == "Person":
-        w_player = db.query(User).filter(User.id == game.white_player_id).first()
-        b_player = db.query(User).filter(User.id == game.black_player_id).first()
-        if winner == "white":
-            if w_player: w_player.wins += 1
-            if b_player: b_player.losses += 1
-        else:
-            if b_player: b_player.wins += 1
-            if w_player: w_player.losses += 1
-
-    db.commit()
+    # Update stats using helper via put_game_state
+    gs = get_or_create_game_state(game_id, game)
+    if gs:
+        gs.game_over = True
+        gs.result = "resigned"
+        gs.winner = winner
+        put_game_state(game_id, gs)
+    else:
+        # Fallback if gs not found
+        game.status = "resigned"
+        game.winner = winner
+        db.commit()
 
     # Notify opponent
     if game.game_mode == "Person":
         try:
             import json
-            
-            # Find the user who resigned to get their name
             resigned_user = db.query(User).filter(User.id == user_id).first()
             resigned_name = resigned_user.username if resigned_user else "Opponent"
 
-            # Find opponent public_id
-            opp_user = None
-            if winner == "black":
-                opp_user = db.query(User).filter(User.id == game.black_player_id).first()
-            else:
-                opp_user = db.query(User).filter(User.id == game.white_player_id).first()
-            
-            if opp_user:
-                await manager.send_personal_message(
-                    json.dumps({
-                        "type": "opponent_resigned", 
-                        "game_id": game_id,
-                        "winner": winner,
-                        "from_username": resigned_name
-                    }),
-                    opp_user.public_id
-                )
-            
-            # NOTIFY SPECTATORS
+            # Notify through manager
             await manager.broadcast_to_game(
                 game_id,
                 json.dumps({
@@ -402,8 +383,8 @@ async def resign_game(game_id: int, user_id: int, db: Session = Depends(get_db))
                     "from_username": resigned_name
                 })
             )
-        except:
-            pass
+        except Exception as e:
+            print(f"DEBUG: Resign notification error: {e}")
 
     return {"success": True, "winner": winner}
 
@@ -412,23 +393,26 @@ async def resign_game(game_id: int, user_id: int, db: Session = Depends(get_db))
 async def set_draw(game_id: int, db: Session = Depends(get_db)):
     game = db.query(Game).filter(Game.id == game_id).first()
     if not game: raise HTTPException(404, "Game not found")
-    game.status = "draw_agreement"
     
-    # Update stats
-    if game.game_mode == "Person":
-        w = db.query(User).filter(User.id == game.white_player_id).first()
-        b = db.query(User).filter(User.id == game.black_player_id).first()
-        if w: w.draws += 1
-        if b: b.draws += 1
-    
-    db.commit()
+    if game.status != "active":
+        return {"success": True}
 
+    # Update stats using helper via put_game_state
+    gs = get_or_create_game_state(game_id, game)
+    if gs:
+        gs.game_over = True
+        gs.result = "draw_agreement"
+        put_game_state(game_id, gs)
+    else:
+        game.status = "draw_agreement"
+        db.commit()
+    
     # Notify all involved
     try:
         import json
         await manager.broadcast_to_game(
             game_id,
-            json.dumps({"type": "move_made", "game_id": game_id})
+            json.dumps({"type": "draw_respond", "game_id": game_id, "accepted": True})
         )
     except:
         pass

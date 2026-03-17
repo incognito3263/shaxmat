@@ -73,6 +73,7 @@ class Game(Base):
     # Timers (in seconds)
     white_time_left = Column(Integer, default=600) # 10 minutes default
     black_time_left = Column(Integer, default=600)
+    time_increment = Column(Integer, default=0) # Fischer increment in seconds
     last_move_at = Column(DateTime, default=datetime.utcnow)
     
     halfmove_clock = Column(Integer, default=0)
@@ -82,6 +83,7 @@ class Game(Base):
     black_kingside = Column(Boolean, default=True)
     black_queenside = Column(Boolean, default=True)
     fullmove_number = Column(Integer, default=1)
+    stats_updated = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

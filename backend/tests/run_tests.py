@@ -38,7 +38,7 @@ def t_initial_board():
     gs = GameState()
     assert gs.board.get_piece_at(0, 4).type == "K"
     assert gs.board.get_piece_at(9, 4).type == "K"
-    assert gs.board.get_piece_at(2, 0).type == "S"
+    assert gs.board.get_piece_at(2, 1).type == "S"
     assert gs.board.get_piece_at(7, 1).type == "S"
     assert gs.turn == "white"
 
@@ -53,22 +53,22 @@ def t_initial_legal_moves():
 
 def t_pawn_single_step():
     gs = GameState()
-    ok = gs.apply_move(Move(from_pos=(1, 3), to_pos=(2, 3)))
+    ok = gs.apply_move(Move(from_pos=(1, 0), to_pos=(2, 0)))
     assert ok
-    assert gs.board.get_piece_at(2, 3).type == "P"
+    assert gs.board.get_piece_at(2, 0).type == "P"
 
 
 def t_pawn_double_step():
     gs = GameState()
-    ok = gs.apply_move(Move(from_pos=(1, 3), to_pos=(3, 3)))
+    ok = gs.apply_move(Move(from_pos=(1, 0), to_pos=(3, 0)))
     assert ok
-    assert gs.en_passant_target == (2, 3)
+    assert gs.en_passant_target == (2, 0)
 
 
 def t_pawn_double_step_blocked_by_supplier():
     gs = GameState()
-    ok = gs.apply_move(Move(from_pos=(1, 0), to_pos=(3, 0)))
-    assert not ok, "a-pawn double step should be blocked by supplier at a3"
+    ok = gs.apply_move(Move(from_pos=(1, 1), to_pos=(3, 1)))
+    assert not ok, "b-pawn double step should be blocked by supplier at b3"
 
 
 def t_pawn_promotion():
@@ -90,12 +90,15 @@ def t_pawn_auto_queen():
 
 
 def t_en_passant():
-    gs = GameState()
+    b = bare_board()
+    b.set_piece_at(1, 1, Pawn("white", (1, 1)))
+    b.set_piece_at(8, 2, Pawn("black", (8, 2)))
+    gs = GameState(board=b)
     # Advance white b-pawn to b6 (row5)
     gs.apply_move(Move(from_pos=(1, 1), to_pos=(3, 1)))  # b2-b4
-    gs.apply_move(Move(from_pos=(8, 0), to_pos=(7, 0)))  # a9-a8
+    gs.apply_move(Move(from_pos=(9, 4), to_pos=(9, 3)))  # black king move (pass turn)
     gs.apply_move(Move(from_pos=(3, 1), to_pos=(4, 1)))  # b4-b5
-    gs.apply_move(Move(from_pos=(7, 0), to_pos=(6, 0)))  # a8-a7
+    gs.apply_move(Move(from_pos=(9, 3), to_pos=(9, 4)))  # black king move
     gs.apply_move(Move(from_pos=(4, 1), to_pos=(5, 1)))  # b5-b6
     # Black c9-c7 double step
     ok = gs.apply_move(Move(from_pos=(8, 2), to_pos=(6, 2)))
@@ -110,10 +113,10 @@ def t_en_passant():
 # ── Supplier ──────────────────────────────────────────────────────────────────
 
 def t_supplier_diagonal():
-    # c3 supplier (2,2) can move to d4 (3,3) without any setup
+    # b3 supplier (2,1) can move to c4 (3,2) without any setup
     gs = GameState()
-    gs.apply_move(Move(from_pos=(2, 2), to_pos=(3, 3)))  # c3 supplier -> d4
-    assert gs.board.get_piece_at(3, 3).type == "S", f"Expected S, got {gs.board.get_piece_at(3,3)}"
+    gs.apply_move(Move(from_pos=(2, 1), to_pos=(3, 2)))  # b3 supplier -> c4
+    assert gs.board.get_piece_at(3, 2).type == "S", f"Expected S, got {gs.board.get_piece_at(3,2)}"
 
 
 def t_supplier_no_backward():
@@ -300,11 +303,11 @@ def t_sufficient_material():
 
 def t_serialisation():
     gs = GameState()
-    gs.apply_move(Move(from_pos=(1, 3), to_pos=(3, 3)))
+    gs.apply_move(Move(from_pos=(1, 0), to_pos=(3, 0)))
     d = gs.to_dict()
     gs2 = GameState.from_dict(d)
     assert gs2.turn == gs.turn
-    assert gs2.board.get_piece_at(3, 3).type == "P"
+    assert gs2.board.get_piece_at(3, 0).type == "P"
     assert len(gs2.move_history) == 1
 
 

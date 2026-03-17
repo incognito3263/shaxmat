@@ -497,9 +497,42 @@ function Leaderboard() {
   )
 }
 
+const TIME_CONTROLS = [
+  { label: '1 min', seconds: 60, increment: 0 },
+  { label: '1+1', seconds: 60, increment: 1 },
+  { label: '3 min', seconds: 180, increment: 0 },
+  { label: '3+2', seconds: 180, increment: 2 },
+  { label: '5 min', seconds: 300, increment: 0 },
+  { label: '10 min', seconds: 600, increment: 0 },
+  { label: '30 min', seconds: 1800, increment: 0 },
+]
+
+function TimeSelector({ value, onChange }: { value: number; onChange: (s: number, i: number) => void }) {
+  const current = TIME_CONTROLS.find(t => t.seconds === value) || TIME_CONTROLS[5]
+  return (
+    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-6">
+      {TIME_CONTROLS.map((t) => (
+        <button
+          key={t.label}
+          onClick={() => onChange(t.seconds, t.increment)}
+          className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+            current.label === t.label 
+              ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(77,217,232,0.3)]' 
+              : 'bg-black/20 text-gray-500 border-white/5 hover:border-white/20'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function ModeSelection() {
   const [opponentId, setOpponentId] = useState('')
   const [difficulty, setDifficulty] = useState('normal')
+  const [timeLimit, setTimeLimit] = useState(600)
+  const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [foundUser, setFoundUser] = useState<any>(null)
   const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, friends, sendFriendRequest, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
@@ -531,10 +564,10 @@ function ModeSelection() {
     }
   }
 
-  const startAIGame = () => createGame('AI', undefined, difficulty)
-  
+  const startAIGame = () => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)
+
   const startPersonGame = (targetId: string) => {
-    sendInvite(targetId)
+    sendInvite(targetId, timeLimit, timeIncrement)
   }
 
   return (
@@ -561,7 +594,13 @@ function ModeSelection() {
                 <button onClick={logout} className="text-gray-600 text-[10px] hover:text-white uppercase tracking-widest border-b border-gray-800 pb-0.5">{t.logout}</button>
             </div>
 
+            <div className="mt-8 w-full max-w-lg">
+              <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] mb-4 text-center">Time Control</div>
+              <TimeSelector value={timeLimit} onChange={(s, i) => { setTimeLimit(s); setTimeIncrement(i); }} />
+            </div>
+
             <div className="flex gap-4 mt-6">
+
               <div className="bg-[#131820] border border-[#252D3D] rounded-2xl px-6 py-3 text-center">
                 <div className="text-[9px] text-gray-500 uppercase tracking-widest mb-1">{t.winRate}</div>
                 <div className="text-xl font-black text-accentCyan">{winRate}%</div>
@@ -708,7 +747,12 @@ function ModeSelection() {
 }
 
 function ViewSwitcher() {
-  const { viewMode, setViewMode } = useGameStore()
+  const { viewMode, setViewMode, t, setNotification } = useGameStore()
+  
+  const handle3DClick = () => {
+    setNotification({ text: t.comingSoon, type: 'info' })
+  }
+
   return (
     <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
       <button
@@ -718,10 +762,11 @@ function ViewSwitcher() {
         2D
       </button>
       <button
-        onClick={() => setViewMode('3d')}
-        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${viewMode === '3d' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+        onClick={handle3DClick}
+        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all text-gray-500 hover:text-white relative group`}
       >
         3D
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-accentCyan rounded-full animate-pulse" />
       </button>
     </div>
   )
@@ -765,15 +810,65 @@ function CapturedPieces({ pieces, color }: { pieces: string[]; color: 'white' | 
   );
 }
 
+function ChessClock({ timeLeft, isActive, color }: { timeLeft: number; isActive: boolean; color: 'white' | 'black' }) {
+  const [seconds, setSeconds] = useState(timeLeft)
+  const isWhite = color === 'white'
+
+  useEffect(() => {
+    setSeconds(timeLeft)
+  }, [timeLeft])
+
+  useEffect(() => {
+    let interval: any = null
+    if (isActive && seconds > 0) {
+      interval = setInterval(() => {
+        setSeconds(s => {
+          if (s <= 1) {
+            useGameStore.getState().fetchGame()
+            return 0
+          }
+          return s - 1
+        })
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [isActive, seconds])
+
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60)
+    const secs = s % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const isLowTime = seconds < 30
+
+  return (
+    <div 
+      className={`px-3 py-1.5 rounded-lg font-mono text-sm font-black transition-all duration-300 flex items-center gap-2 ${
+        isActive 
+          ? (isLowTime ? 'bg-checkRed text-white animate-pulse' : (isWhite ? 'bg-[#DDE6EF] text-black' : 'bg-[#4DD9E8] text-black')) 
+          : 'bg-black/40 text-gray-500 border border-white/5'
+      }`}
+    >
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      {formatTime(seconds)}
+    </div>
+  )
+}
+
 function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: boolean }) {
   const { t, game } = useGameStore()
   const isWhite = color === 'white'
-  
+
   // Show pieces captured BY this player
   const capturedPieces = game?.captured_pieces?.[color] || []
-  
+
   // Get avatar
   const avatar = isWhite ? game?.white_avatar : game?.black_avatar
+  const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0)
 
   return (
     <div
@@ -785,29 +880,26 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
     >
       <Avatar src={avatar || (isWhite ? '♔' : '♚')} size="sm" />
       <div className="flex-1 min-w-0">
-
         <div className="text-sm font-semibold uppercase tracking-wider truncate" style={{ color: isWhite ? '#DDE6EF' : '#4DD9E8' }}>
           {isWhite ? t.white : t.black}
         </div>
         <CapturedPieces pieces={capturedPieces} color={color} />
       </div>
-      {isActive && (
-        <motion.div
-          className="ml-auto w-1.5 h-1.5 rounded-full"
-          style={{ background: isWhite ? '#DDE6EF' : '#4DD9E8' }}
-          animate={{ opacity: [1, 0.2, 1], scale: [1, 1.2, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        />
-      )}
+      <ChessClock timeLeft={timeLeft} isActive={isActive} color={color} />
     </div>
   )
 }
-
 function InviteModal() {
   const inviteRequest = useGameStore(s => s.inviteRequest)
   const respondToInvite = useGameStore(s => s.respondToInvite)
   const t = useGameStore(s => s.t)
   if (!inviteRequest) return null
+
+  const formatTC = (s?: number, i?: number) => {
+    if (!s) return '10 min'
+    const mins = s / 60
+    return i ? `${mins}+${i}` : `${mins} min`
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -818,10 +910,14 @@ function InviteModal() {
         style={{ background: '#131820', border: '1px solid #4DD9E8' }}
       >
         <div className="text-4xl mb-4">🎮</div>
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.inviteReceived.replace('{name}', '')}</h2>
-        <p className="text-gray-400 text-sm mb-6">
-          <span className="text-accentCyan font-bold">{inviteRequest.from_username}</span> {t.playPerson.toLowerCase()}?
+        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">Game invitation</h2>
+        <p className="text-gray-400 text-sm mb-2">
+          <span className="text-accentCyan font-bold">{inviteRequest.from_username}</span> challenged you!
         </p>
+        <div className="mb-6 px-4 py-2 bg-accentCyan/10 border border-accentCyan/20 rounded-xl inline-block">
+          <span className="text-[10px] text-gray-500 uppercase tracking-widest mr-2">Time:</span>
+          <span className="text-xs font-black text-accentCyan uppercase">{formatTC(inviteRequest.time_limit, inviteRequest.time_increment)}</span>
+        </div>
         <div className="flex gap-3">
           <button 
             onClick={() => respondToInvite(false)}
@@ -1090,41 +1186,102 @@ function WaitingModal() {
 }
 
 function SearchingModal() {
-  const { isSearching, cancelMatchmaking, t } = useGameStore()
+  const { isSearching, cancelMatchmaking, matchedOpponent, matchOffer, sendMatchStart, acceptMatchOffer, t } = useGameStore()
+  const [timeLimit, setTimeLimit] = useState(600)
+  const [timeIncrement, setTimeIncrement] = useState(0)
+  const [sentOffer, setSentOffer] = useState(false)
+
   if (!isSearching) return null
+
+  const handleStart = () => {
+    if (matchedOpponent) {
+      sendMatchStart(matchedOpponent.public_id, timeLimit, timeIncrement)
+      setSentOffer(true)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-sm w-full p-10 rounded-[3rem] text-center border border-accentCyan/30 bg-[#131820]"
+        className="max-w-md w-full p-10 rounded-[3rem] text-center border border-accentCyan/30 bg-[#131820] shadow-[0_0_50px_rgba(77,217,232,0.1)]"
       >
-        <div className="relative w-24 h-24 mx-auto mb-8">
-          <motion.div 
-            className="absolute inset-0 rounded-full border-4 border-accentCyan/20"
-          />
-          <motion.div 
-            className="absolute inset-0 rounded-full border-4 border-t-accentCyan border-r-transparent border-b-transparent border-l-transparent"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center text-3xl">🌍</div>
-        </div>
-        
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.searching}</h2>
-        <p className="text-gray-500 text-xs mb-8 uppercase tracking-widest">Global Lobby</p>
+        {!matchedOpponent ? (
+          <>
+            <div className="relative w-24 h-24 mx-auto mb-8">
+              <motion.div className="absolute inset-0 rounded-full border-4 border-accentCyan/20" />
+              <motion.div 
+                className="absolute inset-0 rounded-full border-4 border-t-accentCyan border-r-transparent border-b-transparent border-l-transparent"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center text-3xl">🌍</div>
+            </div>
+            <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.searching}</h2>
+            <p className="text-gray-500 text-[10px] mb-8 uppercase tracking-[0.3em]">Global Lobby</p>
+          </>
+        ) : (
+          <div className="space-y-6">
+            <div className="text-xs font-black text-accentCyan uppercase tracking-[0.4em] mb-4">Opponent Found</div>
+
+            <div className="flex items-center justify-center gap-6 py-4">
+              <div className="flex flex-col items-center gap-2">
+                <Avatar src={useGameStore.getState().user?.avatar || '👨‍🚀'} size="lg" />
+                <span className="text-[10px] text-gray-500 uppercase font-black">You</span>
+              </div>
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1] }} 
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-xl font-black text-accentCyan"
+              >VS</motion.div>
+              <div className="flex flex-col items-center gap-2">
+                <Avatar src={matchedOpponent.avatar} size="lg" />
+                <span className="text-[10px] text-gray-500 uppercase font-black">{matchedOpponent.username}</span>
+              </div>
+            </div>
+
+            {matchOffer ? (
+              <div className="bg-accentCyan/10 p-6 rounded-3xl border border-accentCyan/20">
+                <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-3">Opponent proposed:</div>
+                <div className="text-xl font-black text-white mb-6">
+                  {matchOffer.time_limit / 60}{matchOffer.time_increment ? ` + ${matchOffer.time_increment}` : ' min'}
+                </div>
+                <button 
+                  onClick={acceptMatchOffer}
+                  className="w-full py-4 bg-accentCyan text-black font-black rounded-2xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
+                >
+                  Accept & Start
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Select Time Control</div>
+                <TimeSelector value={timeLimit} onChange={(s, i) => { setTimeLimit(s); setTimeIncrement(i); }} />
+
+                <button 
+                  onClick={handleStart}
+                  disabled={sentOffer}
+                  className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 ${sentOffer ? 'bg-white/10 text-gray-500' : 'bg-white text-black hover:bg-gray-200'}`}
+                >
+                  {sentOffer ? 'Waiting for response...' : 'Challenge Opponent'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <button 
-          onClick={cancelMatchmaking}
-          className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] bg-white/5 text-gray-400 hover:bg-white/10 transition-all border border-white/5"
+          onClick={() => { cancelMatchmaking(); setSentOffer(false); }}
+          className="w-full mt-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] bg-transparent text-gray-600 hover:text-gray-400 transition-all"
         >
-          {t.decline}
+          {t.cancel}
         </button>
       </motion.div>
     </div>
   )
 }
+
 
 function FriendRequestModal() {
   const { friendRequest, pendingRequests, fetchFriendRequests, respondToFriendRequest, t } = useGameStore()
@@ -1250,6 +1407,8 @@ function GameOverModal() {
   let message = isWinner ? t.congratulations : (isDraw ? t.stalemate : t.betterLuck)
   if (game.status === 'resigned') {
     message = t.opponentLeft.replace('{name}', opponentResignedName || '')
+  } else if (game.status === 'timeout') {
+    message = game.winner === 'white' ? 'White won by timeout' : 'Black won by timeout'
   }
 
   return (
@@ -1373,8 +1532,18 @@ export default function App() {
   }, [user, initSocket, setLanguage])
 
   useEffect(() => {
-    if (gameId) fetchGame()
-  }, [gameId])
+    if (gameId) {
+      fetchGame()
+      // Periodic sync every 15s for active games
+      const interval = setInterval(() => {
+        const { game } = useGameStore.getState()
+        if (game && game.status === 'active') {
+          fetchGame()
+        }
+      }, 15000)
+      return () => clearInterval(interval)
+    }
+  }, [gameId, fetchGame])
 
   if (error) {
     return (

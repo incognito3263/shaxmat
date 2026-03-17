@@ -234,7 +234,13 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
             data = await websocket.receive_text()
             message = json.loads(data)
             if message.get("type") == "invite":
-                await manager.send_personal_message(json.dumps({"type": "game_invite", "from_id": public_id, "from_username": user.username if user else "Unknown"}), message.get("target_id"))
+                await manager.send_personal_message(json.dumps({
+                    "type": "game_invite", 
+                    "from_id": public_id, 
+                    "from_username": user.username if user else "Unknown",
+                    "time_limit": message.get("time_limit"),
+                    "time_increment": message.get("time_increment")
+                }), message.get("target_id"))
             elif message.get("type") == "accept_invite":
                 await manager.send_personal_message(json.dumps({"type": "invite_accepted", "from_id": public_id}), message.get("target_id"))
             elif message.get("type") == "game_start":
@@ -252,10 +258,37 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
             elif message.get("type") == "friend_respond":
                 await manager.send_personal_message(json.dumps({"type": "friend_respond", "from_id": public_id, "from_username": user.username if user else "Unknown", "accepted": message.get("accepted")}), message.get("target_id"))
             elif message.get("type") == "find_match":
-                if public_id not in manager.matchmaking_queue: manager.matchmaking_queue.append(public_id)
+                if public_id not in manager.matchmaking_queue: 
+                    manager.matchmaking_queue.append(public_id)
                 if len(manager.matchmaking_queue) >= 2:
-                    p1, p2 = manager.matchmaking_queue.pop(0), manager.matchmaking_queue.pop(0)
-                    await manager.send_personal_message(json.dumps({"type": "match_found", "opponent_id": p2}), p1)
+                    p1_id = manager.matchmaking_queue.pop(0)
+                    p2_id = manager.matchmaking_queue.pop(0)
+                    
+                    p1_obj = db.query(User).filter(User.public_id == p1_id).first()
+                    p2_obj = db.query(User).filter(User.public_id == p2_id).first()
+                    
+                    if p1_obj and p2_obj:
+                        await manager.send_personal_message(json.dumps({
+                            "type": "match_found", 
+                            "opponent_id": p2_id,
+                            "opponent_username": p2_obj.username,
+                            "opponent_avatar": p2_obj.avatar
+                        }), p1_id)
+                        await manager.send_personal_message(json.dumps({
+                            "type": "match_found", 
+                            "opponent_id": p1_id,
+                            "opponent_username": p1_obj.username,
+                            "opponent_avatar": p1_obj.avatar
+                        }), p2_id)
+            elif message.get("type") == "match_start":
+                # One player sends this after selecting time
+                await manager.send_personal_message(json.dumps({
+                    "type": "match_offer",
+                    "from_id": public_id,
+                    "from_username": user.username if user else "Opponent",
+                    "time_limit": message.get("time_limit"),
+                    "time_increment": message.get("time_increment")
+                }), message.get("target_id"))
             elif message.get("type") == "leave_queue":
                 if public_id in manager.matchmaking_queue: manager.matchmaking_queue.remove(public_id)
             elif message.get("type") == "spectate":

@@ -107,6 +107,7 @@ export const translations = {
     memberSince: "Joined",
     view2d: "2D View",
     view3d: "3D View",
+    comingSoon: "Coming Soon",
   },
   uz: {
     title: "CHESS NEXUS",
@@ -216,6 +217,7 @@ export const translations = {
     memberSince: "A'zo bo'ldi",
     view2d: "2D ko'rinish",
     view3d: "3D ko'rinish",
+    comingSoon: "Tez kunda",
   },
   ru: {
     title: "CHESS NEXUS",
@@ -325,6 +327,7 @@ export const translations = {
     memberSince: "Регистрация",
     view2d: "2D вид",
     view3d: "3D вид",
+    comingSoon: "Скоро",
   }
 };
 

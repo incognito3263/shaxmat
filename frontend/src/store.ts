@@ -20,7 +20,9 @@ export interface GameData {
   in_check: boolean
   white_time_left: number
   black_time_left: number
+  time_increment: number
   game_mode: string
+
   white_player_id: number | null
   black_player_id: number | null
   white_player_public_id: string | null
@@ -63,13 +65,15 @@ interface GameStore {
   error: string | null
   vsAI: boolean
   socket: WebSocket | null
-  inviteRequest: { from_id: string; from_username: string } | null
+  inviteRequest: { from_id: string; from_username: string; time_limit?: number; time_increment?: number } | null
   language: Language
   t: typeof translations.en
   leaderboard: User[]
   opponentResignedName: string | null
   chatMessages: { from: string; text: string }[]
   isSearching: boolean
+  matchedOpponent: { public_id: string; username: string; avatar: string } | null
+  matchOffer: { from_id: string; from_username: string; time_limit: number; time_increment: number } | null
   isInviting: string | null
   boardTheme: string
   viewMode: '2d' | '3d'
@@ -96,7 +100,7 @@ interface GameStore {
   setTheme: (theme: string) => void
   setViewMode: (mode: '2d' | '3d') => void
   setNotification: (notif: { text: string; type: 'success' | 'info' | 'error' } | null) => void
-  createGame: (mode: string, opponentId?: string, aiDifficulty?: string) => Promise<void>
+  createGame: (mode: string, opponentId?: string, aiDifficulty?: string, timeLimit?: number, timeIncrement?: number) => Promise<void>
   fetchGame: () => Promise<void>
   fetchLiveGames: () => Promise<void>
   fetchMatchHistory: () => Promise<void>
@@ -119,6 +123,8 @@ interface GameStore {
   sendChatMessage: (text: string) => void
   startMatchmaking: () => void
   cancelMatchmaking: () => void
+  sendMatchStart: (targetId: string, timeLimit: number, timeIncrement: number) => void
+  acceptMatchOffer: () => void
   startReview: () => void
   setReviewIndex: (index: number) => Promise<void>
   resolvePromotion: (piece: string) => Promise<void>
@@ -127,7 +133,7 @@ interface GameStore {
   goBackToMenu: () => void
   searchUser: (publicId: string) => Promise<User | null>
   fetchLeaderboard: () => Promise<void>
-  sendInvite: (targetPublicId: string) => void
+  sendInvite: (targetPublicId: string, timeLimit?: number, timeIncrement?: number) => void
   initSocket: (publicId: string) => void
   respondToInvite: (accept: boolean) => void
 }
@@ -198,6 +204,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   opponentResignedName: null,
   chatMessages: [],
   isSearching: false,
+  matchedOpponent: null,
+  matchOffer: null,
   isInviting: null,
   boardTheme: localStorage.getItem('shaxmat_theme') || 'default',
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
@@ -306,7 +314,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     localStorage.removeItem('shaxmat_user')
     localStorage.removeItem('shaxmat_game_id')
     get().socket?.close()
-    set({ user: null, token: null, gameId: null, game: null, socket: null, inviteRequest: null })
+    set({ user: null, token: null, gameId: null, game: null, socket: null, inviteRequest: null, matchedOpponent: null, matchOffer: null, isSearching: false })
   },
 
   setLanguage: (lang: Language) => {
@@ -369,7 +377,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       
       if (msg.type === 'game_invite') {
         // Use state instead of confirm() to avoid browser suppression
-        set({ inviteRequest: { from_id: msg.from_id, from_username: msg.from_username } });
+        set({ inviteRequest: { 
+          from_id: msg.from_id, 
+          from_username: msg.from_username,
+          time_limit: msg.time_limit,
+          time_increment: msg.time_increment
+        } });
       } else if (msg.type === 'invite_accepted') {
         console.log("DEBUG: Invite accepted by opponent");
       } else if (msg.type === 'game_start') {
@@ -413,8 +426,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
           get().fetchFriends()
         }
       } else if (msg.type === 'match_found') {
-        set({ isSearching: false })
-        get().createGame('Person', msg.opponent_id)
+        set({ matchedOpponent: { public_id: msg.opponent_id, username: msg.opponent_username, avatar: msg.opponent_avatar } })
+      } else if (msg.type === 'match_offer') {
+        set({ matchOffer: { from_id: msg.from_id, from_username: msg.from_username, time_limit: msg.time_limit, time_increment: msg.time_increment } })
       } else if (msg.type === 'user_status') {
         // Update online status in leaderboard and friends list
         set(state => ({
@@ -452,24 +466,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (accept) {
       socket.send(JSON.stringify({ type: 'accept_invite', target_id: inviteRequest.from_id }));
-      get().createGame('Person', inviteRequest.from_id);
+      get().createGame('Person', inviteRequest.from_id, undefined, inviteRequest.time_limit, inviteRequest.time_increment);
     }
-    
+
     set({ inviteRequest: null });
   },
-
   goBackToMenu: () => {
-    const { socket, gameId, isSpectator } = get()
+    const { socket, gameId, isSpectator, user, searchUser } = get()
     if (socket && gameId && isSpectator) {
       socket.send(JSON.stringify({ type: 'leave_spectate', game_id: gameId }))
     }
+
+    // Refresh user data to get updated stats (wins, losses, draws)
+    if (user) {
+      searchUser(user.public_id).then(updatedUser => {
+        if (updatedUser) {
+          set({ user: updatedUser })
+          localStorage.setItem('shaxmat_user', JSON.stringify(updatedUser))
+        }
+      })
+    }
+
     localStorage.removeItem('shaxmat_game_id')
     localStorage.removeItem('shaxmat_spectator')
-    set({ 
-      gameId: null, 
-      game: null, 
-      selectedSquare: null, 
-      legalMoves: [], 
+    set({
+      gameId: null,
+      game: null,
+      selectedSquare: null,
+      legalMoves: [],
       pendingPromotion: null,
       opponentResignedName: null,
       reviewMode: false,
@@ -477,7 +501,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isSpectator: false
     })
   },
-
   searchUser: async (publicId: string) => {
     try {
       const res = await fetch(`/users/search/${publicId}`)
@@ -620,28 +643,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  sendInvite: (targetPublicId: string) => {
+  sendInvite: (targetPublicId: string, timeLimit?: number, timeIncrement?: number) => {
     const { socket } = get()
     if (socket) {
-      socket.send(JSON.stringify({ type: 'invite', target_id: targetPublicId }))
+      socket.send(JSON.stringify({ 
+        type: 'invite', 
+        target_id: targetPublicId,
+        time_limit: timeLimit || 600,
+        time_increment: timeIncrement || 0
+      }))
       set({ isInviting: targetPublicId })
     }
   },
 
-  createGame: async (mode: string, opponentId?: string, aiDifficulty?: string) => {
+  createGame: async (mode: string, opponentId?: string, aiDifficulty?: string, timeLimit?: number, timeIncrement?: number) => {
     set({ loading: true, error: null, vsAI: mode === 'AI' })
     try {
       const { user } = get()
-      const res = await fetch(`/game/create`, { 
+      const res = await fetch(`/game/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          game_mode: mode, 
+        body: JSON.stringify({
+          game_mode: mode,
           opponent_public_id: opponentId,
           creator_public_id: user?.public_id,
+          time_limit: timeLimit || 600,
+          time_increment: timeIncrement || 0,
           ai_difficulty: aiDifficulty || 'normal'
         })
       })
+
       if (!res.ok) throw new Error('Failed to create game')
       const data = await res.json().catch(() => ({}))
       set({ gameId: data.id })
@@ -669,7 +700,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   fetchGame: async () => {
-    const { gameId, aiMove } = get()
+    const { gameId } = get()
     if (!gameId) {
       console.warn("DEBUG: fetchGame called but gameId is null");
       return
@@ -700,10 +731,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const oldGame = get().game
       const oldHistoryLen = oldGame?.move_history?.length || 0
       const newHistoryLen = data.move_history?.length || 0
-      
+
+      // If game just ended, refresh user stats
+      if (data.status !== 'active' && oldGame?.status === 'active') {
+        const { user, searchUser } = get()
+        if (user) {
+          searchUser(user.public_id).then(u => {
+            if (u) {
+              set({ user: u })
+              localStorage.setItem('shaxmat_user', JSON.stringify(u))
+            }
+          })
+        }
+      }
+
       // Play sounds based on what happened
-      if (newHistoryLen > oldHistoryLen) {
-        if (data.status !== 'active') {
+      if (newHistoryLen > oldHistoryLen) {        if (data.status !== 'active') {
           playSound('end')
         } else if (data.in_check) {
           playSound('check')
@@ -731,13 +774,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         error: null
       })
       
+      // Auto-trigger AI move if it's black's turn and AI mode
       if (data.game_mode === 'AI' && data.turn === 'black' && data.status === 'active') {
-        setTimeout(() => {
-          const currentState = get()
-          if (!currentState.loading && currentState.game?.turn === 'black') {
-            aiMove()
-          }
-        }, 1000)
+        const { aiMove, loading } = get()
+        if (!loading) {
+          setTimeout(() => aiMove(), 600)
+        }
       }
     } catch (e: any) {
       set({ error: e.message })
@@ -939,8 +981,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { socket } = get()
     if (socket) {
       socket.send(JSON.stringify({ type: 'leave_queue' }))
-      set({ isSearching: false })
     }
+    set({ isSearching: false, matchedOpponent: null, matchOffer: null })
+  },
+
+  sendMatchStart: (targetId: string, timeLimit: number, timeIncrement: number) => {
+    const { socket } = get()
+    if (socket) {
+      socket.send(JSON.stringify({ 
+        type: 'match_start', 
+        target_id: targetId,
+        time_limit: timeLimit,
+        time_increment: timeIncrement
+      }))
+    }
+  },
+
+  acceptMatchOffer: () => {
+    const { matchOffer, socket } = get()
+    if (!matchOffer || !socket) return
+
+    socket.send(JSON.stringify({ type: 'accept_invite', target_id: matchOffer.from_id }))
+    get().createGame('Person', matchOffer.from_id, undefined, matchOffer.time_limit, matchOffer.time_increment)
+    set({ matchedOpponent: null, matchOffer: null, isSearching: false })
   },
 
   startReview: () => {
@@ -980,6 +1043,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   newGame: async () => {
     localStorage.removeItem('shaxmat_game_id')
     set({ gameId: null, game: null, selectedSquare: null, legalMoves: [], pendingPromotion: null })
-    await get().createGame('AI')
+    await get().createGame('AI', undefined, 'normal', 600, 0)
   },
 }))

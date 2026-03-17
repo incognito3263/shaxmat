@@ -51,6 +51,7 @@ class CreateGameRequest(BaseModel):
     opponent_public_id: Optional[str] = None
     creator_public_id: Optional[str] = None
     time_limit: Optional[int] = 600 # default 10 min
+    time_increment: Optional[int] = 0 # Fischer increment
     ai_difficulty: Optional[str] = "normal" # easy, normal, hard
 
 class CreateGameResponse(BaseModel):
@@ -79,6 +80,7 @@ class GameResponse(BaseModel):
     in_check: bool = False
     white_time_left: int
     black_time_left: int
+    time_increment: int
     white_player_id: Optional[int] = None
     black_player_id: Optional[int] = None
     white_player_public_id: Optional[str] = None
