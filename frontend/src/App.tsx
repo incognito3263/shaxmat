@@ -844,10 +844,12 @@ function InviteModal() {
 function Chat() {
   const { chatMessages, sendChatMessage, user } = useGameStore()
   const [text, setText] = useState('')
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const chatListRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (chatListRef.current) {
+      chatListRef.current.scrollTop = chatListRef.current.scrollHeight
+    }
   }, [chatMessages])
 
   const handleSend = (e: React.FormEvent) => {
@@ -865,7 +867,7 @@ function Chat() {
         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div ref={chatListRef} className="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
         {chatMessages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-[10px] text-gray-600 uppercase tracking-widest text-center px-4">
             No messages yet. Say hi to your opponent!
@@ -886,7 +888,6 @@ function Chat() {
             </div>
           ))
         )}
-        <div ref={scrollRef} />
       </div>
 
       <form onSubmit={handleSend} className="p-2 bg-black/40 border-t border-[#252D3D] flex gap-2">

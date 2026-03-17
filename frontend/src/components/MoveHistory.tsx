@@ -3,10 +3,12 @@ import { useGameStore } from '../store'
 
 export default function MoveHistory() {
   const { game, t, setNotification } = useGameStore()
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight
+    }
   }, [game?.move_history?.length])
 
   if (!game) return null
@@ -59,7 +61,7 @@ export default function MoveHistory() {
       </div>
 
       {/* Moves list */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 font-mono text-sm">
+      <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-2 font-mono text-sm scroll-smooth">
         {pairs.length === 0 ? (
           <p className="text-gray-700 text-xs text-center py-6">No moves yet</p>
         ) : (
@@ -95,7 +97,6 @@ export default function MoveHistory() {
             </div>
           ))
         )}
-        <div ref={bottomRef} />
       </div>
     </div>
   )
