@@ -44,6 +44,7 @@ def create_game(req: CreateGameRequest, db: Session = Depends(get_db)):
         black_id = opp.id
         print(f"DEBUG: Identified opponent as black_id: {black_id}")
 
+
     gs, game_id = create_new_game(
         game_mode=req.game_mode,
         white_player_id=white_id,

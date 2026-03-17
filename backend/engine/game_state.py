@@ -591,6 +591,10 @@ class GameState:
         gs.winner = data.get("winner")
         gs.captured_pieces = data.get("captured_pieces", {"white": [], "black": []})
         gs.last_move = data.get("last_move")
+        
+        # Re-init king position cache
+        gs._king_pos = {"white": None, "black": None}
+        gs._update_king_cache()
         return gs
 
     # ── Check / checkmate helpers (used by API) ───────────────────────────────
