@@ -67,6 +67,14 @@ async def lifespan(app: FastAPI):
                 conn.execute(text("ALTER TABLE games ADD COLUMN stats_updated BOOLEAN DEFAULT FALSE"))
                 conn.commit()
                 print("DEBUG: stats_updated added.")
+
+            # Add rating to users if missing
+            user_columns = [c['name'] for c in inspector.get_columns('users')]
+            if 'rating' not in user_columns:
+                print("DEBUG: Adding rating column to users...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN rating INTEGER DEFAULT 1200"))
+                conn.commit()
+                print("DEBUG: rating column added.")
     except Exception as e:
         print(f"DEBUG: Migration error: {e}")
     
@@ -157,6 +165,7 @@ def update_profile(data: dict, db: Session = Depends(get_db)):
 
 @app.get("/leaderboard", response_model=List[schemas.UserResponse])
 def get_leaderboard(db: Session = Depends(get_db)):
+    # Sort by wins, then draws, then fewer losses
     users = db.query(User).filter((User.wins + User.losses + User.draws) >= 2).order_by(User.wins.desc(), User.draws.desc(), User.losses.asc()).limit(10).all()
     return users
 

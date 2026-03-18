@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useGameStore } from '../store'
 
 export default function GameControls() {
-  const { game, goBackToMenu, resign, offerDraw, boardTheme, setTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
+  const { game, goBackToMenu, resign, offerDraw, boardTheme, setTheme, pieceTheme, setPieceTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
 
   const themes = [
     { id: 'default', label: t.default },
@@ -69,14 +69,14 @@ export default function GameControls() {
       {game && (
         <div
           className="rounded-xl px-4 py-3"
-          style={{ background: '#131820', border: '1px solid #252D3D' }}
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           {statusText() || (
             <div className="text-center">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t.turn}</div>
               <div
                 className="text-sm font-bold tracking-wider"
-                style={{ color: game.turn === 'white' ? '#DDE6EF' : '#4DD9E8' }}
+                style={{ color: game.turn === 'white' ? 'var(--accent-white)' : 'var(--accent-cyan)' }}
               >
                 {game.turn === 'white' ? `⬜ ${t.white}` : `⬛ ${t.black}`}
               </div>
@@ -89,7 +89,7 @@ export default function GameControls() {
       {game && !reviewMode && (
         <div
           className="rounded-xl px-4 py-3"
-          style={{ background: '#131820', border: '1px solid #252D3D' }}
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-600 uppercase tracking-wider">{t.move}</span>
@@ -104,14 +104,14 @@ export default function GameControls() {
           <button
             onClick={() => setReviewIndex(reviewIndex - 1)}
             disabled={reviewIndex <= 0}
-            className="flex-1 py-3 rounded-xl bg-white/10 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 py-3 rounded-xl bg-white/10 text-[var(--accent-white)] font-bold text-xs uppercase tracking-widest hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             ← {t.prevMove}
           </button>
           <button
             onClick={() => setReviewIndex(reviewIndex + 1)}
             disabled={reviewIndex >= game.move_history.length}
-            className="flex-1 py-3 rounded-xl bg-accentCyan text-black font-bold text-xs uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 py-3 rounded-xl bg-[var(--accent-cyan)] text-black font-bold text-xs uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {t.nextMove} →
           </button>
@@ -126,8 +126,8 @@ export default function GameControls() {
             className="w-full py-2.5 rounded-xl text-[10px] font-black tracking-[0.2em] uppercase transition-all"
             style={{
               background: 'rgba(255,255,255,0.03)',
-              border: '1px solid #252D3D',
-              color: '#94A3B8',
+              border: '1px solid var(--border)',
+              color: 'var(--text-muted)',
             }}
             whileHover={{ background: 'rgba(255,255,255,0.06)' }}
           >
@@ -141,10 +141,10 @@ export default function GameControls() {
             style={{
               background: 'rgba(77,217,232,0.05)',
               border: '1px solid rgba(77,217,232,0.2)',
-              color: '#4DD9E8',
+              color: 'var(--accent-cyan)',
             }}
           >
-            🤖 AI ENGINE ACTIVE
+            🤖 {t.aiActive}
           </div>
         )}
         
@@ -159,8 +159,8 @@ export default function GameControls() {
           className="w-full py-3 rounded-xl text-sm font-semibold tracking-wider uppercase transition-all"
           style={{
             background: 'rgba(255,255,255,0.03)',
-            border: '1px solid #252D3D',
-            color: '#DDE6EF',
+            border: '1px solid var(--border)',
+            color: 'var(--accent-white)',
           }}
           whileHover={{ background: 'rgba(255,255,255,0.06)' }}
           whileTap={{ scale: 0.97 }}
@@ -170,25 +170,83 @@ export default function GameControls() {
       </div>
 
       {/* Theme Selector */}
-      <div className="rounded-xl px-4 py-3" style={{ background: '#131820', border: '1px solid #252D3D' }}>
-        <div className="text-[10px] text-gray-600 uppercase tracking-widest mb-3">{t.theme}</div>
-        <div className="grid grid-cols-3 gap-2">
-          {themes.map(th => (
+      <div className="rounded-xl px-4 py-4 space-y-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="space-y-3">
+          <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.theme}</div>
+          <div className="grid grid-cols-3 gap-1 bg-[var(--surface-hover)] p-1 rounded-xl border border-white/5">
+            {themes.map(th => (
+              <button
+                key={th.id}
+                onClick={() => setTheme(th.id)}
+                className={`py-1.5 rounded-lg text-[9px] font-black transition-all ${boardTheme === th.id ? 'bg-[var(--accent-cyan)] text-black shadow-lg shadow-cyan-500/20' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+              >
+                {th.label.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.pieces}</div>
+          <div className="flex p-1 rounded-full bg-[var(--surface-hover)] border border-white/5 relative">
+            <motion.div 
+              className="absolute h-[calc(100%-8px)] rounded-full bg-[var(--accent-cyan)] shadow-[0_0_15px_rgba(77,217,232,0.3)]"
+              initial={false}
+              animate={{ 
+                x: pieceTheme === 'classic' ? 0 : '100%', 
+                width: '50%' 
+              }}
+              transition={{ type: "spring", stiffness: 500, damping: 35 }}
+              style={{ left: '4px', width: 'calc(50% - 4px)' }}
+            />
             <button
-              key={th.id}
-              onClick={() => setTheme(th.id)}
-              className={`py-1.5 rounded-lg text-[9px] font-bold transition-all border ${boardTheme === th.id ? 'bg-accentCyan/10 border-accentCyan text-accentCyan' : 'border-[#252D3D] text-gray-500 hover:border-gray-700'}`}
+              onClick={() => setPieceTheme('classic')}
+              className={`relative z-10 flex-1 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'classic' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
             >
-              {th.label.toUpperCase()}
+              {t.classicSet.split(' ')[0]}
             </button>
-          ))}
+            <button
+              onClick={() => setPieceTheme('modern')}
+              className={`relative z-10 flex-1 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'modern' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+            >
+              {t.modernSet.split(' ')[0]}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.sounds}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {(['move', 'capture', 'check', 'end'] as const).map(s => {
+              const { soundSettings, setSoundSettings } = useGameStore.getState()
+              const isActive = useGameStore(state => state.soundSettings[s])
+              
+              const labels: Record<string, string> = {
+                move: t.move,
+                capture: t.capture,
+                check: t.check.replace('!', ''),
+                end: t.gameOver
+              }
+
+              return (
+                <button
+                  key={s}
+                  onClick={() => setSoundSettings({ [s]: !isActive })}
+                  className={`py-1.5 rounded-lg text-[9px] font-black transition-all border flex items-center justify-center gap-2 ${isActive ? 'bg-[var(--accent-cyan)]/10 border-[var(--accent-cyan)] text-[var(--accent-cyan)]' : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--text-main)]'}`}
+                >
+                  <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-[var(--accent-cyan)]' : 'bg-gray-600'}`} />
+                  {(labels[s] || s).toUpperCase()}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
       {/* Legend */}
       <div
         className="rounded-xl px-4 py-3 space-y-2"
-        style={{ background: '#131820', border: '1px solid #252D3D' }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         <div className="text-xs text-gray-600 uppercase tracking-wider mb-2">{t.legend}</div>
         <LegendItem color="rgba(245,197,24,0.6)" label={t.selected} />

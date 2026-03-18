@@ -16,7 +16,7 @@ function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' |
   const isImage = src && (src.startsWith('/') || src.startsWith('http'));
 
   return (
-    <div className={`${sizeClass} bg-black/20 rounded-lg flex items-center justify-center border border-white/5 overflow-hidden shrink-0`}>
+    <div className={`${sizeClass} bg-[var(--surface-hover)] rounded-lg flex items-center justify-center border border-white/5 overflow-hidden shrink-0`}>
       {isImage ? (
         <img src={src} alt="avatar" className="w-full h-full object-cover" />
       ) : (
@@ -33,11 +33,11 @@ function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   return (
     <svg width={s} height={s} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="filter drop-shadow-[0_0_8px_rgba(77,217,232,0.5)]">
       {/* Nexus Connections */}
-      <circle cx="16" cy="6" r="2" fill="#4DD9E8" />
-      <circle cx="6" cy="16" r="2" fill="#4DD9E8" />
-      <circle cx="26" cy="16" r="2" fill="#4DD9E8" />
-      <circle cx="16" cy="26" r="2" fill="#4DD9E8" />
-      <path d="M16 6L6 16M16 6L26 16M6 16L16 26M26 16L16 26" stroke="#4DD9E8" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
+      <circle cx="16" cy="6" r="2" fill="var(--accent-cyan)" />
+      <circle cx="6" cy="16" r="2" fill="var(--accent-cyan)" />
+      <circle cx="26" cy="16" r="2" fill="var(--accent-cyan)" />
+      <circle cx="16" cy="26" r="2" fill="var(--accent-cyan)" />
+      <path d="M16 6L6 16M16 6L26 16M6 16L16 26M26 16L16 26" stroke="var(--accent-cyan)" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
       
       {/* Chess Piece Symbol (Stylized Knight/King) */}
       <path d="M16 10C14.5 10 13 11.5 13 13C13 14.5 14 15.5 15 16L12 22H20L17 16C18 15.5 19 14.5 19 13C19 11.5 17.5 10 16 10Z" fill="white" />
@@ -79,38 +79,40 @@ function AuthScreen() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4">
-      <div className="mb-6">
+      <div className="mb-6 flex gap-2">
         <LanguageSwitcher />
+        <ThemeSwitcher />
       </div>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md w-full p-8 rounded-2xl"
-        style={{ background: '#131820', border: '1px solid #252D3D', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 20px 50px var(--shadow)' }}
       >
+
         <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <Logo size="lg" />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-[0.2em] mb-1 uppercase">
+            <h1 className="text-4xl font-black text-[var(--text-main)] tracking-[0.2em] mb-1 uppercase">
               CHESS
             </h1>
-            <h2 className="text-xl font-black text-accentCyan tracking-[0.4em] mb-3 uppercase">
+            <h2 className="text-xl font-black text-[var(--accent-cyan)] tracking-[0.4em] mb-3 uppercase">
               NEXUS
             </h2>
-            <p className="text-gray-500 text-[10px] tracking-[0.3em] uppercase">{t.subtitle}</p>
+            <p className="text-[var(--text-muted)] text-xs tracking-[0.3em] uppercase">{t.subtitle}</p>
         </div>
 
-        <div className="flex mb-8 bg-[#0A0C10] p-1 rounded-xl border border-[#252D3D]">
+        <div className="flex mb-8 bg-[var(--bg)] p-1 rounded-xl border border-[var(--border)]">
             <button 
                 onClick={() => setIsLogin(true)}
-                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${isLogin ? 'bg-accentCyan text-black' : 'text-gray-500'}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${isLogin ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)]'}`}
             >
                 {t.login}
             </button>
             <button 
                 onClick={() => setIsLogin(false)}
-                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${!isLogin ? 'bg-accentCyan text-black' : 'text-gray-500'}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${!isLogin ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)]'}`}
             >
                 {t.signup}
             </button>
@@ -119,18 +121,18 @@ function AuthScreen() {
         <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-3">
-                <label className="block text-[10px] text-gray-500 uppercase tracking-widest ml-1">{t.chooseAvatar}</label>
+                <label className="block text-xs text-[var(--text-muted)] uppercase tracking-widest ml-1">{t.chooseAvatar}</label>
                 
-                <div className="flex items-center gap-4 bg-[#0A0C10] p-3 rounded-xl border border-[#252D3D]">
+                <div className="flex items-center gap-4 bg-[var(--bg)] p-3 rounded-xl border border-[var(--border)]">
                   <Avatar src={avatar} size="md" />
                   <div className="flex-1">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="text-[10px] font-black text-accentCyan hover:brightness-110 uppercase tracking-widest border border-accentCyan/30 px-3 py-2 rounded-lg bg-accentCyan/5 transition-all w-full"
+                      className="text-xs font-black text-[var(--accent-cyan)] hover:brightness-110 uppercase tracking-widest border border-[var(--accent-cyan)]/30 px-3 py-2 rounded-lg bg-[var(--accent-cyan)]/5 transition-all w-full"
                     >
-                      {isUploading ? 'Uploading...' : 'Upload Photo'}
+                      {isUploading ? t.uploading : t.uploadPhoto}
                     </button>
                     <input 
                       type="file" 
@@ -142,13 +144,13 @@ function AuthScreen() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 justify-between bg-[#0A0C10] p-2 rounded-xl border border-[#252D3D]">
+                <div className="flex gap-2 justify-between bg-[var(--bg)] p-2 rounded-xl border border-[var(--border)]">
                   {AVATARS.map(a => (
                     <button
                       key={a}
                       type="button"
                       onClick={() => setAvatar(a)}
-                      className={`text-xl p-1.5 rounded-lg transition-all ${avatar === a ? 'bg-accentCyan/20 scale-110' : 'opacity-50 hover:opacity-100'}`}
+                      className={`text-xl p-1.5 rounded-lg transition-all ${avatar === a ? 'bg-[var(--accent-cyan)]/20 scale-110' : 'opacity-50 hover:opacity-100'}`}
                     >
                       {a}
                     </button>
@@ -157,36 +159,37 @@ function AuthScreen() {
               </div>
             )}
             <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1.5 ml-1">{t.username}</label>
+                <label className="block text-xs text-[var(--text-muted)] uppercase tracking-widest mb-1.5 ml-1">{t.username}</label>
                 <input 
                     type="text"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
-                    className="w-full bg-[#0A0C10] border border-[#252D3D] rounded-xl px-4 py-3 text-white outline-none focus:border-accentCyan transition-colors"
+                    className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-main)] outline-none focus:border-[var(--accent-cyan)] transition-colors"
                     placeholder={t.enterUsername}
                 />
             </div>
             <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1.5 ml-1">{t.password}</label>
+                <label className="block text-xs text-[var(--text-muted)] uppercase tracking-widest mb-1.5 ml-1">{t.password}</label>
                 <input 
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-[#0A0C10] border border-[#252D3D] rounded-xl px-4 py-3 text-white outline-none focus:border-accentCyan transition-colors"
+                    className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-main)] outline-none focus:border-[var(--accent-cyan)] transition-colors"
                     placeholder="••••••••"
                 />
             </div>
             
-            {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+            {error && <p className="text-[var(--check-red)] text-sm text-center">{error}</p>}
 
             <button 
                 type="submit"
                 disabled={loading || !username || !password}
-                className="w-full py-4 bg-accentCyan text-black font-black rounded-xl uppercase tracking-[0.2em] text-sm hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                className="w-full py-4 bg-[var(--accent-cyan)] text-black font-black rounded-xl uppercase tracking-[0.2em] text-sm hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
                 {loading ? t.processing : (isLogin ? t.signIn : t.createAccount)}
             </button>
         </form>
+
       </motion.div>
     </div>
   )
@@ -204,37 +207,37 @@ function FriendsList() {
 
   return (
     <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: '#131820', border: '1px solid #252D3D' }}>
-        <h3 className="text-xl font-black text-white mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
+      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-xl font-black text-[var(--accent-white)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
           <span className="text-accentCyan">👥</span> {t.friends}
         </h3>
         
         {/* Pending Requests */}
         {pendingRequests && pendingRequests.length > 0 && (
           <div className="mb-8 space-y-3">
-            <div className="text-[10px] text-accentCyan font-black uppercase tracking-[0.3em] mb-4 text-center">
+            <div className="text-xs text-accentCyan font-black uppercase tracking-[0.3em] mb-4 text-center">
               {t.friendRequest} ({pendingRequests.length})
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {pendingRequests.map((req) => (
-                <div key={req.id} className="p-4 rounded-2xl bg-accentCyan/5 border border-accentCyan/20 flex items-center justify-between">
+                <div key={req.id} className="p-4 rounded-2xl bg-[var(--accent-cyan)]/5 border border-[var(--accent-cyan)]/20 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar src={req.from_user.avatar} size="sm" />
                     <div>
-                      <div className="text-xs font-bold text-white">{req.from_user.username}</div>
-                      <div className="text-[9px] text-gray-500 uppercase tracking-widest">{t.friendRequestReceived.replace(req.from_user.username, '')}</div>
+                      <div className="text-sm font-bold text-[var(--text-main)]">{req.from_user.username}</div>
+                      <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest">{t.friendRequestReceived.replace(req.from_user.username, '')}</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => respondToFriendRequest(req.id, false)}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                      className="p-2 rounded-lg bg-[var(--check-red)]/10 text-[var(--check-red)] hover:bg-[var(--check-red)] hover:text-[var(--accent-white)] transition-all"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                     <button 
                       onClick={() => respondToFriendRequest(req.id, true)}
-                      className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all"
+                      className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-[var(--accent-white)] transition-all"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </button>
@@ -242,32 +245,32 @@ function FriendsList() {
                 </div>
               ))}
             </div>
-            <div className="border-b border-[#252D3D] pt-4" />
+            <div className="border-b border-[var(--border)] pt-4" />
           </div>
         )}
 
         {friends.length === 0 ? (
-          <p className="text-center text-gray-600 text-xs uppercase tracking-widest py-4">{t.noFriends}</p>
+          <p className="text-center text-[var(--text-muted)] text-sm uppercase tracking-widest py-4">{t.noFriends}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {friends.map((f) => (
               <div 
                 key={f.id}
-                className="p-4 rounded-2xl bg-black/20 border border-[#252D3D] flex items-center justify-between group"
+                className="p-4 rounded-2xl bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-between group"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Avatar src={f.avatar} size="sm" />
                     {f.is_online && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#131820]" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--surface)]" />
                     )}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <div className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
                       {f.username}
-                      <span className="text-[8px] text-gray-500 uppercase tracking-tighter">ID: {f.public_id}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-tighter">ID: {f.public_id}</span>
                     </div>
-                    <div className="text-[9px] text-accentCyan font-black uppercase tracking-widest">{getUserTitle(f.wins, t)}</div>
+                    <div className="text-[11px] text-[var(--accent-cyan)] font-black uppercase tracking-widest">{getUserTitle(f.wins, t)}</div>
                   </div>
                 </div>
                 
@@ -275,7 +278,7 @@ function FriendsList() {
                   {f.is_online && (
                     <button 
                       onClick={() => sendInvite(f.public_id)}
-                      className="p-2 rounded-lg bg-accentCyan text-black hover:brightness-110 transition-all"
+                      className="p-2 rounded-lg bg-[var(--accent-cyan)] text-black hover:brightness-110 transition-all"
                       title={t.inviteFriend}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
@@ -283,7 +286,7 @@ function FriendsList() {
                   )}
                   <button 
                     onClick={() => unfollowUser(f.public_id)}
-                    className="p-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                    className="p-2 rounded-lg bg-[var(--check-red)]/10 text-[var(--check-red)] border border-[var(--check-red)]/20 hover:bg-[var(--check-red)] hover:text-[var(--accent-white)] transition-all"
                     title={t.unfollow}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="23" y1="11" x2="17" y2="11"></line></svg>
@@ -312,9 +315,9 @@ function MatchHistory() {
 
   return (
     <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: '#131820', border: '1px solid #252D3D' }}>
-        <h3 className="text-xl font-black text-white mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
-          <span className="text-accentCyan">📜</span> {t.matchHistory}
+      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-xl font-black text-[var(--text-main)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
+          <span className="text-[var(--accent-cyan)]">📜</span> {t.matchHistory}
         </h3>
         <div className="space-y-3">
           {displayedHistory.map((m) => {
@@ -326,7 +329,7 @@ function MatchHistory() {
             return (
               <div 
                 key={m.id}
-                className="p-4 rounded-2xl bg-black/20 border border-[#252D3D] flex items-center justify-between group hover:border-white/10 transition-all"
+                className="p-4 rounded-2xl bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-between group hover:border-white/10 transition-all"
               >
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-2">
@@ -334,18 +337,18 @@ function MatchHistory() {
                     <Avatar src={m.black_avatar} size="sm" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white">
-                      {m.white} <span className="text-gray-600 mx-1">vs</span> {m.black}
+                    <div className="text-sm font-bold text-[var(--text-main)]">
+                      {m.white} <span className="text-[var(--text-muted)] mx-1">vs</span> {m.black}
                     </div>
-                    <div className="text-[9px] text-gray-500 uppercase tracking-widest mt-0.5">{m.date} • {m.game_mode}</div>
+                    <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">{m.date} • {m.game_mode}</div>
                   </div>
                 </div>
                 
                 <div className="text-right">
-                  <div className={`text-[10px] font-black uppercase tracking-widest ${isDraw ? 'text-gray-400' : (didIWin ? 'text-green-400' : 'text-red-400')}`}>
+                  <div className={`text-xs font-black uppercase tracking-widest ${isDraw ? 'text-[var(--text-muted)]' : (didIWin ? 'text-green-400' : 'text-[var(--check-red)]')}`}>
                     {isDraw ? t.draw : (didIWin ? t.victory : t.defeat)}
                   </div>
-                  <div className="text-[8px] text-gray-600 font-mono">#{m.id}</div>
+                  <div className="text-[10px] text-[var(--text-muted)] font-mono">#{m.id}</div>
                 </div>
               </div>
             );
@@ -356,9 +359,9 @@ function MatchHistory() {
           <div className="mt-6 flex justify-center">
             <button 
               onClick={() => setShowAll(!showAll)}
-              className="text-[10px] font-black text-accentCyan uppercase tracking-[0.3em] border-b border-accentCyan/30 pb-1 hover:border-accentCyan transition-all"
+              className="text-xs font-black text-[var(--accent-cyan)] uppercase tracking-[0.3em] border-b border-[var(--accent-cyan)]/30 pb-1 hover:border-[var(--accent-cyan)] transition-all"
             >
-              {showAll ? 'Show Less' : 'Show More'}
+              {showAll ? t.showLess : t.showMore}
             </button>
           </div>
         )}
@@ -380,9 +383,9 @@ function LiveGames() {
 
   return (
     <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: '#131820', border: '1px solid #252D3D' }}>
-        <h3 className="text-xl font-black text-white mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
-          <span className="text-red-500 animate-pulse">●</span> {t.liveGames}
+      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-xl font-black text-[var(--text-main)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
+          <span className="text-[var(--check-red)] animate-pulse">●</span> {t.liveGames}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {liveGames.map((g) => (
@@ -390,19 +393,19 @@ function LiveGames() {
               key={g.game_id}
               whileHover={{ scale: 1.02 }}
               onClick={() => spectateGame(g.game_id)}
-              className="p-4 rounded-2xl bg-black/20 border border-[#252D3D] cursor-pointer flex items-center justify-between group transition-all hover:border-accentCyan/40"
+              className="p-4 rounded-2xl bg-[var(--surface-hover)] border border-[var(--border)] cursor-pointer flex items-center justify-between group transition-all hover:border-[var(--accent-cyan)]/40"
             >
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
                   <Avatar src={g.white_avatar} size="sm" />
                   <Avatar src={g.black_avatar} size="sm" />
                 </div>
-                <div className="text-xs">
-                  <div className="text-white font-bold">{g.white} vs {g.black}</div>
-                  <div className="text-gray-500 uppercase tracking-widest text-[9px]">{g.move_count} {t.move}s</div>
+                <div className="text-sm">
+                  <div className="text-[var(--text-main)] font-bold">{g.white} vs {g.black}</div>
+                  <div className="text-[var(--text-muted)] uppercase tracking-widest text-[11px]">{g.move_count} {t.move}s</div>
                 </div>
               </div>
-              <div className="text-[10px] font-black text-accentCyan uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+              <div className="text-xs font-black text-[var(--accent-cyan)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
                 {t.spectate} →
               </div>
             </motion.div>
@@ -413,6 +416,7 @@ function LiveGames() {
   )
 }
 
+
 function Leaderboard() {
   const { leaderboard, t, user, friends, sendFriendRequest, setNotification } = useGameStore()
 
@@ -422,13 +426,13 @@ function Leaderboard() {
 
   return (
     <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: '#131820', border: '1px solid #252D3D' }}>
-        <h3 className="text-xl font-black text-white mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
-          <span className="text-accentCyan">🏆</span> {t.leaderboard} <span className="text-accentCyan">🏆</span>
+      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-xl font-black text-[var(--text-main)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
+          <span className="text-[var(--accent-cyan)]">🏆</span> {t.leaderboard} <span className="text-[var(--accent-cyan)]">🏆</span>
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-[10px] uppercase tracking-widest text-gray-500 border-b border-[#252D3D]">
+            <thead className="text-xs uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border)]">
               <tr>
                 <th className="px-4 py-3 w-16">{t.rank}</th>
                 <th className="px-4 py-3">{t.player}</th>
@@ -445,30 +449,30 @@ function Leaderboard() {
                 return (
                   <tr 
                     key={u.id} 
-                    className={`border-b border-[#252D3D]/50 transition-colors ${isMe ? 'bg-accentCyan/10' : 'hover:bg-white/5'}`}
+                    className={`border-b border-[var(--border)]/50 transition-colors ${isMe ? 'bg-[var(--accent-cyan)]/10' : 'hover:bg-[var(--surface-hover)]'}`}
                   >
-                    <td className="px-4 py-4 font-mono font-bold">
+                    <td className="px-4 py-4 font-mono font-bold text-[var(--accent-white)]">
                       {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                     </td>
                     <td className="px-4 py-4 flex items-center gap-3">
                       <div className="relative">
                         <Avatar src={u.avatar} size="sm" />
                         {u.is_online && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#131820]" />
+                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--surface)]" />
                         )}
                       </div>
                       <div>
-                        <div className="font-bold text-white flex items-center gap-2">
+                        <div className="font-bold text-[var(--text-main)] flex items-center gap-2">
                           {u.username}
-                          {isMe && <span className="text-[8px] px-1.5 py-0.5 rounded bg-accentCyan text-black font-black uppercase tracking-tighter">YOU</span>}
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accentCyan/10 text-accentCyan border border-accentCyan/20 uppercase tracking-widest">{getUserTitle(u.wins, t)}</span>
+                          {isMe && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-cyan)] text-black font-black uppercase tracking-tighter">YOU</span>}
+                          <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/20 uppercase tracking-widest">{getUserTitle(u.wins, t)}</span>
                         </div>
-                        <div className="text-[10px] text-gray-500 font-mono mt-0.5">ID: {u.public_id}</div>
+                        <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">ID: {u.public_id}</div>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center font-mono text-green-400">{u.wins}</td>
-                    <td className="px-4 py-4 text-center font-mono text-gray-400">{u.draws}</td>
-                    <td className="px-4 py-4 text-center font-mono text-red-400">{u.losses}</td>
+                    <td className="px-4 py-4 text-center font-mono text-[var(--text-muted)]">{u.draws}</td>
+                    <td className="px-4 py-4 text-center font-mono text-[var(--check-red)]">{u.losses}</td>
                     <td className="px-4 py-4 text-right">
                       {!isMe && !isFollowing && (
                         <button 
@@ -479,7 +483,7 @@ function Leaderboard() {
                               type: 'success' 
                             });
                           }}
-                          className="p-2 rounded-lg bg-accentCyan/10 text-accentCyan hover:bg-accentCyan hover:text-black transition-all"
+                          className="p-2 rounded-lg bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)] hover:text-black transition-all"
                           title={t.follow}
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
@@ -515,10 +519,10 @@ function TimeSelector({ value, onChange }: { value: number; onChange: (s: number
         <button
           key={t.label}
           onClick={() => onChange(t.seconds, t.increment)}
-          className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+          className={`py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
             current.label === t.label 
-              ? 'bg-accentCyan text-black border-accentCyan shadow-[0_0_15px_rgba(77,217,232,0.3)]' 
-              : 'bg-black/20 text-gray-500 border-white/5 hover:border-white/20'
+              ? 'bg-[var(--accent-cyan)] text-black border-[var(--accent-cyan)] shadow-[0_0_15px_rgba(77,217,232,0.3)]' 
+              : 'bg-[var(--surface-hover)] text-[var(--text-muted)] border-white/5 hover:border-white/20'
           }`}
         >
           {t.label}
@@ -528,6 +532,7 @@ function TimeSelector({ value, onChange }: { value: number; onChange: (s: number
   )
 }
 
+
 function ModeSelection() {
   const [opponentId, setOpponentId] = useState('')
   const [difficulty, setDifficulty] = useState('normal')
@@ -535,7 +540,7 @@ function ModeSelection() {
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [foundUser, setFoundUser] = useState<any>(null)
-  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, friends, sendFriendRequest, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
+  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, friends, sendFriendRequest, setNotification, fetchFriendRequests, fetchNotifications, pieceTheme, setPieceTheme } = useGameStore()
 
   useEffect(() => {
     fetchLeaderboard()
@@ -574,40 +579,91 @@ function ModeSelection() {
     <div className="flex-1 flex flex-col items-center justify-center p-4 gap-8">
         <div className="flex justify-center mb-4">
           <LanguageSwitcher />
+          <ThemeSwitcher />
         </div>
         <div className="text-center flex flex-col items-center">
             <div className="relative group cursor-pointer" onClick={() => setIsEditModalOpen(true)}>
               <Avatar src={user?.avatar || '👨‍🚀'} size="xl" />
               <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                <span className="text-[10px] font-black text-white uppercase tracking-widest">Edit</span>
+                <span className="text-xs font-black text-[var(--text-main)] uppercase tracking-widest">Edit</span>
               </div>
             </div>
-            <div className="text-gray-600 text-[10px] uppercase tracking-[0.4em] mb-1 mt-3">{t.welcome}</div>
-            <div className="text-4xl font-black text-white uppercase tracking-wider mb-1 flex items-center gap-3">
+            <div className="text-[var(--text-muted)] text-xs uppercase tracking-[0.4em] mb-1 mt-3">{t.welcome}</div>
+            <div className="text-4xl font-black text-[var(--text-main)] uppercase tracking-wider mb-1 flex items-center gap-3">
               {user?.username}
             </div>
-            <div className="text-accentCyan text-xs uppercase tracking-widest font-bold mb-4 bg-accentCyan/10 px-3 py-1 rounded-full border border-accentCyan/20">
+            <div className="text-[var(--accent-cyan)] text-sm uppercase tracking-widest font-bold mb-4 bg-[var(--accent-cyan)]/10 px-3 py-1 rounded-full border border-[var(--accent-cyan)]/20">
               {user ? getUserTitle(user.wins, t) : ''}
             </div>
-            <div className="flex items-center justify-center gap-4">
-                <span className="text-gray-400 font-mono text-xs px-3 py-1 rounded-full border border-[#252D3D] bg-black/40">ID: {user?.public_id}</span>
-                <button onClick={logout} className="text-gray-600 text-[10px] hover:text-white uppercase tracking-widest border-b border-gray-800 pb-0.5">{t.logout}</button>
+            <div className="flex flex-col items-center gap-2 mb-6">
+                <div className="flex flex-col items-center">
+                  <span className="text-[11px] text-[var(--text-muted)] uppercase font-black tracking-[0.3em] mb-1">{t.yourID}</span>
+                  <div className="relative group">
+                    <span className="text-[var(--accent-cyan)] font-mono text-2xl font-black px-8 py-3 rounded-2xl border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 shadow-[0_0_30px_rgba(77,217,232,0.15)] flex items-center gap-3">
+                      {user?.public_id}
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(user?.public_id || '');
+                          setNotification({ text: t.idCopied, type: 'success' });
+                        }}
+                        className="text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors"
+                        title={t.copyID}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      </button>
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  onClick={logout} 
+                  className="text-[var(--text-muted)] text-xs hover:text-[var(--check-red)] uppercase tracking-[0.3em] border-b border-[var(--border)] pb-0.5 mt-2 transition-all"
+                >
+                  {t.logout}
+                </button>
             </div>
 
             <div className="mt-8 w-full max-w-lg">
-              <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] mb-4 text-center">Time Control</div>
+              <div className="text-xs text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mb-4 text-center">{t.timeControl}</div>
               <TimeSelector value={timeLimit} onChange={(s, i) => { setTimeLimit(s); setTimeIncrement(i); }} />
+            </div>
+
+            <div className="mt-4 w-full max-w-lg">
+              <div className="text-xs text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mb-4 text-center">{t.pieceDesign}</div>
+              <div className="flex p-1.5 rounded-full bg-[var(--surface-hover)] border border-white/5 relative mx-auto w-fit">
+                <motion.div 
+                  className="absolute h-[calc(100%-12px)] rounded-full bg-[var(--accent-cyan)] shadow-[0_0_20px_rgba(77,217,232,0.4)]"
+                  initial={false}
+                  animate={{ 
+                    x: pieceTheme === 'classic' ? 0 : 120, 
+                    width: 120 
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  style={{ left: '6px' }}
+                />
+                <button
+                  onClick={() => setPieceTheme('classic')}
+                  className={`relative z-10 w-[120px] py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'classic' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+                >
+                  {t.classicSet}
+                </button>
+                <button
+                  onClick={() => setPieceTheme('modern')}
+                  className={`relative z-10 w-[120px] py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'modern' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+                >
+                  {t.modernSet}
+                </button>
+              </div>
             </div>
 
             <div className="flex gap-4 mt-6">
 
-              <div className="bg-[#131820] border border-[#252D3D] rounded-2xl px-6 py-3 text-center">
-                <div className="text-[9px] text-gray-500 uppercase tracking-widest mb-1">{t.winRate}</div>
-                <div className="text-xl font-black text-accentCyan">{winRate}%</div>
+              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-3 text-center">
+                <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.winRate}</div>
+                <div className="text-xl font-black text-[var(--accent-cyan)]">{winRate}%</div>
               </div>
-              <div className="bg-[#131820] border border-[#252D3D] rounded-2xl px-6 py-3 text-center">
-                <div className="text-[9px] text-gray-500 uppercase tracking-widest mb-1">{t.totalGames}</div>
-                <div className="text-xl font-black text-white">{totalGames}</div>
+              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-3 text-center">
+                <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.totalGames}</div>
+                <div className="text-xl font-black text-[var(--text-main)]">{totalGames}</div>
               </div>
             </div>
         </div>
@@ -617,14 +673,14 @@ function ModeSelection() {
                 whileHover={{ y: -5, borderColor: 'rgba(77,217,232,0.4)' }}
                 onClick={startAIGame}
                 className="p-10 rounded-3xl cursor-pointer flex flex-col items-center text-center gap-6 group transition-all"
-                style={{ background: '#131820', border: '1px solid #252D3D' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
             >
-                <div className="w-20 h-20 bg-accentCyan/10 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🤖</div>
+                <div className="w-20 h-20 bg-[var(--accent-cyan)]/10 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🤖</div>
                 <div className="w-full">
-                    <div className="text-2xl font-black text-white mb-2 uppercase tracking-widest">{t.singlePlayer}</div>
-                    <div className="text-gray-500 text-sm leading-relaxed mb-6">{t.practiceAI}</div>
+                    <div className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-widest">{t.singlePlayer}</div>
+                    <div className="text-[var(--text-muted)] text-sm leading-relaxed mb-6">{t.practiceAI}</div>
                     
-                    <div className="flex gap-2 bg-[#0A0C10] p-1.5 rounded-xl border border-[#252D3D]">
+                    <div className="flex gap-2 bg-[var(--bg)] p-1.5 rounded-xl border border-[var(--border)]">
                         {[
                             { id: 'easy', label: t.easy },
                             { id: 'normal', label: t.normal },
@@ -636,7 +692,7 @@ function ModeSelection() {
                                     e.stopPropagation();
                                     setDifficulty(d.id);
                                 }}
-                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${difficulty === d.id ? 'bg-accentCyan text-black' : 'text-gray-500 hover:text-white'}`}
+                                className={`flex-1 py-2 rounded-lg text-xs font-black transition-all ${difficulty === d.id ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
                             >
                                 {d.label.toUpperCase()}
                             </button>
@@ -649,24 +705,24 @@ function ModeSelection() {
                 whileHover={{ y: -5, borderColor: 'rgba(77,217,232,0.4)' }}
                 onClick={startMatchmaking}
                 className="p-10 rounded-3xl cursor-pointer flex flex-col items-center text-center gap-6 group transition-all"
-                style={{ background: '#131820', border: '1px solid #252D3D' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
             >
-                <div className="w-20 h-20 bg-accentCyan/10 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🌍</div>
+                <div className="w-20 h-20 bg-[var(--accent-cyan)]/10 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🌍</div>
                 <div>
-                    <div className="text-2xl font-black text-white mb-2 uppercase tracking-widest">{t.quickPlay}</div>
-                    <div className="text-gray-500 text-sm leading-relaxed">{t.searching}</div>
+                    <div className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-widest">{t.quickPlay}</div>
+                    <div className="text-[var(--text-muted)] text-sm leading-relaxed">{t.searching}</div>
                 </div>
             </motion.div>
 
             <motion.div 
                 whileHover={{ y: -5, borderColor: 'rgba(77,217,232,0.4)' }}
                 className="p-10 rounded-3xl flex flex-col items-center text-center gap-6 transition-all"
-                style={{ background: '#131820', border: '1px solid #252D3D' }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
             >
-                <div className="w-20 h-20 bg-accentCyan/10 rounded-2xl flex items-center justify-center text-4xl">👤</div>
+                <div className="w-20 h-20 bg-[var(--accent-cyan)]/10 rounded-2xl flex items-center justify-center text-4xl">👤</div>
                 <div className="w-full">
-                    <div className="text-2xl font-black text-white mb-2 uppercase tracking-widest">{t.multiplayer}</div>
-                    <div className="text-gray-500 text-sm mb-6 leading-relaxed">{t.playPerson}</div>
+                    <div className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-widest">{t.multiplayer}</div>
+                    <div className="text-[var(--text-muted)] text-sm mb-6 leading-relaxed">{t.playPerson}</div>
                     
                     {!foundUser ? (
                       <div className="flex gap-2">
@@ -679,28 +735,28 @@ function ModeSelection() {
                                   setOpponentId(val);
                               }}
                               placeholder={t.opponentID}
-                              className="flex-1 bg-[#0A0C10] border border-[#252D3D] rounded-xl px-3 py-3 text-white text-center font-mono text-sm outline-none focus:border-accentCyan tracking-[0.1em] min-w-0"
+                              className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-xl px-3 py-3 text-[var(--text-main)] text-center font-mono text-sm outline-none focus:border-[var(--accent-cyan)] tracking-[0.1em] min-w-0"
                           />
                           <button 
                               onClick={handleSearch}
-                              className="bg-accentCyan text-black px-4 py-3 rounded-xl font-black uppercase hover:brightness-110 active:scale-95 transition-all text-xs whitespace-nowrap"
+                              className="bg-[var(--accent-cyan)] text-black px-4 py-3 rounded-xl font-black uppercase hover:brightness-110 active:scale-95 transition-all text-xs whitespace-nowrap"
                           >
                               {t.go}
                           </button>
                       </div>
                     ) : (
-                      <div className="bg-[#0A0C10] p-4 rounded-2xl border border-accentCyan/30 animate-in fade-in zoom-in duration-300">
+                      <div className="bg-[var(--bg)] p-4 rounded-2xl border border-[var(--accent-cyan)]/30 animate-in fade-in zoom-in duration-300">
                         <div className="flex items-center gap-3 mb-4">
                           <Avatar src={foundUser.avatar} size="md" />
                           <div className="text-left">
-                            <div className="text-sm font-bold text-white">{foundUser.username}</div>
-                            <div className="text-[10px] text-gray-500 font-mono uppercase tracking-tighter">ID: {foundUser.public_id}</div>
+                            <div className="text-sm font-bold text-[var(--text-main)]">{foundUser.username}</div>
+                            <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-tighter">ID: {foundUser.public_id}</div>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <button 
                             onClick={() => startPersonGame(foundUser.public_id)}
-                            className="flex-1 py-2.5 bg-accentCyan text-black font-black text-[10px] uppercase rounded-lg hover:brightness-110 transition-all"
+                            className="flex-1 py-2.5 bg-[var(--accent-cyan)] text-black font-black text-[10px] uppercase rounded-lg hover:brightness-110 transition-all"
                           >
                             {t.inviteFriend}
                           </button>
@@ -715,7 +771,7 @@ function ModeSelection() {
                                 setFoundUser(null);
                                 setOpponentId('');
                               }}
-                              className="p-2.5 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all"
+                              className="p-2.5 bg-[var(--surface-hover)] border border-white/10 text-[var(--text-main)] rounded-lg hover:bg-[var(--surface-hover)] transition-all"
                               title={t.follow}
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
@@ -726,7 +782,7 @@ function ModeSelection() {
                               setFoundUser(null);
                               setOpponentId('');
                             }}
-                            className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                            className="p-2.5 bg-[var(--check-red)]/10 border border-[var(--check-red)]/20 text-[var(--check-red)] rounded-lg hover:bg-[var(--check-red)] hover:text-[var(--text-main)] transition-all"
                           >
                             ✕
                           </button>
@@ -754,19 +810,27 @@ function ViewSwitcher() {
   }
 
   return (
-    <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+    <div className="flex p-1 rounded-full bg-[var(--surface-hover)] border border-white/5 relative">
+      <div 
+        className="absolute h-[calc(100%-8px)] rounded-full bg-white shadow-lg transition-all duration-300"
+        style={{ 
+          width: 'calc(50% - 4px)', 
+          left: viewMode === '2d' ? '4px' : 'calc(50%)',
+          display: viewMode === '2d' ? 'block' : 'none' 
+        }}
+      />
       <button
         onClick={() => setViewMode('2d')}
-        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${viewMode === '2d' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+        className={`relative z-10 px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${viewMode === '2d' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
       >
         2D
       </button>
       <button
         onClick={handle3DClick}
-        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all text-gray-500 hover:text-white relative group`}
+        className={`relative z-10 px-4 py-1.5 rounded-full text-[10px] font-black transition-all text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center gap-1`}
       >
         3D
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-accentCyan rounded-full animate-pulse" />
+        <span className="w-1.5 h-1.5 bg-[var(--accent-cyan)] rounded-full animate-pulse" />
       </button>
     </div>
   )
@@ -775,20 +839,32 @@ function ViewSwitcher() {
 function LanguageSwitcher() {
   const { language, setLanguage } = useGameStore()
   const langs: { id: Language; label: string; flag: string }[] = [
-    { id: 'uz', label: 'UZB', flag: '🇺🇿' },
-    { id: 'ru', label: 'RUS', flag: '🇷🇺' },
-    { id: 'en', label: 'ENG', flag: '🇺🇸' },
+    { id: 'uz', label: 'UZ', flag: '🇺🇿' },
+    { id: 'ru', label: 'RU', flag: '🇷🇺' },
+    { id: 'en', label: 'EN', flag: '🇺🇸' },
   ]
 
+  const activeIdx = langs.findIndex(l => l.id === language)
+
   return (
-    <div className="flex gap-2 bg-black/40 p-1 rounded-xl border border-white/5">
+    <div className="flex p-1.5 rounded-full bg-[var(--surface-hover)] border border-white/5 relative">
+      <motion.div 
+        className="absolute h-[calc(100%-12px)] rounded-full bg-[var(--accent-cyan)] shadow-[0_0_20px_rgba(77,217,232,0.4)]"
+        initial={false}
+        animate={{ 
+          x: activeIdx * 56, 
+          width: 56 
+        }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        style={{ left: '6px' }}
+      />
       {langs.map(l => (
         <button
           key={l.id}
           onClick={() => setLanguage(l.id)}
-          className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all flex items-center gap-1.5 ${language === l.id ? 'bg-accentCyan text-black' : 'text-gray-500 hover:text-white'}`}
+          className={`relative z-10 w-14 py-2 rounded-full text-[10px] font-black transition-colors duration-300 flex items-center justify-center gap-1.5 ${language === l.id ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
         >
-          <span>{l.flag}</span>
+          <span className="text-sm">{l.flag}</span>
           {l.label}
         </button>
       ))}
@@ -802,7 +878,7 @@ function CapturedPieces({ pieces, color }: { pieces: string[]; color: 'white' | 
   return (
     <div className="flex flex-wrap gap-1 mt-1 opacity-60">
       {pieces.map((p, i) => (
-        <span key={i} className={`text-xs ${color === 'white' ? 'text-white' : 'text-accentCyan'}`}>
+        <span key={i} className={`text-xs ${color === 'white' ? 'text-[var(--text-main)]' : 'text-[var(--accent-cyan)]'}`}>
           {p}
         </span>
       ))}
@@ -846,8 +922,8 @@ function ChessClock({ timeLeft, isActive, color }: { timeLeft: number; isActive:
     <div 
       className={`px-3 py-1.5 rounded-lg font-mono text-sm font-black transition-all duration-300 flex items-center gap-2 ${
         isActive 
-          ? (isLowTime ? 'bg-checkRed text-white animate-pulse' : (isWhite ? 'bg-[#DDE6EF] text-black' : 'bg-[#4DD9E8] text-black')) 
-          : 'bg-black/40 text-gray-500 border border-white/5'
+          ? (isLowTime ? 'bg-[var(--check-red)] text-[var(--text-main)] animate-pulse' : (isWhite ? 'bg-[var(--accent-white)] text-black' : 'bg-[var(--accent-cyan)] text-black')) 
+          : 'bg-[var(--surface-hover)] text-[var(--text-muted)] border border-white/5'
       }`}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -880,7 +956,7 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
     >
       <Avatar src={avatar || (isWhite ? '♔' : '♚')} size="sm" />
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold uppercase tracking-wider truncate" style={{ color: isWhite ? '#DDE6EF' : '#4DD9E8' }}>
+        <div className="text-sm font-semibold uppercase tracking-wider truncate" style={{ color: isWhite ? 'var(--text-main)' : 'var(--accent-cyan)' }}>
           {isWhite ? t.white : t.black}
         </div>
         <CapturedPieces pieces={capturedPieces} color={color} />
@@ -907,27 +983,27 @@ function InviteModal() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-sm w-full p-8 rounded-3xl text-center"
-        style={{ background: '#131820', border: '1px solid #4DD9E8' }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--accent-cyan)' }}
       >
         <div className="text-4xl mb-4">🎮</div>
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">Game invitation</h2>
-        <p className="text-gray-400 text-sm mb-2">
-          <span className="text-accentCyan font-bold">{inviteRequest.from_username}</span> challenged you!
+        <h2 className="text-xl font-black text-[var(--text-main)] uppercase tracking-widest mb-2">Game invitation</h2>
+        <p className="text-[var(--text-muted)] text-sm mb-2">
+          <span className="text-[var(--accent-cyan)] font-bold">{inviteRequest.from_username}</span> challenged you!
         </p>
-        <div className="mb-6 px-4 py-2 bg-accentCyan/10 border border-accentCyan/20 rounded-xl inline-block">
-          <span className="text-[10px] text-gray-500 uppercase tracking-widest mr-2">Time:</span>
-          <span className="text-xs font-black text-accentCyan uppercase">{formatTC(inviteRequest.time_limit, inviteRequest.time_increment)}</span>
+        <div className="mb-6 px-4 py-2 bg-[var(--accent-cyan)]/10 border border-[var(--accent-cyan)]/20 rounded-xl inline-block">
+          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mr-2">Time:</span>
+          <span className="text-xs font-black text-[var(--accent-cyan)] uppercase">{formatTC(inviteRequest.time_limit, inviteRequest.time_increment)}</span>
         </div>
         <div className="flex gap-3">
           <button 
             onClick={() => respondToInvite(false)}
-            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-800 hover:bg-white/5 transition-all"
+            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border border-gray-800 hover:bg-[var(--surface-hover)] transition-all"
           >
             {t.decline}
           </button>
           <button 
             onClick={() => respondToInvite(true)}
-            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-accentCyan text-black hover:brightness-110 transition-all"
+            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-[var(--accent-cyan)] text-black hover:brightness-110 transition-all"
           >
             {t.accept}
           </button>
@@ -957,26 +1033,26 @@ function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-[300px] rounded-2xl overflow-hidden border border-[#252D3D]" style={{ background: '#131820' }}>
-      <div className="px-4 py-2 border-b border-[#252D3D] flex items-center justify-between bg-black/20">
-        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Live Chat</span>
+    <div className="flex flex-col h-[300px] rounded-2xl overflow-hidden border border-[var(--border)]" style={{ background: 'var(--surface)' }}>
+      <div className="px-4 py-2 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-hover)]">
+        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Live Chat</span>
         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
       </div>
       
       <div ref={chatListRef} className="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
         {chatMessages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-[10px] text-gray-600 uppercase tracking-widest text-center px-4">
+          <div className="h-full flex items-center justify-center text-[10px] text-[var(--text-muted)] uppercase tracking-widest text-center px-4">
             No messages yet. Say hi to your opponent!
           </div>
         ) : (
           chatMessages.map((msg, i) => (
             <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}>
-              <span className="text-[9px] text-gray-600 mb-1 px-1">{msg.from}</span>
+              <span className="text-[9px] text-[var(--text-muted)] mb-1 px-1">{msg.from}</span>
               <div 
                 className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs ${
                   msg.from === user?.username 
-                    ? 'bg-accentCyan text-black font-medium rounded-tr-none' 
-                    : 'bg-[#1C2330] text-gray-300 rounded-tl-none border border-[#252D3D]'
+                    ? 'bg-[var(--accent-cyan)] text-black font-medium rounded-tr-none' 
+                    : 'bg-[var(--surface-2)] text-[var(--text-main)] rounded-tl-none border border-[var(--border)]'
                 }`}
               >
                 {msg.text}
@@ -986,17 +1062,17 @@ function Chat() {
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-2 bg-black/40 border-t border-[#252D3D] flex gap-2">
+      <form onSubmit={handleSend} className="p-2 bg-[var(--surface-hover)] border-t border-[var(--border)] flex gap-2">
         <input 
           type="text"
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder="Type message..."
-          className="flex-1 bg-[#0A0C10] border border-[#252D3D] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-accentCyan transition-colors"
+          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-[var(--accent-cyan)] transition-colors"
         />
         <button 
           type="submit"
-          className="bg-accentCyan text-black p-2 rounded-xl hover:brightness-110 active:scale-95 transition-all"
+          className="bg-[var(--accent-cyan)] text-black p-2 rounded-xl hover:brightness-110 active:scale-95 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>
@@ -1010,7 +1086,7 @@ function NotificationToast() {
   if (!notification) return null
 
   const bg = notification.type === 'success' ? 'bg-green-500' : 
-             notification.type === 'error' ? 'bg-red-500' : 'bg-accentCyan';
+             notification.type === 'error' ? 'bg-[var(--check-red)]' : 'bg-[var(--accent-cyan)]';
 
   return (
     <motion.div 
@@ -1039,11 +1115,11 @@ function NotificationCenter() {
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all"
+        className="relative p-2 rounded-xl bg-[var(--surface-hover)] border border-white/5 hover:bg-[var(--surface-hover)] transition-all"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-[#0A0C10]">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-[var(--text-main)] text-[10px] font-black rounded-full flex items-center justify-center border-2 border-[var(--bg)]">
             {unreadCount}
           </span>
         )}
@@ -1057,25 +1133,25 @@ function NotificationCenter() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute right-0 mt-3 w-80 max-h-[400px] overflow-hidden rounded-2xl border border-[#252D3D] bg-[#131820] shadow-2xl z-[150]"
+              className="absolute right-0 mt-3 w-80 max-h-[400px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl z-[150]"
             >
-              <div className="p-4 border-b border-[#252D3D] flex items-center justify-between bg-black/20">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{t.notifications}</span>
-                {unreadCount > 0 && <span className="text-[9px] text-accentCyan font-bold">{unreadCount} new</span>}
+              <div className="p-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-hover)]">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t.notifications}</span>
+                {unreadCount > 0 && <span className="text-[9px] text-[var(--accent-cyan)] font-bold">{unreadCount} new</span>}
               </div>
               
               <div className="overflow-y-auto max-h-[340px]">
                 {notifications.length === 0 ? (
-                  <div className="p-8 text-center text-[10px] text-gray-600 uppercase tracking-widest">{t.noNotifications}</div>
+                  <div className="p-8 text-center text-[10px] text-[var(--text-muted)] uppercase tracking-widest">{t.noNotifications}</div>
                 ) : (
                   notifications.map((n) => (
                     <div 
                       key={n.id} 
                       onClick={() => !n.is_read && markNotificationRead(n.id)}
-                      className={`p-4 border-b border-[#252D3D]/50 cursor-pointer transition-all ${!n.is_read ? 'bg-accentCyan/5' : 'opacity-60 hover:opacity-100'}`}
+                      className={`p-4 border-b border-[var(--border)]/50 cursor-pointer transition-all ${!n.is_read ? 'bg-[var(--accent-cyan)]/5' : 'opacity-60 hover:opacity-100'}`}
                     >
-                      <div className="text-xs text-white mb-1">{n.text}</div>
-                      <div className="text-[8px] text-gray-600 uppercase tracking-widest">{new Date(n.created_at).toLocaleString()}</div>
+                      <div className="text-xs text-[var(--text-main)] mb-1">{n.text}</div>
+                      <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-widest">{new Date(n.created_at).toLocaleString()}</div>
                     </div>
                   ))
                 )}
@@ -1087,6 +1163,7 @@ function NotificationCenter() {
     </div>
   )
 }
+
 
 function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { user, t, uploadAvatar, updateProfile } = useGameStore()
@@ -1112,10 +1189,10 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full p-8 rounded-3xl border border-[#252D3D] bg-[#131820] relative"
+        className="max-w-md w-full p-8 rounded-3xl border border-[var(--border)] bg-[var(--surface)] relative"
       >
-        <button onClick={onClose} className="absolute top-6 right-6 text-gray-500 hover:text-white">✕</button>
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-8 text-center">{t.editProfile}</h2>
+        <button onClick={onClose} className="absolute top-6 right-6 text-[var(--text-muted)] hover:text-[var(--text-main)]">✕</button>
+        <h2 className="text-xl font-black text-[var(--text-main)] uppercase tracking-widest mb-8 text-center">{t.editProfile}</h2>
         
         <div className="flex flex-col items-center gap-6">
           <Avatar src={user.avatar} size="xl" />
@@ -1124,7 +1201,7 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="w-full py-4 bg-accentCyan text-black font-black rounded-2xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
+              className="w-full py-4 bg-[var(--accent-cyan)] text-black font-black rounded-2xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
             >
               {isUploading ? '...' : t.chooseAvatar}
             </button>
@@ -1135,7 +1212,7 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                 <button
                   key={a}
                   onClick={() => updateProfile(a)}
-                  className={`text-2xl p-3 rounded-xl bg-black/20 border ${user.avatar === a ? 'border-accentCyan' : 'border-[#252D3D]'} hover:bg-black/40 transition-all`}
+                  className={`text-2xl p-3 rounded-xl bg-[var(--surface-hover)] border ${user.avatar === a ? 'border-[var(--accent-cyan)]' : 'border-[var(--border)]'} hover:bg-[var(--surface-hover)] transition-all`}
                 >
                   {a}
                 </button>
@@ -1148,6 +1225,7 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   )
 }
 
+
 function WaitingModal() {
   const { isInviting, t } = useGameStore()
   if (!isInviting) return null
@@ -1157,26 +1235,26 @@ function WaitingModal() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-sm w-full p-10 rounded-[3rem] text-center border border-accentCyan/30 bg-[#131820]"
+        className="max-w-sm w-full p-10 rounded-[3rem] text-center border border-[var(--accent-cyan)]/30 bg-[var(--surface)]"
       >
         <div className="relative w-20 h-20 mx-auto mb-8">
           <motion.div 
-            className="absolute inset-0 rounded-full border-4 border-accentCyan/20"
+            className="absolute inset-0 rounded-full border-4 border-[var(--accent-cyan)]/20"
           />
           <motion.div 
-            className="absolute inset-0 rounded-full border-4 border-t-accentCyan border-r-transparent border-b-transparent border-l-transparent"
+            className="absolute inset-0 rounded-full border-4 border-t-[var(--accent-cyan)] border-r-transparent border-b-transparent border-l-transparent"
             animate={{ rotate: 360 }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
           />
           <div className="absolute inset-0 flex items-center justify-center text-2xl">⏳</div>
         </div>
         
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.searching}</h2>
-        <p className="text-gray-500 text-xs mb-8 uppercase tracking-widest">{t.inviteSent.replace('{name}', isInviting)}</p>
+        <h2 className="text-xl font-black text-[var(--text-main)] uppercase tracking-widest mb-2">{t.searching}</h2>
+        <p className="text-[var(--text-muted)] text-xs mb-8 uppercase tracking-widest">{t.inviteSent.replace('{name}', isInviting)}</p>
 
         <button 
           onClick={() => useGameStore.setState({ isInviting: null })}
-          className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] bg-white/5 text-gray-400 hover:bg-white/10 transition-all border border-white/5"
+          className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] bg-[var(--surface-hover)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)] transition-all border border-white/5"
         >
           {t.cancel}
         </button>
@@ -1184,6 +1262,7 @@ function WaitingModal() {
     </div>
   )
 }
+
 
 function SearchingModal() {
   const { isSearching, cancelMatchmaking, matchedOpponent, matchOffer, sendMatchStart, acceptMatchOffer, t } = useGameStore()
@@ -1205,7 +1284,7 @@ function SearchingModal() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full p-10 rounded-[3rem] text-center border border-accentCyan/30 bg-[#131820] shadow-[0_0_50px_rgba(77,217,232,0.1)]"
+        className="max-w-md w-full p-10 rounded-[3rem] text-center border border-accentCyan/30 bg-[var(--surface)] shadow-[0_0_50px_rgba(77,217,232,0.1)]"
       >
         {!matchedOpponent ? (
           <>
@@ -1218,17 +1297,17 @@ function SearchingModal() {
               />
               <div className="absolute inset-0 flex items-center justify-center text-3xl">🌍</div>
             </div>
-            <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.searching}</h2>
+            <h2 className="text-xl font-black text-[var(--accent-white)] uppercase tracking-widest mb-2">{t.searching}</h2>
             <p className="text-gray-500 text-[10px] mb-8 uppercase tracking-[0.3em]">Global Lobby</p>
           </>
         ) : (
           <div className="space-y-6">
-            <div className="text-xs font-black text-accentCyan uppercase tracking-[0.4em] mb-4">Opponent Found</div>
+            <div className="text-xs font-black text-accentCyan uppercase tracking-[0.4em] mb-4">{t.matchFound}</div>
 
             <div className="flex items-center justify-center gap-6 py-4">
               <div className="flex flex-col items-center gap-2">
                 <Avatar src={useGameStore.getState().user?.avatar || '👨‍🚀'} size="lg" />
-                <span className="text-[10px] text-gray-500 uppercase font-black">You</span>
+                <span className="text-[10px] text-gray-500 uppercase font-black">{t.player}</span>
               </div>
               <motion.div 
                 animate={{ scale: [1, 1.2, 1] }} 
@@ -1243,28 +1322,28 @@ function SearchingModal() {
 
             {matchOffer ? (
               <div className="bg-accentCyan/10 p-6 rounded-3xl border border-accentCyan/20">
-                <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-3">Opponent proposed:</div>
-                <div className="text-xl font-black text-white mb-6">
+                <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-3">{t.opponentProposed}</div>
+                <div className="text-xl font-black text-[var(--accent-white)] mb-6">
                   {matchOffer.time_limit / 60}{matchOffer.time_increment ? ` + ${matchOffer.time_increment}` : ' min'}
                 </div>
                 <button 
                   onClick={acceptMatchOffer}
                   className="w-full py-4 bg-accentCyan text-black font-black rounded-2xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
                 >
-                  Accept & Start
+                  {t.acceptAndStart}
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Select Time Control</div>
+                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{t.timeControl}</div>
                 <TimeSelector value={timeLimit} onChange={(s, i) => { setTimeLimit(s); setTimeIncrement(i); }} />
 
                 <button 
                   onClick={handleStart}
                   disabled={sentOffer}
-                  className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 ${sentOffer ? 'bg-white/10 text-gray-500' : 'bg-white text-black hover:bg-gray-200'}`}
+                  className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 ${sentOffer ? 'bg-[var(--surface-hover)] text-gray-500' : 'bg-white text-black hover:bg-gray-200'}`}
                 >
-                  {sentOffer ? 'Waiting for response...' : 'Challenge Opponent'}
+                  {sentOffer ? t.waitingResponse : t.challengeOpponent}
                 </button>
               </div>
             )}
@@ -1300,18 +1379,18 @@ function FriendRequestModal() {
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-sm w-full p-8 rounded-3xl text-center border border-[#4DD9E8]/30"
-        style={{ background: '#131820' }}
+        className="max-w-sm w-full p-8 rounded-3xl text-center border border-[var(--accent-cyan)]/30"
+        style={{ background: 'var(--surface)' }}
       >
         <div className="text-4xl mb-4">🤝</div>
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.friendRequest}</h2>
+        <h2 className="text-xl font-black text-[var(--accent-white)] uppercase tracking-widest mb-2">{t.friendRequest}</h2>
         <p className="text-gray-400 text-sm mb-6">
           <span className="text-accentCyan font-bold">{friendRequest.from_username}</span> {t.friendRequestReceived.replace(friendRequest.from_username, '')}
         </p>
         <div className="flex gap-3">
           <button 
             onClick={() => requestId != null && respondToFriendRequest(requestId, false)}
-            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-800 hover:bg-white/5 transition-all"
+            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-800 hover:bg-[var(--surface-hover)] transition-all"
           >
             {t.decline}
           </button>
@@ -1337,17 +1416,17 @@ function DrawOfferModal() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-sm w-full p-8 rounded-3xl text-center border border-white/10"
-        style={{ background: '#131820' }}
+        style={{ background: 'var(--surface)' }}
       >
         <div className="text-4xl mb-4">🤝</div>
-        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">{t.draw}</h2>
+        <h2 className="text-xl font-black text-[var(--accent-white)] uppercase tracking-widest mb-2">{t.draw}</h2>
         <p className="text-gray-400 text-sm mb-6">
           {t.drawOffered.replace('{name}', drawOffer.from_username)}
         </p>
         <div className="flex gap-3">
           <button 
             onClick={() => respondToDraw(false)}
-            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-800 hover:bg-white/5 transition-all"
+            className="flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-800 hover:bg-[var(--surface-hover)] transition-all"
           >
             {t.decline}
           </button>
@@ -1376,10 +1455,10 @@ function GameOverModal() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="max-w-md w-full p-10 rounded-[2.5rem] text-center border border-white/10 bg-[#131820]"
+          className="max-w-md w-full p-10 rounded-[2.5rem] text-center border border-white/10 bg-[var(--surface)]"
         >
           <div className="text-7xl mb-6">{isDraw ? '🤝' : '🏁'}</div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-2 text-white">
+          <h2 className="text-4xl font-black uppercase tracking-tighter mb-2 text-[var(--accent-white)]">
             {isDraw ? t.draw : t.gameOver}
           </h2>
           <p className="text-gray-400 text-sm mb-8 leading-relaxed">
@@ -1418,8 +1497,8 @@ function GameOverModal() {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="max-w-md w-full p-10 rounded-[2.5rem] text-center relative overflow-hidden"
         style={{ 
-          background: '#131820', 
-          border: `2px solid ${isWinner ? '#4DD9E8' : (isDraw ? '#94A3B8' : '#FF3B3B')}`,
+          background: 'var(--surface)', 
+          border: `2px solid ${isWinner ? 'var(--accent-cyan)' : (isDraw ? 'var(--text-muted)' : 'var(--check-red)')}`,
           boxShadow: `0 0 50px ${isWinner ? 'rgba(77,217,232,0.2)' : 'rgba(0,0,0,0.5)'}`
         }}
       >
@@ -1466,7 +1545,7 @@ function GameOverModal() {
           </button>
           <button 
             onClick={goBackToMenu}
-            className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+            className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest bg-[var(--surface-hover)] text-[var(--text-main)] hover:bg-white/20 transition-all active:scale-95 border border-white/10"
           >
             {t.backToMenu}
           </button>
@@ -1504,11 +1583,42 @@ function GameInfo() {
     </div>
   )
 }
+function ThemeSwitcher() {
+  const { uiTheme, setUiTheme, t } = useGameStore()
+  const isDark = uiTheme === 'dark'
+
+  return (
+    <div 
+      className="flex items-center p-1.5 rounded-full bg-[var(--surface-hover)] border border-white/5 relative w-24 h-12 cursor-pointer group"
+      onClick={() => setUiTheme(isDark ? 'light' : 'dark')}
+      title={isDark ? t.lightMode : t.darkMode}
+    >
+      <motion.div 
+        className="absolute w-9 h-9 rounded-full bg-[var(--accent-cyan)] shadow-[0_0_20px_rgba(77,217,232,0.5)] flex items-center justify-center z-10"
+        animate={{ x: isDark ? 0 : 48 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      >
+        {isDark ? (
+          <svg width="18" height="14" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        )}
+      </motion.div>
+      <div className="flex justify-between w-full px-3 text-gray-500 group-hover:text-gray-400 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, t, setLanguage, isSpectator } = useGameStore()
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, t, setLanguage, isSpectator, uiTheme } = useGameStore()
 
   useEffect(() => {
+    // Apply theme to document
+    document.documentElement.setAttribute('data-theme', uiTheme)
+
     const saved = localStorage.getItem('shaxmat_user')
     const token = localStorage.getItem('shaxmat_token')
     const savedGameId = localStorage.getItem('shaxmat_game_id')
@@ -1547,10 +1657,10 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-[#0A0C10]">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--bg)]">
         <div className="max-w-md w-full p-8 rounded-2xl bg-red-500/10 border border-red-500/20 text-center">
           <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-widest">Error Occurred</h2>
+          <h2 className="text-xl font-bold text-[var(--text-main)] mb-2 uppercase tracking-widest">Error Occurred</h2>
           <p className="text-red-400 text-sm mb-6">{error}</p>
           <button 
             onClick={() => {
@@ -1567,7 +1677,7 @@ export default function App() {
   }
 
   if (!user) return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(circle at 50% 50%, #131820 0%, #0A0C10 100%)' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(circle at 50% 50%, var(--surface) 0%, var(--bg) 100%)' }}>
         <AuthScreen />
         <InviteModal />
         <FriendRequestModal />
@@ -1576,7 +1686,7 @@ export default function App() {
   )
 
   if (!gameId) return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(circle at 50% 50%, #131820 0%, #0A0C10 100%)' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(circle at 50% 50%, var(--surface) 0%, var(--bg) 100%)' }}>
         <ModeSelection />
         <InviteModal />
         <FriendRequestModal />
@@ -1587,17 +1697,17 @@ export default function App() {
   const isGameOver = game && game.status !== 'active'
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0A0C10' }}>
-      <header className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid #1C2330' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      <header className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid var(--surface-2)' }}>
         <div className="flex items-center gap-3">
           <div
-            className="flex items-center gap-3 px-4 py-2 rounded-xl cursor-pointer hover:bg-white/5 transition-all group"
+            className="flex items-center gap-3 px-4 py-2 rounded-xl cursor-pointer hover:bg-[var(--surface-hover)] transition-all group"
             onClick={goBackToMenu}
             style={{ background: 'rgba(77,217,232,0.03)', border: '1px solid rgba(77,217,232,0.1)' }}
           >
             <Logo size="sm" />
             <div className="flex flex-col">
-              <span className="text-sm font-black tracking-[0.3em] uppercase text-white leading-none group-hover:text-accentCyan transition-colors">CHESS</span>
+              <span className="text-sm font-black tracking-[0.3em] uppercase text-[var(--accent-white)] leading-none group-hover:text-accentCyan transition-colors">CHESS</span>
               <span className="text-[10px] font-black tracking-[0.5em] uppercase text-accentCyan leading-none mt-1">NEXUS</span>
             </div>
           </div>
@@ -1606,6 +1716,7 @@ export default function App() {
         <div className="flex items-center gap-6">
           <ViewSwitcher />
           <LanguageSwitcher />
+          <ThemeSwitcher />
           <NotificationCenter />
           <div className="flex flex-col items-end">
             <span className="text-[10px] text-gray-500 uppercase tracking-[0.2em]">{user.username}</span>
@@ -1617,7 +1728,7 @@ export default function App() {
               style={{
                 background: isGameOver ? 'rgba(255,59,59,0.1)' : 'rgba(77,217,232,0.1)',
                 border: `1px solid ${isGameOver ? 'rgba(255,59,59,0.2)' : 'rgba(77,217,232,0.2)'}`,
-                color: isGameOver ? '#FF3B3B' : '#4DD9E8',
+                color: isGameOver ? 'var(--check-red)' : 'var(--accent-cyan)',
               }}
             >
               {isGameOver ? game.status.replace('_', ' ') : (game.game_mode === 'AI' ? `AI (${game.ai_difficulty})` : 'PVP')}
@@ -1631,7 +1742,7 @@ export default function App() {
         {error && (
           <motion.div
             className="px-6 py-2 text-sm text-center font-bold tracking-wider"
-            style={{ background: '#FF3B3B', color: '#000' }}
+            style={{ background: 'var(--check-red)', color: '#000' }}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -1659,7 +1770,7 @@ export default function App() {
 
         <aside className="w-full lg:w-72 order-3 flex flex-col gap-4">
           <MoveHistory />
-          <div className="rounded-2xl px-5 py-4" style={{ background: '#131820', border: '1px solid #252D3D' }}>
+          <div className="rounded-2xl px-5 py-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
             <div className="text-[10px] text-gray-600 uppercase tracking-[0.2em] mb-4">{t.pieces}</div>
             <div className="grid grid-cols-2 gap-y-3 text-[11px] text-gray-400">
               {[ ['K', 'King'], ['Q', 'Queen'], ['R', 'Rook'], ['B', 'Bishop'], ['N', 'Knight'], ['P', 'Pawn'], ['S', 'Supplier'], ].map(([tcode, name]) => (

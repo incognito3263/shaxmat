@@ -15,6 +15,29 @@
   --legal-blue: #3B9EFF;
   --selected-gold: #F5C518;
   --promo-glow: rgba(77, 217, 232, 0.15);
+  --text-main: #E8EDF2;
+  --text-muted: #94A3B8;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  --bg: #F1F5F9;
+  --surface: #FFFFFF;
+  --surface-2: #E2E8F0;
+  --border: #CBD5E1;
+  --board-dark: #94A3B8;
+  --board-light: #CBD5E1;
+  --accent-white: #1E293B;
+  --accent-cyan: #0891B2;
+  --check-red: #EF4444;
+  --legal-blue: #2563EB;
+  --selected-gold: #EAB308;
+  --promo-glow: rgba(8, 145, 178, 0.1);
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  --surface-hover: rgba(0, 0, 0, 0.03);
+  --shadow: rgba(0, 0, 0, 0.1);
 }
 
 * {

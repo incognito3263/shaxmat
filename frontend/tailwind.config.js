@@ -4,17 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#0A0C10',
-        surface: '#131820',
-        surface2: '#1C2330',
-        border: '#252D3D',
-        boardDark: '#1E2D40',
-        boardLight: '#2E4055',
-        accentWhite: '#E8EDF2',
-        accentCyan: '#4DD9E8',
-        checkRed: '#FF3B3B',
-        legalBlue: '#3B9EFF',
-        selectedGold: '#F5C518',
+        bg: 'var(--bg)',
+        surface: 'var(--surface)',
+        surface2: 'var(--surface-2)',
+        border: 'var(--border)',
+        boardDark: 'var(--board-dark)',
+        boardLight: 'var(--board-light)',
+        accentWhite: 'var(--accent-white)',
+        accentCyan: 'var(--accent-cyan)',
+        checkRed: 'var(--check-red)',
+        legalBlue: 'var(--legal-blue)',
+        selectedGold: 'var(--selected-gold)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

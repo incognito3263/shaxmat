@@ -17,6 +17,7 @@ class User(Base):
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
     draws = Column(Integer, default=0)
+    rating = Column(Integer, default=1200)
     avatar = Column(String(64), default='👨‍🚀')
     created_at = Column(DateTime, default=datetime.utcnow)
     games = relationship("Game", back_populates="white_player", foreign_keys="Game.white_player_id")

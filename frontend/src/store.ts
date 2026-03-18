@@ -71,11 +71,14 @@ interface GameStore {
   leaderboard: User[]
   opponentResignedName: string | null
   chatMessages: { from: string; text: string }[]
+  soundSettings: { move: boolean; capture: boolean; check: boolean; end: boolean }
   isSearching: boolean
   matchedOpponent: { public_id: string; username: string; avatar: string } | null
   matchOffer: { from_id: string; from_username: string; time_limit: number; time_increment: number } | null
   isInviting: string | null
   boardTheme: string
+  pieceTheme: 'classic' | 'modern'
+  uiTheme: 'dark' | 'light'
   viewMode: '2d' | '3d'
   drawOffer: { from_id: string; from_username: string } | null
   friendRequest: { from_id: string; from_username: string } | null
@@ -98,6 +101,9 @@ interface GameStore {
   logout: () => void
   setLanguage: (lang: Language) => void
   setTheme: (theme: string) => void
+  setSoundSettings: (settings: Partial<{ move: boolean; capture: boolean; check: boolean; end: boolean }>) => void
+  setPieceTheme: (theme: 'classic' | 'modern') => void
+  setUiTheme: (theme: 'dark' | 'light') => void
   setViewMode: (mode: '2d' | '3d') => void
   setNotification: (notif: { text: string; type: 'success' | 'info' | 'error' } | null) => void
   createGame: (mode: string, opponentId?: string, aiDifficulty?: string, timeLimit?: number, timeIncrement?: number) => Promise<void>
@@ -170,14 +176,28 @@ function isPromotionMove(piece: Piece, toSquare: string): boolean {
 }
 
 const SOUNDS: Record<string, HTMLAudioElement> = {
-  move: new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_standard_/move-self.mp3'),
-  capture: new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_standard_/capture.mp3'),
-  check: new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_standard_/move-check.mp3'),
-  start: new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_standard_/game-start.mp3'),
-  end: new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_standard_/game-end.mp3'),
+  move: new Audio('https://github.com/lichess-org/lila/raw/master/public/sound/standard/Move.mp3'),
+  capture: new Audio('https://github.com/lichess-org/lila/raw/master/public/sound/standard/Capture.mp3'),
+  check: new Audio('https://github.com/lichess-org/lila/raw/master/public/sound/standard/Check.mp3'),
+  start: new Audio('https://github.com/lichess-org/lila/raw/master/public/sound/standard/GenericNotify.mp3'),
+  end: new Audio('https://github.com/lichess-org/lila/raw/master/public/sound/standard/GenericNotify.mp3'),
 }
 
 function playSound(type: keyof typeof SOUNDS) {
+  const { soundSettings } = useGameStore.getState()
+  
+  // Map internal sound keys to settings
+  const settingKeyMap: Record<string, keyof typeof soundSettings> = {
+    move: 'move',
+    capture: 'capture',
+    check: 'check',
+    end: 'end',
+    start: 'move' // Use move setting for start sound
+  }
+  
+  const settingKey = settingKeyMap[type]
+  if (settingKey && !soundSettings[settingKey]) return
+
   const audio = SOUNDS[type];
   if (audio) {
     audio.currentTime = 0;
@@ -207,7 +227,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   matchedOpponent: null,
   matchOffer: null,
   isInviting: null,
+  soundSettings: { move: true, capture: true, check: true, end: true },
   boardTheme: localStorage.getItem('shaxmat_theme') || 'default',
+  pieceTheme: (localStorage.getItem('shaxmat_piece_theme') as 'classic' | 'modern') || 'classic',
+  uiTheme: (localStorage.getItem('shaxmat_ui_theme') as 'dark' | 'light') || 'dark',
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
   drawOffer: null,
   friendRequest: null,
@@ -325,6 +348,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setTheme: (theme: string) => {
     set({ boardTheme: theme })
     localStorage.setItem('shaxmat_theme', theme)
+  },
+
+  setPieceTheme: (theme: 'classic' | 'modern') => {
+    set({ pieceTheme: theme })
+    localStorage.setItem('shaxmat_piece_theme', theme)
+  },
+
+  setSoundSettings: (settings: any) => {
+    set(state => ({ soundSettings: { ...state.soundSettings, ...settings } }))
+  },
+
+  setUiTheme: (theme: 'dark' | 'light') => {
+    set({ uiTheme: theme })
+    localStorage.setItem('shaxmat_ui_theme', theme)
+    document.documentElement.setAttribute('data-theme', theme)
   },
 
   setViewMode: (mode: '2d' | '3d') => {

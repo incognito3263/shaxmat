@@ -31,6 +31,12 @@ def load_game_state_from_db(game: Game) -> GameState:
     return GameState()
 
 
+def calculate_elo_change(rating_a: int, rating_b: int, score_a: float, k: int = 32) -> int:
+    """Calculate ELO rating change. score_a: 1.0 for win, 0.5 for draw, 0.0 for loss."""
+    expected_a = 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
+    return int(k * (score_a - expected_a))
+
+
 def save_game_to_db(game_id: int, gs: GameState):
     db = SessionLocal()
     try:

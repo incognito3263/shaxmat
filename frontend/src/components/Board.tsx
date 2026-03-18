@@ -11,7 +11,7 @@ function isLightSquare(row: number, col: number): boolean {
 }
 
 const THEMES: Record<string, { light: string; dark: string }> = {
-  default: { light: '#2E4055', dark: '#1E2D40' },
+  default: { light: 'var(--board-light)', dark: 'var(--board-dark)' },
   classic: { light: '#E8EDF2', dark: '#769656' },
   wood: { light: '#DEAC70', dark: '#8B4513' },
   forest: { light: '#A3D160', dark: '#4B7336' },
@@ -32,7 +32,7 @@ function EvalBar() {
   const percentage = ((clampedEval + 5) / 10) * 100
   
   return (
-    <div className="w-1.5 sm:w-2 h-full bg-[#1E2D40] rounded-full overflow-hidden flex flex-col-reverse border border-white/5 relative mr-2 sm:mr-4">
+    <div className="w-1.5 sm:w-2 h-full bg-[var(--board-dark)] rounded-full overflow-hidden flex flex-col-reverse border border-white/5 relative mr-2 sm:mr-4">
       <motion.div 
         className="w-full bg-white shadow-[0_0:10px_rgba(255,255,255,0.3)]"
         animate={{ height: `${percentage}%` }}
@@ -83,7 +83,7 @@ export default function Board() {
         <EvalBar />
         
         {/* The Grid Container */}
-        <div className="relative flex-1 max-w-[min(100%,700px)] aspect-[8/10] sm:aspect-[8/10] bg-[#1E2D40] rounded-sm sm:rounded-md shadow-2xl overflow-visible border border-white/5">
+        <div className="relative flex-1 max-w-[min(100%,700px)] aspect-[8/10] sm:aspect-[8/10] bg-[var(--board-dark)] rounded-sm sm:rounded-md shadow-2xl overflow-visible border border-white/5">
           
           {/* Numbers (Vertical Labels) */}
           <div className="absolute -left-4 sm:-left-7 top-0 h-full flex flex-col pointer-events-none">
@@ -200,7 +200,7 @@ function Square({ square, light, isSelected, isLegal, isCapture, isKingInCheck, 
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.6 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          className="w-full h-full flex items-center justify-center p-[10%] relative z-20"
+          className="w-full h-full flex items-center justify-center p-[4%] relative z-20"
         >
           <div className={piece.color === 'white' ? 'glow-white' : 'glow-cyan'} style={{ width: '100%', height: '100%' }}>
             <PieceSvg type={piece.type} color={piece.color} size="100%" />

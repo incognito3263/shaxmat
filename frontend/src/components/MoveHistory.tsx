@@ -30,8 +30,8 @@ export default function MoveHistory() {
     <div
       className="rounded-xl flex flex-col"
       style={{
-        background: '#131820',
-        border: '1px solid #252D3D',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
         height: '100%',
         minHeight: 200,
         maxHeight: 520,
@@ -40,7 +40,7 @@ export default function MoveHistory() {
       {/* Header */}
       <div
         className="px-4 py-3 flex items-center justify-between"
-        style={{ borderBottom: '1px solid #252D3D' }}
+        style={{ borderBottom: '1px solid var(--border)' }}
       >
         <h3 className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
           {t.history}
@@ -79,7 +79,7 @@ export default function MoveHistory() {
               <span
                 className="flex-1 px-2 py-0.5 rounded text-xs"
                 style={{
-                  color: w ? '#DDE6EF' : '#4A5568',
+                  color: w ? 'var(--accent-white)' : 'var(--text-muted)',
                   background: w ? 'rgba(221,230,239,0.06)' : 'transparent',
                 }}
               >
@@ -88,7 +88,7 @@ export default function MoveHistory() {
               <span
                 className="flex-1 px-2 py-0.5 rounded text-xs"
                 style={{
-                  color: b ? '#4DD9E8' : '#4A5568',
+                  color: b ? 'var(--accent-cyan)' : 'var(--text-muted)',
                   background: b ? 'rgba(77,217,232,0.06)' : 'transparent',
                 }}
               >
