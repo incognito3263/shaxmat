@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useGameStore } from '../../store'
 import { CountryFlag } from './CountryFlag'
 
@@ -13,7 +14,32 @@ export function PlayerBadge({ color, isActive, displayName, countryCode }: Playe
   const isWhite = color === 'white'
   const capturedPieces = game?.captured_pieces?.[color] || []
   const avatar = isWhite ? game?.white_avatar : game?.black_avatar
-  const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0)
+  
+  // Get initial time from server
+  const serverTimeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0)
+  
+  // Local state for smooth countdown
+  const [localTimeLeft, setLocalTimeLeft] = useState(serverTimeLeft)
+
+  // Sync local time with server time whenever server time updates
+  useEffect(() => {
+    setLocalTimeLeft(serverTimeLeft)
+  }, [serverTimeLeft])
+
+  // Real-time countdown effect
+  useEffect(() => {
+    let interval: any = null
+    
+    if (isActive && localTimeLeft > 0 && game?.status === 'active') {
+      interval = setInterval(() => {
+        setLocalTimeLeft((prev) => Math.max(0, prev - 1))
+      }, 1000)
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isActive, localTimeLeft, game?.status])
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60)
@@ -45,10 +71,10 @@ export function PlayerBadge({ color, isActive, displayName, countryCode }: Playe
       </div>
       <div
         className={`min-w-[4rem] shrink-0 rounded border border-black/30 px-2 py-1.5 text-center font-mono text-sm tabular-nums text-white shadow-inner md:min-w-[4.75rem] md:px-2.5 md:text-base ${
-          isActive ? (timeLeft < 30 ? 'bg-red-600' : 'bg-[#312e2b]') : 'bg-[#262421] text-white/55'
+          isActive ? (localTimeLeft < 30 ? 'bg-red-600 animate-pulse' : 'bg-[#312e2b]') : 'bg-[#262421] text-white/55'
         }`}
       >
-        {formatTime(timeLeft)}
+        {formatTime(localTimeLeft)}
       </div>
     </div>
   )
