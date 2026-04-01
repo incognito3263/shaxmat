@@ -3,38 +3,45 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0F1117;
-  --surface: #161B22;
-  --surface-2: #21262D;
-  --border: #30363D;
-  --board-dark: #34495E;
-  --board-light: #BDC3C7;
-  --accent-white: #F0F6FC;
-  --accent-cyan: #58A6FF;
-  --check-red: #F85149;
-  --legal-blue: #388BFD;
-  --selected-gold: #D29922;
-  --promo-glow: rgba(88, 166, 255, 0.1);
-  --text-main: #C9D1D9;
-  --text-muted: #8B949E;
-  --surface-hover: #30363D;
+  /* Premium Dark Theme (Chess.com inspired) */
+  --bg: #302e2b;
+  --surface: #262421;
+  --surface-2: #3c3a39;
+  --border: #403d39;
+  
+  /* Board Colors (Classic Green/White) */
+  --board-dark: #739552;
+  --board-light: #ebecd0;
+  
+  /* Accents */
+  --accent-white: #ffffff;
+  --accent-green: #81b64c;
+  --accent-green-hover: #a3d160;
+  --check-red: #fa412d;
+  --legal-dot: rgba(0, 0, 0, 0.15);
+  --selected-gold: rgba(255, 255, 51, 0.5);
+  --last-move-gold: rgba(255, 255, 51, 0.3);
+  
+  /* Text */
+  --text-main: #ffffff;
+  --text-muted: #c3c2c1;
+  --surface-hover: #3c3a39;
 }
 
 [data-theme="light"] {
-  --bg: #F6F8FA;
-  --surface: #FFFFFF;
-  --surface-2: #F3F4F6;
-  --border: #D0D7DE;
-  --board-dark: #7F8C8D;
-  --board-light: #ECF0F1;
-  --accent-white: #1F2328;
-  --accent-cyan: #0969DA;
-  --check-red: #D1242F;
-  --legal-blue: #0969DA;
-  --selected-gold: #9A6700;
-  --text-main: #1F2328;
-  --text-muted: #656D76;
-  --surface-hover: #F3F4F6;
+  --bg: #f1f1fa;
+  --surface: #ffffff;
+  --surface-2: #e0e0e0;
+  --border: #cccccc;
+  --board-dark: #739552;
+  --board-light: #ebecd0;
+  --accent-white: #2c2b29;
+  --accent-green: #81b64c;
+  --accent-green-hover: #a3d160;
+  --check-red: #fa412d;
+  --text-main: #2c2b29;
+  --text-muted: #737271;
+  --surface-hover: #f0f0f0;
 }
 
 * {
@@ -49,29 +56,29 @@ html, body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Minimal Scrollbar */
+/* Premium Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--surface);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 10px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
-/* Board Style */
+/* Board Square */
 .sq {
   position: relative;
   display: flex;
@@ -81,32 +88,74 @@ body {
   user-select: none;
 }
 
-.sq:hover {
-  filter: brightness(1.05);
-}
-
-/* Remove piece shadows for minimalist look */
+/* Piece shadow for 3D depth */
 .piece-shadow {
-  filter: none;
+  filter: drop-shadow(0px 3px 2px rgba(0, 0, 0, 0.4));
 }
 
-/* Clean UI Panels */
-.glass {
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-/* Animations */
+/* Check Animation */
 @keyframes checkPulse {
-  0%, 100% { background: rgba(248, 81, 73, 0.4); }
-  50% { background: rgba(248, 81, 73, 0.7); }
+  0% { background: radial-gradient(circle, rgba(250,65,45,0.8) 0%, rgba(250,65,45,0) 70%); }
+  50% { background: radial-gradient(circle, rgba(250,65,45,1) 0%, rgba(250,65,45,0) 80%); }
+  100% { background: radial-gradient(circle, rgba(250,65,45,0.8) 0%, rgba(250,65,45,0) 70%); }
 }
 
-.check-pulse {
+.check-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   animation: checkPulse 1.5s ease-in-out infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Primary Button Style */
+.btn-primary {
+  background-color: var(--accent-green);
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  transition: all 0.1s;
+}
+.btn-primary:hover {
+  background-color: var(--accent-green-hover);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+.btn-primary:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.2);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: var(--surface-2);
+  color: var(--text-main);
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+  transition: all 0.1s;
+}
+.btn-secondary:hover {
+  background-color: #4a4846;
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+}
+.btn-secondary:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.3);
+}
+
+/* Glass Panels */
+.panel {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--border) var(--surface);
 }

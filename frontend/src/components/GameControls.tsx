@@ -30,9 +30,9 @@ export default function GameControls() {
 
       <div className="flex flex-col gap-2">
         {!isSpectator && game?.game_mode === 'Person' && game.status === 'active' && (
-          <button onClick={offerDraw} className="w-full py-2.5 rounded-md bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold text-[10px] uppercase tracking-widest transition-all">🤝 {t.offerDraw}</button>
+          <button onClick={offerDraw} className="btn-secondary w-full py-3 rounded-lg text-[11px] tracking-widest transition-all">🤝 {t.offerDraw}</button>
         )}
-        <button onClick={() => { if (!isSpectator && game?.game_mode === 'Person' && game.status === 'active') { if (confirm(t.exitGame + '?')) resign() } else { goBackToMenu() } }} className="w-full py-2.5 rounded-md bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-main)] font-bold text-[10px] uppercase tracking-widest hover:bg-[var(--surface-hover)] transition-all">{t.exitGame}</button>
+        <button onClick={() => { if (!isSpectator && game?.game_mode === 'Person' && game.status === 'active') { if (confirm(t.exitGame + '?')) resign() } else { goBackToMenu() } }} className="btn-secondary w-full py-3 rounded-lg text-[11px] tracking-widest transition-all">{t.exitGame}</button>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4 space-y-6 shadow-sm">
