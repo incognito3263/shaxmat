@@ -18,9 +18,7 @@ def create_initial_board() -> 'Board':
     for c in range(8):
         board.set_piece_at(1, c, Pawn("white", (1, c)))
     # Row 3 (index 2): Suppliers on WHITE squares (A3,C3,E3,G3 → cols 0,2,4,6)
-    # for c in [0, 2, 4, 6]:
-    #     board.set_piece_at(2, c, Supplier("white", (2, c)))
-    for c in [1, 3, 5, 7]:
+    for c in [0, 2, 4, 6]:
         board.set_piece_at(2, c, Supplier("white", (2, c)))
 
     # ── Black ────────────────────────────────────────────────────────────────

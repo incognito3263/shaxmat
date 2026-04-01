@@ -87,7 +87,6 @@ body {
   scrollbar-color: var(--border) var(--bg);
 }
 
-<<<<<<< HEAD
 /* Board Square */
 .sq {
   position: relative;
@@ -103,10 +102,7 @@ body {
   filter: brightness(1.14) contrast(0.96);
 }
 
-/* Check Animation */
-=======
-/* Board Animations */
->>>>>>> 3329c3333c7c1f8f1a597ea27f2b0a71e10a0ac2
+/* Check animation */
 @keyframes checkPulse {
   0% { background: radial-gradient(circle, rgba(250,65,45,0.6) 0%, rgba(250,65,45,0) 70%); }
   50% { background: radial-gradient(circle, rgba(250,65,45,0.9) 0%, rgba(250,65,45,0) 80%); }

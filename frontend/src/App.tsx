@@ -332,10 +332,8 @@ export default function App() {
   const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg)]">
-<<<<<<< HEAD
       <header className="flex items-center justify-between px-8 py-5 border-b border-[var(--border)] bg-[var(--surface)]"><div className="flex items-center gap-4 cursor-pointer group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col"><span className="text-base font-bold tracking-tight text-[var(--accent-white)] group-hover:text-[var(--accent-cyan)] transition-colors">SHAXMAT+</span></div></div><div className="flex items-center gap-6"><ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-[10px] text-[var(--text-muted)] uppercase font-bold mb-1">{user.username}</span><span className="text-[10px] font-mono text-[var(--accent-cyan)] font-bold opacity-70">ID: {user.public_id}</span></div></div></header>
       <main className="flex-1 flex flex-col xl:flex-row gap-8 p-4 md:p-8 max-w-[1600px] mx-auto w-full items-start justify-center">
-        {/* Center/Left: Large Board & Player Badges */}
         <section className="flex-1 flex flex-col items-center justify-center order-1 w-full min-w-0 mx-auto px-1">
           <div className="w-full max-w-[min(35rem,calc((100dvh-12rem)*8/10+1.5rem))] flex flex-col items-stretch">
             {game && (
@@ -356,7 +354,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Right: Controls, History, Chat */}
         <aside className="w-full xl:w-[420px] order-2 flex flex-col gap-6 shrink-0">
           <GameControls />
           <div className="flex flex-col gap-6 flex-1">
@@ -364,12 +361,6 @@ export default function App() {
             {game?.game_mode === 'Person' && !isSpectator && <Chat />}
           </div>
         </aside>
-=======
-      <header className="flex items-center justify-between px-10 py-8 border-b border-[var(--border)] bg-[var(--surface)] shadow-2xl"><div className="flex items-center gap-8 cursor-pointer group" onClick={goBackToMenu}><Logo size="md" /><div className="flex flex-col"><span className="text-3xl font-black tracking-tight text-[var(--text-main)] group-hover:text-[var(--accent-green)] transition-colors leading-none">SHAXMAT+</span><span className="text-[11px] font-black tracking-[0.5em] text-[var(--accent-green)] mt-2 leading-none uppercase">Arena</span></div></div><div className="flex items-center gap-12"><ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[var(--text-muted)] uppercase font-black mb-1.5 tracking-widest text-[var(--text-main)]">{user.username}</span><span className="text-sm font-mono text-[var(--accent-green)] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div></div></header>
-      <main className="flex-1 flex flex-col xl:flex-row gap-12 p-8 md:p-12 max-w-[1700px] mx-auto w-full items-start justify-center">
-        <section className="flex-1 flex flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto">{game && <div className="w-full mb-6 flex items-end"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}<div className="w-full bg-[var(--surface-3)] p-1.5 md:p-2 rounded border border-[var(--border)] shadow-[0_40px_120px_rgba(0,0,0,0.9)]"><Board /></div>{game && <div className="w-full mt-6 flex items-start"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}</section>
-        <aside className="w-full xl:w-[450px] order-2 flex flex-col gap-8 shrink-0"><GameControls /><div className="flex flex-col gap-8 flex-1"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
->>>>>>> 3329c3333c7c1f8f1a597ea27f2b0a71e10a0ac2
       </main>
       <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><GameOverModal />
     </div>
