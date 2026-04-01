@@ -788,7 +788,7 @@ function ThemeSwitcher() {
 }
 
 export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, t, setLanguage, isSpectator, uiTheme } = useGameStore()
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, isSpectator, uiTheme } = useGameStore()
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', uiTheme)
     const saved = localStorage.getItem('shaxmat_user'), token = localStorage.getItem('shaxmat_token'), savedGameId = localStorage.getItem('shaxmat_game_id'), savedIsSpectator = localStorage.getItem('shaxmat_spectator') === 'true', savedLang = localStorage.getItem('shaxmat_lang') as Language
