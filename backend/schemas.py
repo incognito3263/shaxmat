@@ -22,6 +22,7 @@ class UserResponse(UserBase):
     losses: int = 0
     draws: int = 0
     avatar: str
+    country_code: Optional[str] = None
     class Config:
         from_attributes = True
 
@@ -87,6 +88,10 @@ class GameResponse(BaseModel):
     black_player_public_id: Optional[str] = None
     white_avatar: Optional[str] = None
     black_avatar: Optional[str] = None
+    white_username: Optional[str] = None
+    black_username: Optional[str] = None
+    white_country_code: Optional[str] = None
+    black_country_code: Optional[str] = None
     ai_difficulty: Optional[str] = None
     evaluation: Optional[float] = 0.0
     captured_pieces: Optional[Dict[str, List[str]]] = None

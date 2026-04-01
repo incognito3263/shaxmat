@@ -11,7 +11,7 @@ export default function MoveHistory() {
   for (let i = 0; i < moves.length; i += 2) pairs.push([moves[i], moves[i + 1]])
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg flex flex-col h-[300px] shadow-sm overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-sm">
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <h3 className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{t.history}</h3>
         <button onClick={() => { navigator.clipboard.writeText(moves.join(' ')); setNotification({ text: "PGN copied!", type: 'success' }) }} className="text-[8px] font-bold text-[var(--accent-cyan)] uppercase border border-[var(--accent-cyan)]/30 px-2 py-1 rounded hover:bg-[var(--accent-cyan)]/5 transition-all">PGN</button>

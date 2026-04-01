@@ -64,6 +64,8 @@ export const translations = {
     player: "Player",
     quickPlay: "Quick Play",
     searching: "Searching for opponent...",
+    waitingOpponent: "Waiting for opponent...",
+    aiOpponent: "AI",
     offerDraw: "Offer Draw",
     drawOffered: "{name} offers a draw",
     theme: "Theme",
@@ -130,6 +132,25 @@ export const translations = {
     victoryTimeout: "White won by timeout",
     defeatTimeout: "Black won by timeout",
     aiActive: "AI ENGINE ACTIVE",
+    arenaSubtitle: "Online matchmaking",
+    countryRegion: "Country / flag",
+    countryRegionHint: "Optional. Shown next to your name during games.",
+    howToPlayButton: "How to play",
+    howToPlayTitle: "How to play SHAXMAT+",
+    howToPlayIntro: "Chess on a 10×8 board with Suppliers — rules, the new piece, and what you can do here.",
+    howToPlayClose: "Got it",
+    howToPlayBasicsTitle: "Basics",
+    howToPlayBasicsBody:
+      "Goal: checkmate the opponent's king, like standard chess.\n\nSelect your piece, then a highlighted square. Castling, en passant (when applicable), and draws follow chess logic on this larger board.\n\nPick a time control before Quick Play, vs AI, or inviting a friend. Your clock runs on your turn.",
+    howToPlayBoardTitle: "Board & setup",
+    howToPlayBoardBody:
+      "10 ranks × 8 files (ranks 1–10, files a–h). The back rank and pawn row match classical chess, with an extra rank for Suppliers:\n• White Suppliers on rank 3: a3, c3, e3, g3.\n• Black Suppliers on rank 8: b8, d8, f8, h8.\n\nFile and rank labels on the frame keep orientation clear.",
+    howToPlaySuppliersTitle: "Suppliers (unique piece)",
+    howToPlaySuppliersBody:
+      "The Supplier (S) does not exist in ordinary chess.\n• Quiet move: exactly one square diagonally forward (toward the opponent) to an empty square.\n• Capture: one square straight forward, onto an enemy piece.\n\nThat creates new plans: development, forks, and endgames differ from 8×8 chess. Both Pawns and Suppliers promote on the last rank — choose Queen, Rook, Bishop, or Knight.",
+    howToPlayPlatformTitle: "On this platform",
+    howToPlayPlatformBody:
+      "• Play the AI at three difficulties.\n• Quick match (arena) vs a human.\n• Challenge someone via their 8-digit ID or invite a friend you follow.\n• Watch live games, chat in human matches, offer draws, review completed games.\n• Stats, leaderboard titles, and match history.\n\nAdd your country under Edit Profile to show a flag beside your name.",
   },
   uz: {
     title: "SHAXMAT+",
@@ -196,6 +217,8 @@ export const translations = {
     player: "O'yinchi",
     quickPlay: "Tezkor o'yin",
     searching: "Raqib qidirilmoqda...",
+    waitingOpponent: "Raqib kutilmoqda...",
+    aiOpponent: "SI",
     offerDraw: "Durang taklif qilish",
     drawOffered: "{name} durang taklif qildi",
     theme: "Mavzu",
@@ -262,6 +285,25 @@ export const translations = {
     victoryTimeout: "Oqlar vaqt bo'yicha yutdi",
     defeatTimeout: "Qoralar vaqt bo'yicha yutdi",
     aiActive: "AI TIZIMI FAOL",
+    arenaSubtitle: "Onlayn qidiruv",
+    countryRegion: "Mamlakat / bayroq",
+    countryRegionHint: "Ixtiyoriy. O'yinda ismingiz yonida ko'rinadi.",
+    howToPlayButton: "Qanday o'ynaladi",
+    howToPlayTitle: "SHAXMAT+ qoidalari",
+    howToPlayIntro: "10×8 doskada «Yetkazib beruvchi» (Supplier) bilan shaxmat — qoidalar va platforma imkoniyatlari.",
+    howToPlayClose: "Tushundim",
+    howToPlayBasicsTitle: "Asoslar",
+    howToPlayBasicsBody:
+      "Maqsad: standart shaxmatdagidek qarama-qarshi shohni mot qilish.\n\nDonangizni tanlang, keyin yoritilgan kataklardan birini bosing. Ro‘kilar, shu jihatdan en passant va duranglar 10 qatorli doskaga moslab hisoblanadi.\n\nTezkor o‘yin, SI yoki do‘st taklifi oldidan vaqt nazoratini tanlang.",
+    howToPlayBoardTitle: "Doska",
+    howToPlayBoardBody:
+      "10 qator × 8 ustun (1–10 qatorlar, a–h ustunlar). Orqa qator va piyodalari oddiy shaxmatdagidek; qo‘shimcha qatorda Supplierlar:\n• Oqlar: 3-qator — a3, c3, e3, g3.\n• Qoralar: 8-qator — b8, d8, f8, h8.\n\nRamkadagi koordinatalar yo‘naltirishga yordam beradi.",
+    howToPlaySuppliersTitle: "Supplier (maxsus dona)",
+    howToPlaySuppliersBody:
+      "Supplier (S) klassik shaxmatda yo‘q.\n• Yutqazmas yurish: bir kata simob oldinga (raqib tomonga) bo‘sh katga.\n• Olish: bir kata to‘g‘ri oldinga raqib donasi ustiga.\n\nBu yangi taktika va o‘yin rejalarini beradi. Piyoda va Supplier so‘nggi qatorga yetganda Farzin, Tura, Fil yoki Otlarga aylandirib yuksaltiriladi.",
+    howToPlayPlatformTitle: "Platformada nima qilish mumkin",
+    howToPlayPlatformBody:
+      "• SI bilan uch darajada o‘ynash.\n• Tasodifiy raqib bilan tezkor o‘yin (arena).\n• 8 raqamli ID yoki kuzatiladigan do‘stga taklif.\n• Jonli o‘yinlarni ko‘rish, o‘yinda chat, durang, tugagan partiyani tahlil.\n• Statistika, reyting, tarix.\n\nBayroq uchun «Profilni tahrirlash»da mamlakatni tanlang.",
   },
   ru: {
     title: "SHAXMAT+",
@@ -328,6 +370,8 @@ export const translations = {
     player: "Игрок",
     quickPlay: "Быстрая игра",
     searching: "Поиск соперника...",
+    waitingOpponent: "Ожидание соперника...",
+    aiOpponent: "ИИ",
     offerDraw: "Предложить ничью",
     drawOffered: "{name} предлагает ничью",
     theme: "Тема",
@@ -394,6 +438,25 @@ export const translations = {
     victoryTimeout: "Белые выиграли по времени",
     defeatTimeout: "Черные выиграли по времени",
     aiActive: "ИИ МОТОР АКТИВЕН",
+    arenaSubtitle: "Онлайн-подбор",
+    countryRegion: "Страна / флаг",
+    countryRegionHint: "Необязательно. Отображается рядом с именем в партии.",
+    howToPlayButton: "Как играть",
+    howToPlayTitle: "Как играть в SHAXMAT+",
+    howToPlayIntro: "Шахматы на доске 10×8 с фигурой «Поставщик» — правила, особенности и возможности платформы.",
+    howToPlayClose: "Понятно",
+    howToPlayBasicsTitle: "Основы",
+    howToPlayBasicsBody:
+      "Цель: мат королю соперника, как в классических шахматах.\n\nВыберите фигуру, затем подсвеченную клетку. Рокировка, взятие на проходе (где применимо) и ничьи учитываются с поправкой на 10 рядов.\n\nЗадайте контоль времени перед быстрой игрой, игрой с ИИ или приглашением друга.",
+    howToPlayBoardTitle: "Доска",
+    howToPlayBoardBody:
+      "10 рядов × 8 линий (ряды 1–10, линии a–h). Тыл и пешки как в классике; дополнительный ряд под поставщиков:\n• Белые на 3-м ряду: a3, c3, e3, g3.\n• Чёрные на 8-м ряду: b8, d8, f8, h8.\n\nПодписи координат на рамке помогают ориентироваться.",
+    howToPlaySuppliersTitle: "Поставщик (уникальная фигура)",
+    howToPlaySuppliersBody:
+      "Поставщик (S) отсутствует в обычных шахматах.\n• Ход без взятия: ровно на одну клетку по диагонали вперёд (к сопернику) на пустое поле.\n• Взятие: ровно на одну клетку прямо вперёд на фигуру соперника.\n\nЭто меняет дебюты, тактику и эндшпили. Пешки и поставщики при достижении последнего ряда превращаются в ферзя, ладью, слона или коня.",
+    howToPlayPlatformTitle: "Возможности платформы",
+    howToPlayPlatformBody:
+      "• Игра с ИИ (три уровня сложности).\n• Быстрый матч с случайным соперником (арена).\n• Вызов по 8-значному ID или приглашение подписчика.\n• Просмотр живых партий, чат в играх людей, ничья, разбор завершённых партий.\n• Статистика, таблица лидеров, история.\n\nУкажите страну в профиле, чтобы показывать флаг рядом с именем.",
   }
 };
 

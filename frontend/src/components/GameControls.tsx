@@ -18,7 +18,7 @@ export default function GameControls() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex shrink-0 flex-col gap-4">
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 shadow-sm"><Status /></div>
       
       {reviewMode && game && (

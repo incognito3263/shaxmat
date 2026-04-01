@@ -56,10 +56,10 @@ export default function Board() {
   const displayCols = isFlipped ? [...COLS].reverse() : COLS
 
   return (
-    <div className="flex w-full items-stretch gap-1 relative">
+    <div className="relative flex h-full max-h-full w-full items-stretch justify-center gap-1">
       <EvalBar />
-      <div className="min-w-0 flex-1">
-        <div className="relative w-full aspect-[8/10] bg-[var(--surface-2)] rounded-r-md border border-[var(--border)] overflow-hidden shadow-2xl">
+      <div className="flex min-h-0 min-w-0 max-h-full flex-1 items-stretch justify-center">
+        <div className="relative h-full max-h-full w-auto max-w-full overflow-hidden rounded-sm bg-[#2a2420] shadow-[inset_0_0_0_3px_rgba(0,0,0,0.45),inset_0_0_0_5px_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.5)] [aspect-ratio:8/10]">
           <div className="grid grid-cols-8 grid-rows-10 h-full w-full absolute inset-0">
           {displayRows.flatMap((row, rIndex) =>
             displayCols.map((col, cIndex) => {
@@ -85,7 +85,7 @@ export default function Board() {
                 <Square 
                   key={square} square={square} light={light} isSelected={isSelected} isLegal={isLegal} 
                   isCapture={isCapture} isKingInCheck={isKingInCheck} isLastMove={isLastMove} piece={piece} 
-                  theme={THEMES[boardTheme] || THEMES.classic} col={col} row={row} 
+                  theme={THEMES[boardTheme] || THEMES.classic} boardThemeId={boardTheme || 'classic'} col={col} row={row} 
                   showCol={isBottomEdge} showRow={isLeftEdge} 
                 />
               )
@@ -98,16 +98,35 @@ export default function Board() {
   )
 }
 
-function Square({ square, light, isSelected, isLegal, isCapture, isKingInCheck, isLastMove, piece, theme, col, row, showCol, showRow }: any) {
+function Square({ square, light, isSelected, isLegal, isCapture, isKingInCheck, isLastMove, piece, theme, boardThemeId, col, row, showCol, showRow }: any) {
   const isSpectator = useGameStore(s => s.isSpectator)
   const bgColor = light ? theme.light : theme.dark
   const textColor = light ? theme.dark : theme.light
+  const useWood = boardThemeId === 'wood'
+  const baseClass = useWood ? (light ? 'board-tile-wood-light' : 'board-tile-wood-dark') : ''
 
   return (
-    <div className={`relative aspect-square flex items-center justify-center cursor-pointer ${isKingInCheck ? 'check-pulse' : ''}`} style={{ backgroundColor: bgColor }} onClick={() => !isSpectator && useGameStore.getState().selectSquare(square)}>
-      {/* Chess.com style exact coordinates inside squares */}
-      {showRow && <div className="absolute top-0.5 left-1 text-[10px] sm:text-xs font-bold opacity-80" style={{ color: textColor }}>{row}</div>}
-      {showCol && <div className="absolute bottom-0 right-1 text-[10px] sm:text-xs font-bold opacity-80" style={{ color: textColor }}>{col}</div>}
+    <div
+      className={`relative aspect-square flex items-center justify-center cursor-pointer ${isKingInCheck ? 'check-pulse' : ''} ${baseClass}`}
+      style={useWood ? undefined : { backgroundColor: bgColor }}
+      onClick={() => !isSpectator && useGameStore.getState().selectSquare(square)}
+    >
+      {showRow && (
+        <div
+          className={`absolute top-0.5 left-0.5 z-[1] text-[10px] font-semibold leading-none sm:text-[11px] ${useWood ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]' : 'font-bold opacity-80'}`}
+          style={useWood ? undefined : { color: textColor }}
+        >
+          {row}
+        </div>
+      )}
+      {showCol && (
+        <div
+          className={`absolute bottom-0.5 right-0.5 z-[1] text-[10px] font-semibold leading-none sm:text-[11px] ${useWood ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]' : 'font-bold opacity-80'}`}
+          style={useWood ? undefined : { color: textColor }}
+        >
+          {col}
+        </div>
+      )}
 
       {/* Highlights */}
       {isLastMove && !isSelected && <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'var(--last-move-gold)' }} />}

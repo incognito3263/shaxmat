@@ -140,16 +140,29 @@ def get_game(game_id: int, db: Session = Depends(get_db)):
     black_public_id = None
     white_avatar = None
     black_avatar = None
+    white_username = None
+    black_username = None
+    white_country_code = None
+    black_country_code = None
     if game.white_player_id:
         w_u = db.query(User).filter(User.id == game.white_player_id).first()
-        if w_u: 
+        if w_u:
             white_public_id = w_u.public_id
             white_avatar = w_u.avatar
+            white_username = w_u.username
+            white_country_code = w_u.country_code
     if game.black_player_id:
         b_u = db.query(User).filter(User.id == game.black_player_id).first()
-        if b_u: 
+        if b_u:
             black_public_id = b_u.public_id
             black_avatar = b_u.avatar
+            black_username = b_u.username
+            black_country_code = b_u.country_code
+    if game.game_mode == "AI":
+        if white_username is None:
+            white_username = "Player"
+        if black_username is None:
+            black_username = "AI"
 
     # Calculate evaluation
     from engine.ai import evaluate_board
@@ -196,6 +209,10 @@ def get_game(game_id: int, db: Session = Depends(get_db)):
         black_player_public_id=black_public_id,
         white_avatar=white_avatar,
         black_avatar=black_avatar,
+        white_username=white_username,
+        black_username=black_username,
+        white_country_code=white_country_code,
+        black_country_code=black_country_code,
         ai_difficulty=game.ai_difficulty,
         evaluation=eval_score,
         captured_pieces=d.get("captured_pieces"),

@@ -6,21 +6,13 @@ import Board from './components/Board'
 import GameControls from './components/GameControls'
 import MoveHistory from './components/MoveHistory'
 import PromotionModal from './components/PromotionModal'
-
-function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
-  const sizeClass = size === 'sm' ? 'w-10 h-10 text-xl' : 
-                    size === 'md' ? 'w-12 h-12 text-2xl' : 
-                    size === 'lg' ? 'w-16 h-16 text-4xl' : 
-                    'w-24 h-24 text-6xl';
-  const isImage = src && (src.startsWith('/') || src.startsWith('http'));
-  return (
-    <div className={`${sizeClass} bg-[var(--surface-2)] rounded flex items-center justify-center border border-[var(--border)] overflow-hidden shrink-0 shadow-lg`}>
-      {isImage ? <img src={src} alt="avatar" className="w-full h-full object-cover" /> : <span>{src || '👤'}</span>}
-    </div>
-  );
-}
-
-const AVATARS = ['👨‍🚀', '🥷', '🧙‍♂️', '🧛', '🤖', '👾', '👽', '🦊']
+import { Avatar } from './components/Avatar'
+import { AVATARS } from './data/avatars'
+import { PlayerBadge } from './components/game/PlayerBadge'
+import { PlayOpponentCard } from './components/arena/PlayOpponentCard'
+import { SearchingModal } from './components/arena/SearchingModal'
+import { HowToPlayModal } from './components/arena/HowToPlayModal'
+import { EditProfileModal } from './components/EditProfileModal'
 
 function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const s = size === 'sm' ? 24 : size === 'md' ? 32 : 48;
@@ -91,6 +83,7 @@ function ModeSelection() {
   const [timeLimit, setTimeLimit] = useState(600)
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [manualOpen, setManualOpen] = useState(false)
   const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
 
   useEffect(() => { fetchLeaderboard(); fetchFriendRequests(); fetchNotifications(); }, [fetchLeaderboard, fetchFriendRequests, fetchNotifications])
@@ -98,9 +91,30 @@ function ModeSelection() {
   const totalGames = user ? (user.wins + user.losses + user.draws) : 0;
   const winRate = totalGames > 0 ? Math.round((user!.wins / totalGames) * 100) : 0;
 
+  const inviteById = async () => {
+    if (opponentId.length !== 8) return
+    if (opponentId === user?.public_id) {
+      setNotification({ text: t.selfPlayError, type: 'error' })
+      return
+    }
+    const target = await searchUser(opponentId)
+    if (target) sendInvite(target.public_id, timeLimit, timeIncrement)
+    else setNotification({ text: t.userNotFound, type: 'error' })
+  }
+
   return (
     <div className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 lg:p-12 text-[var(--text-main)]">
-      <div className="flex justify-center mb-10 gap-4"><LanguageSwitcher /><ThemeSwitcher /></div>
+      <div className="mb-10 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+        <button
+          type="button"
+          onClick={() => setManualOpen(true)}
+          className="rounded-lg border border-[var(--border)] bg-[var(--surface-3)] px-4 py-2 text-xs font-black uppercase tracking-widest text-[var(--accent-green)] transition-all hover:bg-[var(--surface-2)]"
+        >
+          {t.howToPlayButton}
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-5 space-y-8">
@@ -156,13 +170,7 @@ function ModeSelection() {
                 <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="btn-primary w-full py-4 rounded-lg">Battle AI</button>
               </div>
               <button onClick={startMatchmaking} className="btn-primary w-full py-6 rounded-lg flex items-center justify-center gap-4 shadow-xl"><span className="text-2xl">🌍</span><span className="text-xl">{t.quickPlay}</span></button>
-              <div className="p-6 rounded-2xl bg-[var(--surface-3)] border border-[var(--border)] shadow-inner">
-                <div className="text-sm font-black uppercase tracking-widest mb-6 text-left">👤 {t.multiplayer}</div>
-                <div className="flex gap-3">
-                  <input type="text" maxLength={8} value={opponentId} onChange={e => setOpponentId(e.target.value.replace(/\D/g, ''))} placeholder="Opponent ID" className="flex-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-5 py-3 text-lg text-center font-mono outline-none focus:border-[var(--accent-green)] text-[var(--text-main)]" />
-                  <button onClick={async () => { if (opponentId.length === 8) { if (opponentId === user?.public_id) { setNotification({ text: t.selfPlayError, type: 'error' }); return } const target = await searchUser(opponentId); if (target) sendInvite(target.public_id, timeLimit, timeIncrement); else setNotification({ text: t.userNotFound, type: 'error' }); } }} className="btn-primary px-6 py-3 text-sm rounded-lg">{t.go}</button>
-                </div>
-              </div>
+              <PlayOpponentCard opponentId={opponentId} onOpponentIdChange={setOpponentId} onInviteById={inviteById} />
             </div>
           </div>
         </div>
@@ -177,6 +185,7 @@ function ModeSelection() {
         </div>
       </div>
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+      <HowToPlayModal isOpen={manualOpen} onClose={() => setManualOpen(false)} />
     </div>
   )
 }
@@ -254,7 +263,7 @@ function Chat() {
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight }, [chatMessages])
   const handleSend = (e: React.FormEvent) => { e.preventDefault(); if (text.trim()) { sendChatMessage(text); setText('') } }
   return (
-    <div className="flex flex-col h-[350px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl">
+    <div className="flex min-h-0 max-h-[min(32dvh,260px)] shrink-0 flex-col overflow-hidden rounded-xl border border-[#403d39] bg-[#262421] shadow-xl xl:max-h-[min(38dvh,280px)] xl:shrink-0 xl:rounded-2xl">
       <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-[var(--text-main)]">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
       <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-[var(--text-main)]">
         {chatMessages.map((msg, i) => (
@@ -289,33 +298,8 @@ function ViewSwitcher() {
   )
 }
 
-function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: boolean }) {
-  const { t, game } = useGameStore()
-  const isWhite = color === 'white'
-  const capturedPieces = game?.captured_pieces?.[color] || []
-  const avatar = isWhite ? game?.white_avatar : game?.black_avatar
-  const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0)
-  const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
-  return (
-    <div className={`flex items-center justify-between w-full p-4 rounded-xl transition-all ${isActive ? 'bg-[var(--surface-2)] shadow-inner border border-[var(--border)]' : ''}`}>
-      <div className="flex items-center gap-6"><Avatar src={avatar || (isWhite ? '♔' : '♚')} size="md" /><div><div className="text-xl font-black uppercase tracking-wider text-[var(--text-main)]" style={{ color: isWhite ? 'var(--text-main)' : 'var(--text-muted)' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1.5 mt-1.5 opacity-40">{capturedPieces.map((p, i) => <span key={i} className="text-base font-bold text-[var(--text-main)]">{p}</span>)}</div></div></div>
-      <div className={`px-8 py-3 rounded-xl font-mono text-3xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[var(--surface-3)] text-[var(--text-muted)] opacity-50'}`}>{formatTime(timeLeft)}</div>
-    </div>
-  )
-}
-
-function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { user, t, uploadAvatar, updateProfile } = useGameStore()
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  if (!isOpen || !user) return null
-  return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 bg-[var(--surface)] border border-[var(--border)] rounded-[2rem] relative shadow-2xl"><button onClick={onClose} className="absolute top-8 right-8 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors text-3xl">✕</button><h2 className="text-2xl font-black uppercase tracking-widest mb-10 text-center text-[var(--text-main)]">{t.editProfile}</h2><div className="flex flex-col items-center gap-10"><Avatar src={user.avatar} size="lg" /><div className="w-full space-y-8"><button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="btn-secondary w-full py-5 text-base">{isUploading ? '...' : t.chooseAvatar}</button><input type="file" ref={fileInputRef} onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setIsUploading(true); const url = await uploadAvatar(f); if (url) await updateProfile(url); setIsUploading(false); } }} className="hidden" accept="image/*" /><div className="grid grid-cols-4 gap-4 bg-[var(--surface-3)] p-4 rounded-xl border border-[var(--border)]">{AVATARS.map(a => <button key={a} onClick={() => updateProfile(a)} className={`text-4xl p-4 rounded hover:bg-[var(--surface-2)] transition-all ${user.avatar === a ? 'bg-[var(--surface-2)] shadow-xl scale-110' : 'opacity-30 hover:opacity-100'}`}>{a}</button>)}</div></div></div></motion.div></div>
-  )
-}
-
 export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, isSpectator, uiTheme } = useGameStore()
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, isSpectator, uiTheme, t } = useGameStore()
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', uiTheme)
     const saved = localStorage.getItem('shaxmat_user'), token = localStorage.getItem('shaxmat_token'), savedGameId = localStorage.getItem('shaxmat_game_id'), savedIsSpectator = localStorage.getItem('shaxmat_spectator') === 'true', savedLang = localStorage.getItem('shaxmat_lang') as Language
@@ -325,38 +309,63 @@ export default function App() {
     }
   }, [user, initSocket, setLanguage, uiTheme])
   useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 15000); return () => clearInterval(interval) } }, [gameId, fetchGame])
+  useEffect(() => {
+    if (!gameId) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [gameId])
   if (error && !gameId) return <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--text-main)]"><div className="text-center bg-[var(--surface)] border border-[var(--border)] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload(); }} className="btn-primary py-4 px-10">Reset Application</button></div></div>
   if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
   if (!gameId) return <div className="min-h-screen flex flex-col bg-[var(--bg)]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /></div>
   const isGameOver = game && game.status !== 'active'
   const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
+  const topColor: 'white' | 'black' = isFlipped ? 'white' : 'black'
+  const bottomColor: 'white' | 'black' = isFlipped ? 'black' : 'white'
+  const nameFor = (c: 'white' | 'black') => {
+    if (!game) return ''
+    const n = c === 'white' ? game.white_username : game.black_username
+    return (n && String(n).trim()) || (game.game_mode === 'AI' ? t.aiOpponent : t.waitingOpponent)
+  }
+  const countryFor = (c: 'white' | 'black') => {
+    if (!game) return null
+    const code = c === 'white' ? game.white_country_code : game.black_country_code
+    return (code && String(code).trim()) || null
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg)]">
-      <header className="flex items-center justify-between px-8 py-5 border-b border-[var(--border)] bg-[var(--surface)]"><div className="flex items-center gap-4 cursor-pointer group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col"><span className="text-base font-bold tracking-tight text-[var(--accent-white)] group-hover:text-[var(--accent-cyan)] transition-colors">SHAXMAT+</span></div></div><div className="flex items-center gap-6"><ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-[10px] text-[var(--text-muted)] uppercase font-bold mb-1">{user.username}</span><span className="text-[10px] font-mono text-[var(--accent-cyan)] font-bold opacity-70">ID: {user.public_id}</span></div></div></header>
-      <main className="flex-1 flex flex-col xl:flex-row gap-8 p-4 md:p-8 max-w-[1600px] mx-auto w-full items-start justify-center">
-        <section className="flex-1 flex flex-col items-center justify-center order-1 w-full min-w-0 mx-auto px-1">
-          <div className="w-full max-w-[min(35rem,calc((100dvh-12rem)*8/10+1.5rem))] flex flex-col items-stretch">
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none bg-[var(--bg)]">
+      <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 md:px-8 md:py-4"><div className="flex cursor-pointer items-center gap-4 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col"><span className="text-base font-bold tracking-tight text-[var(--accent-white)] transition-colors group-hover:text-[var(--accent-cyan)]">SHAXMAT+</span></div></div><div className="flex items-center gap-3 md:gap-6"><ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="mb-1 max-w-[8rem] truncate text-right text-[10px] font-bold uppercase text-[var(--text-muted)] sm:max-w-none">{user.username}</span><span className="text-[10px] font-mono font-bold text-[var(--accent-cyan)] opacity-70">ID: {user.public_id}</span></div></div></header>
+      <main className="mx-auto flex min-h-0 w-full max-w-[1800px] flex-1 flex-col gap-2 overflow-hidden px-2 py-1 md:gap-3 md:px-4 md:py-2 xl:flex-row xl:items-stretch xl:gap-5">
+        <section className="order-1 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-hidden xl:py-0">
+          <div className="flex min-h-0 w-full max-w-[min(96vw,calc((100dvh-9.5rem)*(8/10)))] flex-1 flex-col items-center justify-center">
             {game && (
-              <div className="w-full mb-2 flex items-end">
-                <PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} />
-              </div>
+              <PlayerBadge
+                color={topColor}
+                displayName={nameFor(topColor)}
+                countryCode={countryFor(topColor)}
+                isActive={game.turn === topColor && !isGameOver}
+              />
             )}
-
-            <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded-lg shadow-2xl border border-[#403d39]">
-              <Board />
-            </div>
-
-            {game && (
-              <div className="w-full mt-2 flex items-start">
-                <PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} />
+            <div className="my-1 flex min-h-0 w-full flex-1 items-center justify-center md:my-2">
+              <div className="h-full max-h-[calc(100dvh-10rem)] w-full max-w-full overflow-hidden">
+                <Board />
               </div>
+            </div>
+            {game && (
+              <PlayerBadge
+                color={bottomColor}
+                displayName={nameFor(bottomColor)}
+                countryCode={countryFor(bottomColor)}
+                isActive={game.turn === bottomColor && !isGameOver}
+              />
             )}
           </div>
         </section>
 
-        <aside className="w-full xl:w-[420px] order-2 flex flex-col gap-6 shrink-0">
+        <aside className="order-2 flex min-h-0 w-full min-w-0 flex-none flex-col gap-2 overflow-hidden md:gap-3 xl:w-[380px] xl:max-w-[380px] xl:shrink-0">
           <GameControls />
-          <div className="flex flex-col gap-6 flex-1">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden md:gap-3">
             <MoveHistory />
             {game?.game_mode === 'Person' && !isSpectator && <Chat />}
           </div>
@@ -390,18 +399,3 @@ function InviteModal() {
   )
 }
 
-function SearchingModal() {
-  const { isSearching, cancelMatchmaking, matchedOpponent, matchOffer, sendMatchStart, acceptMatchOffer, t } = useGameStore()
-  const [timeLimit, setTimeLimit] = useState(600)
-  const [timeIncrement, setTimeIncrement] = useState(0)
-  if (!isSearching) return null
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"><motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="max-w-lg w-full p-16 bg-[var(--surface)] border border-[var(--accent-green)]/20 rounded-[3rem] text-center shadow-[0_60px_180px_rgba(0,0,0,1)]">
-        {!matchedOpponent ? ( <> <div className="relative w-40 h-40 mx-auto mb-16"><motion.div className="absolute inset-0 rounded-full border-4 border-[var(--accent-green)]/10" /><motion.div className="absolute inset-0 rounded-full border-4 border-t-[var(--accent-green)] border-r-transparent border-b-transparent border-l-transparent" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} /><div className="absolute inset-0 flex items-center justify-center text-7xl">🌍</div></div> <h2 className="text-4xl font-black text-[var(--text-main)] uppercase tracking-tighter mb-6">{t.searching}</h2> <p className="text-[var(--accent-green)] text-sm mb-16 uppercase tracking-[0.6em] font-black animate-pulse">Regional Grandmaster Arena</p> </> ) : (
-          <div className="space-y-12"><div className="text-sm font-black text-[var(--accent-green)] uppercase tracking-[0.7em] mb-12">{t.matchFound}</div><div className="flex items-center justify-center gap-16 py-12 bg-[var(--surface-3)] rounded-2xl border border-[var(--border)] shadow-inner"><div className="flex flex-col items-center gap-6"><Avatar src={useGameStore.getState().user?.avatar || '👤'} size="lg" /><span className="text-sm text-[var(--text-muted)] uppercase font-black tracking-widest">{t.player}</span></div><motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-6xl font-black text-[var(--accent-green)] drop-shadow-[0_0_20px_rgba(129,182,76,0.6)]">VS</motion.div><div className="flex flex-col items-center gap-6"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[var(--text-muted)] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div>
-            {matchOffer ? ( <div className="bg-[var(--accent-green)]/10 p-12 rounded-[2rem] border border-[var(--accent-green)]/20 shadow-inner"><div className="text-sm text-[var(--text-muted)] uppercase tracking-widest mb-8 font-black">{t.opponentProposed}</div><div className="text-5xl font-black text-[var(--text-main)] mb-12 tracking-widest">{matchOffer.time_limit / 60}{matchOffer.time_increment ? ` + ${matchOffer.time_increment}` : ' min'}</div><button onClick={acceptMatchOffer} className="btn-primary w-full py-6 text-xl shadow-2xl">{t.acceptAndStart}</button></div> ) : ( <div className="space-y-10"><div className="text-sm font-black opacity-30 uppercase tracking-widest mb-6">{t.timeControl}</div><div className="grid grid-cols-4 gap-3">{[{l:'1m',s:60,i:0},{l:'3m',s:180,i:0},{l:'5m',s:300,i:0},{l:'10m',s:600,i:0}].map(tc => ( <button key={tc.l} onClick={() => { setTimeLimit(tc.s); setTimeIncrement(tc.i); }} className={`py-4 rounded-lg text-sm font-black border transition-all ${timeLimit === tc.s ? 'bg-[var(--accent-green)] text-white border-[var(--accent-green)] shadow-xl' : 'bg-[var(--surface-3)] text-[var(--text-muted)] border-[var(--border)]'}`}>{tc.l.toUpperCase()}</button> ))}</div><button onClick={() => sendMatchStart(matchedOpponent.public_id, timeLimit, timeIncrement)} className="btn-primary w-full py-6 text-xl shadow-2xl">Challenge Opponent</button></div> )}</div>
-        )}
-        <button onClick={cancelMatchmaking} className="w-full mt-12 py-5 text-sm font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all opacity-30 hover:opacity-100">{t.cancel}</button>
-      </motion.div></div>
-  )
-}

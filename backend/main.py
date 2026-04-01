@@ -75,6 +75,11 @@ async def lifespan(app: FastAPI):
                 conn.execute(text("ALTER TABLE users ADD COLUMN rating INTEGER DEFAULT 1200"))
                 conn.commit()
                 print("DEBUG: rating column added.")
+            if 'country_code' not in user_columns:
+                print("DEBUG: Adding country_code column to users...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN country_code VARCHAR(2)"))
+                conn.commit()
+                print("DEBUG: country_code column added.")
     except Exception as e:
         print(f"DEBUG: Migration error: {e}")
     
@@ -153,14 +158,20 @@ def login(user_in: schemas.UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
-@app.post("/update-profile")
+@app.post("/update-profile", response_model=schemas.UserResponse)
 def update_profile(data: dict, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.public_id == data.get("public_id")).first()
     if not user: raise HTTPException(status_code=404, detail="User not found")
     if data.get("avatar"):
         user.avatar = data.get("avatar")
-        db.commit()
-        db.refresh(user)
+    if "country_code" in data:
+        cc = data.get("country_code")
+        if cc is None or cc == "":
+            user.country_code = None
+        else:
+            user.country_code = str(cc).strip().upper()[:2]
+    db.commit()
+    db.refresh(user)
     return user
 
 @app.get("/leaderboard", response_model=List[schemas.UserResponse])
@@ -302,16 +313,18 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
                     
                     if p1_obj and p2_obj:
                         await manager.send_personal_message(json.dumps({
-                            "type": "match_found", 
+                            "type": "match_found",
                             "opponent_id": p2_id,
                             "opponent_username": p2_obj.username,
-                            "opponent_avatar": p2_obj.avatar
+                            "opponent_avatar": p2_obj.avatar,
+                            "opponent_country_code": p2_obj.country_code,
                         }), p1_id)
                         await manager.send_personal_message(json.dumps({
-                            "type": "match_found", 
+                            "type": "match_found",
                             "opponent_id": p1_id,
                             "opponent_username": p1_obj.username,
-                            "opponent_avatar": p1_obj.avatar
+                            "opponent_avatar": p1_obj.avatar,
+                            "opponent_country_code": p1_obj.country_code,
                         }), p2_id)
             elif message.get("type") == "match_start":
                 # One player sends this after selecting time

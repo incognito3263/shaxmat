@@ -29,6 +29,10 @@ export interface GameData {
   black_player_public_id: string | null
   white_avatar: string | null
   black_avatar: string | null
+  white_username?: string | null
+  black_username?: string | null
+  white_country_code?: string | null
+  black_country_code?: string | null
   ai_difficulty: string
   evaluation: number
   captured_pieces: { white: string[]; black: string[] } | null
@@ -44,6 +48,7 @@ export interface User {
   losses: number
   draws: number
   avatar: string
+  country_code?: string | null
 }
 
 export function getUserTitle(wins: number, t: any): string {
@@ -74,7 +79,7 @@ interface GameStore {
   chatMessages: { from: string; text: string }[]
   soundSettings: { move: boolean; capture: boolean; check: boolean; end: boolean }
   isSearching: boolean
-  matchedOpponent: { public_id: string; username: string; avatar: string } | null
+  matchedOpponent: { public_id: string; username: string; avatar: string; country_code?: string | null } | null
   matchOffer: { from_id: string; from_username: string; time_limit: number; time_increment: number } | null
   isInviting: string | null
   boardTheme: string
@@ -99,7 +104,7 @@ interface GameStore {
   login: (username: string, password: string) => Promise<void>
   clearAuthError: () => void
   uploadAvatar: (file: File) => Promise<string | null>
-  updateProfile: (avatar: string) => Promise<void>
+  updateProfile: (updates: { avatar?: string; country_code?: string | null }) => Promise<void>
   logout: () => void
   setLanguage: (lang: Language) => void
   setTheme: (theme: string) => void
@@ -227,7 +232,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   matchOffer: null,
   isInviting: null,
   soundSettings: { move: true, capture: true, check: true, end: true },
-  boardTheme: localStorage.getItem('shaxmat_theme') || 'default',
+  boardTheme: localStorage.getItem('shaxmat_theme') || 'wood',
   pieceTheme: 'classic',
   uiTheme: (localStorage.getItem('shaxmat_ui_theme') as 'dark' | 'light') || 'dark',
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
@@ -314,14 +319,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  updateProfile: async (avatar: string) => {
+  updateProfile: async (updates) => {
     const { user } = get()
     if (!user) return
     try {
+      const body: Record<string, unknown> = { public_id: user.public_id }
+      if (updates.avatar !== undefined) body.avatar = updates.avatar
+      if (updates.country_code !== undefined) body.country_code = updates.country_code
       const res = await fetch('/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id: user.public_id, avatar })
+        body: JSON.stringify(body),
       })
       if (res.ok) {
         const updatedUser = await res.json()
@@ -442,7 +450,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
           get().fetchFriends()
         }
       } else if (msg.type === 'match_found') {
-        set({ matchedOpponent: { public_id: msg.opponent_id, username: msg.opponent_username, avatar: msg.opponent_avatar } })
+        set({
+          matchedOpponent: {
+            public_id: msg.opponent_id,
+            username: msg.opponent_username,
+            avatar: msg.opponent_avatar,
+            country_code: msg.opponent_country_code ?? null,
+          },
+        })
       } else if (msg.type === 'match_offer') {
         set({ matchOffer: { from_id: msg.from_id, from_username: msg.from_username, time_limit: msg.time_limit, time_increment: msg.time_increment } })
       } else if (msg.type === 'user_status') {

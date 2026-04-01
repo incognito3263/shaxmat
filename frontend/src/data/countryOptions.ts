@@ -1,0 +1,20 @@
+/** ISO 3166-1 alpha-2 codes for profile flag (flagcdn). */
+export const COUNTRY_OPTIONS: { code: string; label: string }[] = [
+  { code: '', label: '—' },
+  { code: 'UZ', label: 'Uzbekistan' },
+  { code: 'RU', label: 'Russia' },
+  { code: 'KZ', label: 'Kazakhstan' },
+  { code: 'TJ', label: 'Tajikistan' },
+  { code: 'KG', label: 'Kyrgyzstan' },
+  { code: 'TM', label: 'Turkmenistan' },
+  { code: 'US', label: 'United States' },
+  { code: 'GB', label: 'United Kingdom' },
+  { code: 'DE', label: 'Germany' },
+  { code: 'FR', label: 'France' },
+  { code: 'TR', label: 'Turkey' },
+  { code: 'IN', label: 'India' },
+  { code: 'CN', label: 'China' },
+  { code: 'JP', label: 'Japan' },
+  { code: 'KR', label: 'Korea' },
+  { code: 'BR', label: 'Brazil' },
+]
