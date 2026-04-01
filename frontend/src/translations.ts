@@ -144,7 +144,7 @@ export const translations = {
       "Goal: checkmate the opponent's king, like standard chess.\n\nSelect your piece, then a highlighted square. Castling, en passant (when applicable), and draws follow chess logic on this larger board.\n\nPick a time control before Quick Play, vs AI, or inviting a friend. Your clock runs on your turn.",
     howToPlayBoardTitle: "Board & setup",
     howToPlayBoardBody:
-      "10 ranks × 8 files (ranks 1–10, files a–h). The back rank and pawn row match classical chess, with an extra rank for Suppliers:\n• White Suppliers on rank 3: a3, c3, e3, g3.\n• Black Suppliers on rank 8: b8, d8, f8, h8.\n\nFile and rank labels on the frame keep orientation clear.",
+      "10 ranks × 8 files (ranks 1–10, files a–h). The back rank and pawn row match classical chess, with an extra rank for Suppliers:\n• White Suppliers on rank 3: b3, d3, f3, h3.\n• Black Suppliers on rank 8: b8, d8, f8, h8.\n\nFile and rank labels on the frame keep orientation clear.",
     howToPlaySuppliersTitle: "Suppliers (unique piece)",
     howToPlaySuppliersBody:
       "The Supplier (S) does not exist in ordinary chess.\n• Quiet move: exactly one square diagonally forward (toward the opponent) to an empty square.\n• Capture: one square straight forward, onto an enemy piece.\n\nThat creates new plans: development, forks, and endgames differ from 8×8 chess. Both Pawns and Suppliers promote on the last rank — choose Queen, Rook, Bishop, or Knight.",
@@ -297,7 +297,7 @@ export const translations = {
       "Maqsad: standart shaxmatdagidek qarama-qarshi shohni mot qilish.\n\nDonangizni tanlang, keyin yoritilgan kataklardan birini bosing. Ro‘kilar, shu jihatdan en passant va duranglar 10 qatorli doskaga moslab hisoblanadi.\n\nTezkor o‘yin, SI yoki do‘st taklifi oldidan vaqt nazoratini tanlang.",
     howToPlayBoardTitle: "Doska",
     howToPlayBoardBody:
-      "10 qator × 8 ustun (1–10 qatorlar, a–h ustunlar). Orqa qator va piyodalari oddiy shaxmatdagidek; qo‘shimcha qatorda Supplierlar:\n• Oqlar: 3-qator — a3, c3, e3, g3.\n• Qoralar: 8-qator — b8, d8, f8, h8.\n\nRamkadagi koordinatalar yo‘naltirishga yordam beradi.",
+      "10 qator × 8 ustun (1–10 qatorlar, a–h ustunlar). Orqa qator va piyodalari oddiy shaxmatdagidek; qo‘shimcha qatorda Supplierlar:\n• Oqlar: 3-qator — b3, d3, f3, h3.\n• Qoralar: 8-qator — b8, d8, f8, h8.\n\nRamkadagi koordinatalar yo‘naltirishga yordam beradi.",
     howToPlaySuppliersTitle: "Supplier (maxsus dona)",
     howToPlaySuppliersBody:
       "Supplier (S) klassik shaxmatda yo‘q.\n• Yutqazmas yurish: bir kata simob oldinga (raqib tomonga) bo‘sh katga.\n• Olish: bir kata to‘g‘ri oldinga raqib donasi ustiga.\n\nBu yangi taktika va o‘yin rejalarini beradi. Piyoda va Supplier so‘nggi qatorga yetganda Farzin, Tura, Fil yoki Otlarga aylandirib yuksaltiriladi.",
