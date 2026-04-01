@@ -162,18 +162,83 @@ function ModeSelection() {
   const [timeLimit, setTimeLimit] = useState(600)
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [foundUser, setFoundUser] = useState<any>(null)
   const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
   useEffect(() => { fetchLeaderboard(); fetchFriendRequests(); fetchNotifications(); }, [fetchLeaderboard, fetchFriendRequests, fetchNotifications])
   const totalGames = user ? (user.wins + user.losses + user.draws) : 0;
   const winRate = totalGames > 0 ? Math.round((user!.wins / totalGames) * 100) : 0;
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 md:p-10 lg:p-12">
-      <div className="flex justify-between items-center mb-12 border-b border-[var(--border)] pb-8"><div className="flex items-center gap-4"><Logo size="md" /><h1 className="text-xl font-bold uppercase tracking-widest text-[var(--accent-white)]">Arena</h1></div><div className="flex gap-4 items-center"><LanguageSwitcher /><ThemeSwitcher /></div></div>
+    <div className="flex-1 w-full max-w-[1400px] mx-auto p-6 md:p-12 lg:p-16">
+      <div className="flex justify-between items-center mb-16 border-b border-[var(--border)] pb-10">
+        <div className="flex items-center gap-6"><Logo size="lg" /><h1 className="text-3xl font-black uppercase tracking-[0.2em] text-[var(--accent-white)]">Arena</h1></div>
+        <div className="flex gap-6 items-center"><LanguageSwitcher /><ThemeSwitcher /></div>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        <div className="lg:col-span-5 space-y-8">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-8 flex flex-col items-center text-center shadow-sm relative overflow-hidden"><div className="absolute top-0 right-0 p-4"><button onClick={() => setIsEditModalOpen(true)} className="text-[10px] uppercase font-bold text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors tracking-widest">Settings</button></div><Avatar src={user?.avatar || '👤'} size="xl" /><h2 className="text-2xl font-bold mt-4 mb-1 text-[var(--accent-white)] tracking-tight">{user?.username}</h2><div className="text-[10px] text-[var(--accent-cyan)] font-bold uppercase tracking-[0.3em] mb-6 px-3 py-1 bg-[var(--accent-cyan)]/5 rounded-full border border-[var(--accent-cyan)]/10">{user ? getUserTitle(user.wins, t) : ''}</div><div className="grid grid-cols-2 gap-4 w-full mb-8"><div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--border)]"><div className="text-[9px] uppercase tracking-widest text-[var(--text-muted)] mb-1">Win Rate</div><div className="text-xl font-bold text-green-500">{winRate}%</div></div><div className="bg-[var(--bg)] p-4 rounded-lg border border-[var(--border)]"><div className="text-[9px] uppercase tracking-widest text-[var(--text-muted)] mb-1">Games</div><div className="text-xl font-bold">{totalGames}</div></div></div><div className="w-full flex items-center justify-center gap-3 bg-[var(--bg)] py-3 px-4 rounded-lg border border-[var(--border)] group cursor-pointer hover:border-[var(--accent-cyan)]/30 transition-all" onClick={() => { navigator.clipboard.writeText(user?.public_id || ''); setNotification({ text: t.idCopied, type: 'success' }); }}><span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">ID:</span><span className="text-base font-mono font-bold text-[var(--accent-cyan)] tracking-widest">{user?.public_id}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-30 group-hover:opacity-100 transition-opacity"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></div><button onClick={logout} className="mt-6 text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--check-red)] transition-colors uppercase tracking-[0.2em]">{t.logout}</button></div>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-8 shadow-sm"><div className="mb-8"><div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">⏱️ {t.timeControl}</div><div className="grid grid-cols-4 gap-2">{[{l:'1m',s:60,i:0},{l:'1+1',s:60,i:1},{l:'3m',s:180,i:0},{l:'3+2',s:180,i:2},{l:'5m',s:300,i:0},{l:'10m',s:600,i:0},{l:'30m',s:1800,i:0}].map(tc => ( <button key={tc.l} onClick={() => { setTimeLimit(tc.s); setTimeIncrement(tc.i); }} className={`py-2 rounded-md text-[10px] font-bold transition-all border ${timeLimit === tc.s && timeIncrement === tc.i ? 'bg-[var(--accent-cyan)] text-black border-[var(--accent-cyan)]' : 'bg-[var(--bg)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--text-main)]'}`}>{tc.l.toUpperCase()}</button> ))}</div></div><div className="space-y-4"><div className="bg-[var(--bg)] p-5 rounded-lg border border-[var(--border)] hover:border-[var(--accent-cyan)]/30 transition-all"><div className="flex items-center justify-between mb-4"><span className="text-[11px] font-bold uppercase tracking-widest">🤖 {t.singlePlayer}</span><div className="flex gap-1.5">{['easy', 'normal', 'hard'].map(d => <button key={d} onClick={() => setDifficulty(d)} className={`px-2 py-1 rounded text-[8px] font-bold uppercase tracking-tighter transition-all ${difficulty === d ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}>{d}</button>)}</div></div><button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="btn-primary w-full py-4 rounded-xl text-sm tracking-widest">Battle AI</button></div><button onClick={startMatchmaking} className="btn-primary w-full p-6 rounded-xl flex items-center justify-between group"><span className="text-sm font-bold uppercase tracking-widest">🌍 {t.quickPlay}</span><span className="group-hover:translate-x-2 transition-transform text-xl">→</span></button><div className="bg-[var(--bg)] p-5 rounded-lg border border-[var(--border)]"><div className="text-[11px] font-bold uppercase tracking-widest mb-4 text-left">👤 {t.multiplayer}</div>{!foundUser ? ( <div className="flex gap-2"><input type="text" maxLength={8} value={opponentId} onChange={e => setOpponentId(e.target.value.replace(/\D/g, ''))} placeholder="Opponent ID" className="flex-1 bg-[var(--surface)] border border-[var(--border)] rounded-md px-4 py-2 text-xs text-center font-mono outline-none focus:border-[var(--accent-cyan)]" /><button onClick={async () => { if (opponentId.length === 8) { if (opponentId === user?.public_id) { setNotification({ text: t.selfPlayError, type: 'error' }); return } const target = await searchUser(opponentId); if (target) setFoundUser(target); else setNotification({ text: t.userNotFound, type: 'error' }); } }} className="btn-primary px-6 py-2 rounded-lg text-xs tracking-widest transition-all">{t.go}</button></div> ) : ( <div className="flex items-center gap-3"><Avatar src={foundUser.avatar} size="sm" /><div className="flex-1 text-left"><div className="text-xs font-bold">{foundUser.username}</div><div className="text-[9px] text-[var(--text-muted)] font-mono">ID: {foundUser.public_id}</div></div><div className="flex gap-1.5"><button onClick={() => sendInvite(foundUser.public_id, timeLimit, timeIncrement)} className="btn-primary px-4 py-2 text-[10px] rounded-lg tracking-widest transition-all">{t.inviteFriend}</button><button onClick={() => { setFoundUser(null); setOpponentId(''); }} className="p-1.5 bg-[var(--surface-hover)] text-[var(--text-muted)] rounded">✕</button></div></div> )}</div></div></div>
+        <div className="lg:col-span-5 space-y-10">
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6"><button onClick={() => setIsEditModalOpen(true)} className="text-[11px] uppercase font-bold text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors tracking-[0.2em]">Settings</button></div>
+            <Avatar src={user?.avatar || '👤'} size="xl" />
+            <h2 className="text-3xl font-black mt-6 mb-2 text-[var(--accent-white)] tracking-tight">{user?.username}</h2>
+            <div className="text-[11px] text-[var(--accent-cyan)] font-bold uppercase tracking-[0.4em] mb-10 px-4 py-1.5 bg-[var(--accent-cyan)]/5 rounded-full border border-[var(--accent-cyan)]/10">{user ? getUserTitle(user.wins, t) : ''}</div>
+            
+            <div className="grid grid-cols-2 gap-6 w-full mb-10">
+              <div className="bg-[var(--bg)] p-6 rounded-xl border border-[var(--border)] flex flex-col items-center">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] mb-2">Win Rate</div>
+                <div className="text-3xl font-black text-green-500">{winRate}%</div>
+              </div>
+              <div className="bg-[var(--bg)] p-6 rounded-xl border border-[var(--border)] flex flex-col items-center">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] mb-2">Games</div>
+                <div className="text-3xl font-black">{totalGames}</div>
+              </div>
+            </div>
+            
+            <div className="w-full flex items-center justify-center gap-4 bg-[var(--bg)] py-4 px-6 rounded-xl border border-[var(--border)] group cursor-pointer hover:border-[var(--accent-cyan)]/30 transition-all shadow-inner" onClick={() => { navigator.clipboard.writeText(user?.public_id || ''); setNotification({ text: t.idCopied, type: 'success' }); }}>
+              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Your ID:</span>
+              <span className="text-xl font-mono font-bold text-[var(--accent-cyan)] tracking-[0.2em]">{user?.public_id}</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-30 group-hover:opacity-100 transition-opacity"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </div>
+            <button onClick={logout} className="mt-8 text-[11px] font-bold text-[var(--text-muted)] hover:text-[var(--check-red)] transition-colors uppercase tracking-[0.3em]">{t.logout}</button>
+          </div>
+
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 shadow-2xl">
+            <div className="mb-10">
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6 flex items-center gap-2">⏱️ {t.timeControl}</div>
+              <div className="grid grid-cols-4 gap-3">
+                {[{l:'1m',s:60,i:0},{l:'1+1',s:60,i:1},{l:'3m',s:180,i:0},{l:'3+2',s:180,i:2},{l:'5m',s:300,i:0},{l:'10m',s:600,i:0},{l:'30m',s:1800,i:0}].map(tc => (
+                  <button key={tc.l} onClick={() => { setTimeLimit(tc.s); setTimeIncrement(tc.i); }} className={`py-3 rounded-lg text-[11px] font-black transition-all border-2 ${timeLimit === tc.s && timeIncrement === tc.i ? 'bg-[var(--accent-cyan)] text-black border-[var(--accent-cyan)] shadow-[0_0_15px_rgba(0,255,255,0.3)]' : 'bg-[var(--bg)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--text-main)]'}`}>
+                    {tc.l.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-[var(--bg)] p-8 rounded-2xl border border-[var(--border)] hover:border-[var(--accent-cyan)]/30 transition-all group">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-sm font-black uppercase tracking-[0.2em]">🤖 {t.singlePlayer}</span>
+                  <div className="flex gap-2">
+                    {['easy', 'normal', 'hard'].map(d => (
+                      <button key={d} onClick={() => setDifficulty(d)} className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${difficulty === d ? 'bg-[var(--accent-cyan)] text-black' : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}>
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="btn-primary w-full py-5 rounded-xl text-lg font-black tracking-[0.2em] shadow-lg">BATTLE AI</button>
+              </div>
+
+              <button onClick={startMatchmaking} className="btn-primary w-full p-8 rounded-2xl flex items-center justify-between group shadow-xl">
+                <span className="text-xl font-black uppercase tracking-[0.2em]">🌍 {t.quickPlay}</span>
+                <span className="group-hover:translate-x-3 transition-transform text-3xl">→</span>
+              </button>
+              
+              <div className="pt-6 border-t border-[var(--border)]">
+                 <div className="flex gap-3">
+                   <input type="text" maxLength={8} value={opponentId} onChange={e => setOpponentId(e.target.value.replace(/\D/g, ''))} placeholder="Opponent ID" className="flex-1 bg-[var(--bg)] border-2 border-[var(--border)] rounded-xl px-6 py-4 text-base font-mono text-[var(--text-main)] outline-none focus:border-[var(--accent-cyan)] transition-all" />
+                   <button onClick={async () => { if (opponentId.length === 8) { if (opponentId === user?.public_id) { setNotification({ text: t.selfPlayError, type: 'error' }); return } const target = await searchUser(opponentId); if (target) sendInvite(target.public_id, timeLimit, timeIncrement); else setNotification({ text: t.userNotFound, type: 'error' }); } }} className="btn-secondary px-8 rounded-xl font-black text-sm tracking-widest uppercase">{t.go}</button>
+                 </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="lg:col-span-7 space-y-8"><Leaderboard /><LiveGames /><div className="grid grid-cols-1 xl:grid-cols-2 gap-8"><FriendsList /><MatchHistory /></div></div>
       </div>
@@ -210,7 +275,7 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
       <div className="flex items-center gap-4">
         <Avatar src={avatar || (isWhite ? '♔' : '♚')} size="md" />
         <div className="flex flex-col">
-          <div className="text-[14px] font-bold tracking-wide" style={{ color: isWhite ? '#fff' : '#c3c2c1' }}>{isWhite ? t.white : t.black}</div>
+          <div className="text-lg font-black tracking-wide uppercase" style={{ color: isWhite ? '#fff' : '#c3c2c1' }}>{isWhite ? t.white : t.black}</div>
           <div className="flex gap-1 mt-0.5 opacity-60 h-[14px]">
             {capturedPieces.map((p, i) => <span key={i} className="text-[12px] leading-none">{p}</span>)}
           </div>
@@ -263,42 +328,109 @@ export default function App() {
   useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 15000); return () => clearInterval(interval) } }, [gameId, fetchGame])
   if (error && !gameId) return <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]"><div className="text-center"><h2 className="text-xl font-bold mb-4">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload(); }} className="px-6 py-2 bg-white text-black font-bold rounded">Reset</button></div></div>
   if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
-  if (!gameId) return <div className="min-h-screen flex flex-col bg-[var(--bg)]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /></div>
+  if (!gameId) return <div className="min-h-screen flex flex-col bg-[var(--bg)]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><SearchingModal /><InviteModal /></div>
   const isGameOver = game && game.status !== 'active'
   const isFlipped = game?.game_mode === 'Person' && user?.id === game.black_player_id
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       <header className="flex items-center justify-between px-8 py-5 border-b border-[var(--border)] bg-[var(--surface)]"><div className="flex items-center gap-4 cursor-pointer group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col"><span className="text-base font-bold tracking-tight text-[var(--accent-white)] group-hover:text-[var(--accent-cyan)] transition-colors">SHAXMAT+</span></div></div><div className="flex items-center gap-6"><ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-[10px] text-[var(--text-muted)] uppercase font-bold mb-1">{user.username}</span><span className="text-[10px] font-mono text-[var(--accent-cyan)] font-bold opacity-70">ID: {user.public_id}</span></div></div></header>
-      <main className="flex-1 flex flex-col xl:flex-row gap-6 p-4 md:p-8 max-w-[1500px] mx-auto w-full items-start justify-center">
+      <main className="flex-1 flex flex-col xl:flex-row gap-8 p-4 md:p-8 max-w-[1600px] mx-auto w-full items-start justify-center">
         {/* Center/Left: Large Board & Player Badges */}
-        <section className="flex-1 flex flex-col items-center justify-center order-1 w-full max-w-[850px] mx-auto">
+        <section className="flex-1 flex flex-col items-center justify-center order-1 w-full max-w-[1000px] mx-auto">
           {game && (
-            <div className="w-full mb-3 flex items-end">
+            <div className="w-full mb-4 flex items-end">
               <PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} />
             </div>
           )}
           
-          <div className="w-full bg-[var(--surface-2)] p-2 md:p-4 rounded-xl shadow-2xl border border-[var(--border)]">
+          <div className="w-full bg-[var(--surface-2)] p-2 md:p-6 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-[var(--border)]">
             <Board />
           </div>
 
           {game && (
-            <div className="w-full mt-3 flex items-start">
+            <div className="w-full mt-4 flex items-start">
               <PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} />
             </div>
           )}
         </section>
 
         {/* Right: Controls, History, Chat */}
-        <aside className="w-full xl:w-[400px] order-2 flex flex-col gap-4 shrink-0">
+        <aside className="w-full xl:w-[420px] order-2 flex flex-col gap-6 shrink-0">
           <GameControls />
-          <div className="flex flex-col gap-4 flex-1">
+          <div className="flex flex-col gap-6 flex-1">
             <MoveHistory />
             {game?.game_mode === 'Person' && !isSpectator && <Chat />}
           </div>
         </aside>
       </main>
-      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><GameOverModal />
+      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><SearchingModal /><InviteModal /><GameOverModal />
+    </div>
+  )
+}
+
+function SearchingModal() {
+  const { isSearching, cancelMatchmaking, matchedOpponent, matchOffer, acceptMatchOffer, t, user } = useGameStore()
+  if (!isSearching) return null
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+        animate={{ opacity: 1, scale: 1, y: 0 }} 
+        className="max-w-md w-full p-10 rounded-2xl text-center border border-[var(--border)] bg-[var(--surface)] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+      >
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-[var(--accent-cyan)] opacity-5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-[var(--accent-cyan)] opacity-5 rounded-full blur-3xl animate-pulse" />
+
+        {!matchedOpponent ? (
+          <>
+            <div className="relative mb-10">
+              <div className="w-24 h-24 border-4 border-[var(--accent-cyan)]/20 border-t-[var(--accent-cyan)] rounded-full animate-spin mx-auto" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-[var(--accent-cyan)]/10 border-b-[var(--accent-cyan)]/40 rounded-full animate-spin-slow" />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center text-4xl">🌍</div>
+            </div>
+            <h2 className="text-3xl font-black uppercase tracking-widest mb-3 text-[var(--accent-white)]">{t.searching}</h2>
+            <p className="text-[var(--text-muted)] text-[11px] uppercase font-bold tracking-[0.3em] mb-10 animate-pulse">Finding a worthy opponent...</p>
+            <button onClick={cancelMatchmaking} className="btn-secondary w-full py-4 rounded-xl text-sm font-bold tracking-widest uppercase hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 transition-all">{t.cancel}</button>
+          </>
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+             <div className="text-sm font-bold text-[var(--accent-cyan)] uppercase tracking-[0.4em] mb-8">{t.matchFound}</div>
+             <div className="flex items-center justify-center gap-8 mb-10">
+                <div className="flex flex-col items-center gap-3">
+                   <Avatar src={user?.avatar || '👤'} size="lg" />
+                   <span className="text-xs font-bold uppercase">{user?.username}</span>
+                </div>
+                <div className="text-3xl font-black text-[var(--accent-cyan)] animate-bounce">VS</div>
+                <div className="flex flex-col items-center gap-3">
+                   <Avatar src={matchedOpponent.avatar} size="lg" />
+                   <span className="text-xs font-bold uppercase">{matchedOpponent.username}</span>
+                </div>
+             </div>
+             
+             {matchOffer ? (
+               <div className="space-y-6">
+                 <div className="bg-[var(--bg)] p-5 rounded-xl border border-[var(--border)]">
+                    <div className="text-[11px] text-[var(--text-muted)] uppercase font-bold tracking-widest mb-1">{t.timeControl}</div>
+                    <div className="text-2xl font-mono font-bold text-[var(--accent-cyan)]">{matchOffer.time_limit / 60}+{matchOffer.time_increment}</div>
+                 </div>
+                 <div className="flex gap-4">
+                   <button onClick={cancelMatchmaking} className="btn-secondary flex-1 py-4 rounded-xl text-xs font-bold tracking-widest uppercase">{t.decline}</button>
+                   <button onClick={acceptMatchOffer} className="btn-primary flex-1 py-4 rounded-xl text-xs font-bold tracking-widest uppercase shadow-[0_0_20px_rgba(0,255,255,0.2)]">{t.acceptAndStart}</button>
+                 </div>
+               </div>
+             ) : (
+               <div className="flex flex-col items-center gap-5">
+                 <div className="w-10 h-10 border-4 border-[var(--accent-cyan)] border-t-transparent rounded-full animate-spin" />
+                 <p className="text-[11px] text-[var(--text-muted)] uppercase font-bold tracking-widest">{t.waitingResponse}</p>
+                 <button onClick={cancelMatchmaking} className="mt-4 text-[11px] text-[var(--text-muted)] hover:text-white uppercase font-bold tracking-widest underline underline-offset-8 transition-all">{t.cancel}</button>
+               </div>
+             )}
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   )
 }

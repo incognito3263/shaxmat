@@ -829,13 +829,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   startMatchmaking: () => {
-    const { socket } = get()
-    if (socket) { socket.send(JSON.stringify({ type: 'find_match' })); set({ isSearching: true }) }
+    const { socket, isSearching } = get()
+    if (isSearching) return
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: 'find_match' }))
+      set({ isSearching: true, matchedOpponent: null, matchOffer: null })
+    } else {
+      get().setNotification({ text: "Connection lost. Reconnecting...", type: 'error' })
+      const user = get().user
+      if (user) get().initSocket(user.public_id)
+    }
   },
 
   cancelMatchmaking: () => {
     const { socket } = get()
-    if (socket) { socket.send(JSON.stringify({ type: 'leave_queue' })) }
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: 'leave_queue' }))
+    }
     set({ isSearching: false, matchedOpponent: null, matchOffer: null })
   },
 
