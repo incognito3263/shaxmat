@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 :root {
-  /* Premium Dark Theme */
-  --bg: #262421;
-  --surface: #2d2b28;
+  /* Premium Dark Theme (Default) */
+  --bg: #1b1a17;
+  --surface: #262421;
   --surface-2: #3c3a37;
+  --surface-3: #211f1d;
   --border: #403d3a;
   
   /* Modern Chess.com Board */
@@ -21,8 +22,30 @@
   --text-main: #ffffff;
   --text-muted: #bababa;
   
-  --last-move: rgba(255, 255, 51, 0.5);
+  --last-move: rgba(255, 255, 51, 0.4);
   --selected: rgba(255, 255, 51, 0.5);
+  --legal-dot: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] {
+  --bg: #f1f1f1;
+  --surface: #ffffff;
+  --surface-2: #e2e2e2;
+  --surface-3: #f9f9f9;
+  --border: #d6d6d6;
+  
+  --board-dark: #769656;
+  --board-light: #eeeed2;
+  
+  --accent-white: #2c2b29;
+  --accent-green: #81b64c;
+  --accent-green-hover: #71a53c;
+  --check-red: #d1242f;
+  --text-main: #2c2b29;
+  --text-muted: #737271;
+  
+  --last-move: rgba(255, 255, 51, 0.6);
+  --selected: rgba(255, 255, 51, 0.7);
   --legal-dot: rgba(0, 0, 0, 0.1);
 }
 
@@ -35,25 +58,16 @@ body {
   background: var(--bg);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* Big professional buttons */
 .btn-primary {
-  @apply bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-lg;
+  @apply bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-lg disabled:opacity-50 disabled:pointer-events-none;
 }
 
 .btn-secondary {
-  @apply bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-3 px-6 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-sm;
-}
-
-/* Panel style */
-.premium-panel {
-  @apply bg-[#2d2b28] border border-[#403d3a] rounded-xl shadow-2xl;
-}
-
-/* Chess board enhancements */
-.board-container {
-  @apply shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-4 border-[#3c3a37] rounded-sm overflow-hidden;
+  @apply bg-[var(--surface-2)] hover:opacity-90 text-[var(--text-main)] font-bold py-3 px-6 rounded-lg shadow-[0_3px_0_0_rgba(0,0,0,0.2)] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-sm;
 }
 
 /* Custom scrollbar */
@@ -64,6 +78,27 @@ body {
   background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--surface-2);
+  background: var(--border);
   border-radius: 4px;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg);
+}
+
+/* Board Animations */
+@keyframes checkPulse {
+  0% { background: radial-gradient(circle, rgba(250,65,45,0.6) 0%, rgba(250,65,45,0) 70%); }
+  50% { background: radial-gradient(circle, rgba(250,65,45,0.9) 0%, rgba(250,65,45,0) 80%); }
+  100% { background: radial-gradient(circle, rgba(250,65,45,0.6) 0%, rgba(250,65,45,0) 70%); }
+}
+
+.check-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  animation: checkPulse 1.5s ease-in-out infinite;
+  z-index: 10;
+  pointer-events: none;
 }
