@@ -336,19 +336,19 @@ export default function App() {
       <header className="flex items-center justify-between px-8 py-5 border-b border-[var(--border)] bg-[var(--surface)]"><div className="flex items-center gap-4 cursor-pointer group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col"><span className="text-base font-bold tracking-tight text-[var(--accent-white)] group-hover:text-[var(--accent-cyan)] transition-colors">SHAXMAT+</span></div></div><div className="flex items-center gap-6"><ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-[10px] text-[var(--text-muted)] uppercase font-bold mb-1">{user.username}</span><span className="text-[10px] font-mono text-[var(--accent-cyan)] font-bold opacity-70">ID: {user.public_id}</span></div></div></header>
       <main className="flex-1 flex flex-col xl:flex-row gap-8 p-4 md:p-8 max-w-[1600px] mx-auto w-full items-start justify-center">
         {/* Center/Left: Large Board & Player Badges */}
-        <section className="flex-1 flex flex-col items-center justify-center order-1 w-full max-w-[1000px] mx-auto">
+        <section className="flex-1 flex flex-col items-center justify-center order-1 w-full max-w-[680px] mx-auto">
           {game && (
-            <div className="w-full mb-4 flex items-end">
+            <div className="w-full mb-2 flex items-end">
               <PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} />
             </div>
           )}
-          
-          <div className="w-full bg-[var(--surface-2)] p-2 md:p-6 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-[var(--border)]">
+
+          <div className="w-full bg-[#211f1d] p-1 md:p-2 rounded shadow-2xl border border-[#403d39]">
             <Board />
           </div>
 
           {game && (
-            <div className="w-full mt-4 flex items-start">
+            <div className="w-full mt-2 flex items-start">
               <PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} />
             </div>
           )}
