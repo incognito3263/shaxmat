@@ -72,7 +72,7 @@ export default function Board3D() {
     function createSleekPiece(type: string, color: string, x: number, z: number) {
       const group = new THREE.Group()
       const isWhite = color === 'white'
-      const pColor = isWhite ? 0xffffff : 0x2f2e2d
+      const pColor = isWhite ? 0xffffff : 0x3e3e3e
       const mat = new THREE.MeshLambertMaterial({
         color: pColor,
         emissive: 0x000000,

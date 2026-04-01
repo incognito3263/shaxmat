@@ -32,9 +32,12 @@ const PieceRenderer: React.FC<{ type: string; color: string; size?: number | str
             src={src}
             alt=""
             draggable={false}
-            className={`w-[88%] h-[88%] object-contain select-none ${
-              colorKey === 'black' ? 'piece-black-soft' : ''
-            }`}
+            className="w-[88%] h-[88%] object-contain select-none"
+            style={
+              colorKey === 'black'
+                ? { filter: 'url(#piece-black-supplier-fill)' }
+                : undefined
+            }
           />
         )}
       </motion.div>

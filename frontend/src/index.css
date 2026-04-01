@@ -97,11 +97,6 @@ body {
   user-select: none;
 }
 
-/* Wikimedia black pieces: soften pure #000 to readable charcoal (no drop shadow) */
-.piece-black-soft {
-  filter: brightness(1.14) contrast(0.96);
-}
-
 /* Check animation */
 @keyframes checkPulse {
   0% { background: radial-gradient(circle, rgba(250,65,45,0.6) 0%, rgba(250,65,45,0) 70%); }
