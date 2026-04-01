@@ -1,0 +1,7 @@
+2D piece images are loaded from Wikimedia Commons (Cburnett SVG set):
+https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces
+
+License: CC BY-SA 3.0. URLs are listed in src/components/pieces/wikimediaPaths.ts.
+
+Standard pieces: k, q, r, b, n, p (light/dark + transparent “t” variants).
+Suppliers use the Commoner fairy piece (x) so they are visually distinct from pawns.

@@ -1,60 +1,38 @@
-import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  ClassicKing,
-  ClassicQueen,
-  ClassicRook,
-  ClassicBishop,
-  ClassicKnight,
-  ClassicPawn,
-  ClassicSupplier,
-} from "./ClassicSet";
-
-type PieceColor = "white" | "black";
+import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { wikimediaPieceSrc, type WikimediaPieceColor } from './wikimediaPaths'
 
 const PieceRenderer: React.FC<{ type: string; color: string; size?: number | string }> = ({
   type,
   color,
-  size = 45,
+  size: _size,
 }) => {
-  const colorKey: PieceColor = color === "white" ? "white" : "black";
-  const t = type.toUpperCase();
-
-  const getPiece = () => {
-    switch (t) {
-      case "K":
-        return <ClassicKing color={colorKey} size={size} />;
-      case "Q":
-        return <ClassicQueen color={colorKey} size={size} />;
-      case "R":
-        return <ClassicRook color={colorKey} size={size} />;
-      case "B":
-        return <ClassicBishop color={colorKey} size={size} />;
-      case "N":
-        return <ClassicKnight color={colorKey} size={size} />;
-      case "P":
-        return <ClassicPawn color={colorKey} size={size} />;
-      case "S":
-        return <ClassicSupplier color={colorKey} size={size} />;
-      default:
-        return null;
-    }
-  };
+  const colorKey: WikimediaPieceColor = color === 'white' ? 'white' : 'black'
+  const t = type.toUpperCase()
+  if (!['K', 'Q', 'R', 'B', 'N', 'P', 'S'].includes(t)) return null
+  const src = wikimediaPieceSrc(type, colorKey)
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={`classic-${type}-${color}`}
+        key={`${src}-${type}-${color}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+        transition={{ duration: 0.15 }}
+        className="w-full h-full flex items-center justify-center pointer-events-none"
       >
-        {getPiece()}
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          className={`w-[88%] h-[88%] object-contain select-none ${
+            colorKey === 'black' ? 'piece-black-soft' : ''
+          }`}
+        />
       </motion.div>
     </AnimatePresence>
-  );
-};
+  )
+}
 
-export default PieceRenderer;
+export default PieceRenderer

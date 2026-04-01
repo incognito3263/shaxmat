@@ -28,7 +28,7 @@ function EvalBar() {
   const clampedEval = Math.max(-5, Math.min(5, evaluation || 0))
   const percentage = ((clampedEval + 5) / 10) * 100
   return (
-    <div className="w-2 md:w-3 h-full bg-[var(--surface-2)] rounded-l-md overflow-hidden flex flex-col-reverse relative border-y border-l border-[var(--border)] mr-1">
+    <div className="w-2 md:w-3 shrink-0 self-stretch bg-[var(--surface-2)] rounded-l-md overflow-hidden flex flex-col-reverse relative border-y border-l border-[var(--border)]">
       <motion.div className="w-full bg-[#ffffff] shadow-[0_0_10px_rgba(255,255,255,0.8)]" animate={{ height: `${percentage}%` }} transition={{ type: "spring", stiffness: 50, damping: 20 }} />
       <div className="absolute inset-0 flex flex-col justify-between items-center py-2 pointer-events-none">
         <span className="text-[9px] font-black text-black mix-blend-difference">{(evaluation || 0) > 0 ? `+${(evaluation || 0).toFixed(1)}` : (evaluation || 0).toFixed(1)}</span>
@@ -39,7 +39,11 @@ function EvalBar() {
 
 export default function Board() {
   const { game, selectedSquare, legalMoves, user, boardTheme, reviewMode, reviewBoardData, viewMode } = useGameStore()
-  if (!game || !game.board) return <div className="h-96 flex items-center justify-center opacity-50 uppercase text-xs font-bold tracking-widest">Loading Board...</div>
+  if (!game || !game.board) return (
+    <div className="aspect-[8/10] w-full max-h-[70dvh] flex items-center justify-center opacity-50 uppercase text-xs font-bold tracking-widest bg-[var(--surface-2)] rounded-md border border-[var(--border)]">
+      Loading Board...
+    </div>
+  )
   if (viewMode === '3d') return <Board3D />
 
   const activeBoard = (reviewMode && reviewBoardData) ? reviewBoardData.board : game.board;
@@ -52,10 +56,11 @@ export default function Board() {
   const displayCols = isFlipped ? [...COLS].reverse() : COLS
 
   return (
-    <div className="flex items-stretch aspect-[8/10] w-full relative">
+    <div className="flex w-full items-stretch gap-1 relative">
       <EvalBar />
-      <div className="relative flex-1 bg-[var(--surface-2)] rounded-r-md border border-[var(--border)] overflow-hidden shadow-2xl">
-        <div className="grid grid-cols-8 grid-rows-10 h-full w-full">
+      <div className="min-w-0 flex-1">
+        <div className="relative w-full aspect-[8/10] bg-[var(--surface-2)] rounded-r-md border border-[var(--border)] overflow-hidden shadow-2xl">
+          <div className="grid grid-cols-8 grid-rows-10 h-full w-full absolute inset-0">
           {displayRows.flatMap((row, rIndex) =>
             displayCols.map((col, cIndex) => {
               const actualColIdx = COLS.indexOf(col)
@@ -86,6 +91,7 @@ export default function Board() {
               )
             })
           )}
+          </div>
         </div>
       </div>
     </div>

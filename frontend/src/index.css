@@ -88,9 +88,9 @@ body {
   user-select: none;
 }
 
-/* Piece shadow for 3D depth */
-.piece-shadow {
-  filter: drop-shadow(0px 3px 2px rgba(0, 0, 0, 0.4));
+/* Wikimedia black pieces: soften pure #000 to readable charcoal (no drop shadow) */
+.piece-black-soft {
+  filter: brightness(1.14) contrast(0.96);
 }
 
 /* Check Animation */

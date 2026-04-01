@@ -72,11 +72,11 @@ export default function Board3D() {
     function createSleekPiece(type: string, color: string, x: number, z: number) {
       const group = new THREE.Group()
       const isWhite = color === 'white'
-      const pColor = isWhite ? 0xffffff : 0x4DD9E8
-      const mat = new THREE.MeshLambertMaterial({ 
+      const pColor = isWhite ? 0xffffff : 0x2f2e2d
+      const mat = new THREE.MeshLambertMaterial({
         color: pColor,
-        emissive: isWhite ? 0x000000 : 0x4DD9E8,
-        emissiveIntensity: isWhite ? 0 : 0.2
+        emissive: 0x000000,
+        emissiveIntensity: 0,
       })
 
       // Standard Base
@@ -88,10 +88,17 @@ export default function Board3D() {
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), mat)
         body.position.y = 0.3
         group.add(body)
-      } else if (type === 'R' || type === 'S') {
+      } else if (type === 'R') {
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, 0.6, 16), mat)
         body.position.y = 0.35
         group.add(body)
+      } else if (type === 'S') {
+        const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.38, 0), mat)
+        body.position.y = 0.42
+        group.add(body)
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), mat)
+        cap.position.y = 0.78
+        group.add(cap)
       } else if (type === 'N') {
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.28, 0.7, 16), mat)
         body.position.y = 0.35
@@ -200,8 +207,8 @@ export default function Board3D() {
   }, [game, boardTheme, reviewMode, reviewBoardData, selectedSquare, legalMoves])
 
   return (
-    <div className="w-full h-[600px] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl relative bg-[#050505]">
-      <div ref={containerRef} className="w-full h-full" />
+    <div className="w-full mx-auto max-w-[min(35rem,calc((100dvh-12rem)*8/10+1.5rem))] aspect-[8/10] max-h-[min(36rem,calc(100dvh-10rem))] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl relative bg-[#050505] min-h-[240px]">
+      <div ref={containerRef} className="absolute inset-0 w-full h-full" />
       <div className="absolute top-6 left-6 pointer-events-none flex flex-col gap-1">
         <div className="text-[10px] font-black text-accentCyan uppercase tracking-[0.4em]">Nexus 3D Engine</div>
         <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest">v3.5 - High Performance</div>
