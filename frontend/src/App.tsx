@@ -16,7 +16,6 @@ import { EditProfileModal } from './components/EditProfileModal'
 import { LobbySidebar } from './components/lobby/LobbySidebar'
 import type { LobbyPage } from './components/lobby/LobbyPage'
 import { HowToPlaySections } from './components/lobby/HowToPlayContent'
-import { CountryFlag } from './components/game/CountryFlag'
 
 function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const s = size === 'sm' ? 24 : size === 'md' ? 32 : 48;
@@ -127,17 +126,6 @@ function ModeSelection() {
     else setNotification({ text: t.userNotFound, type: 'error' })
   }
 
-  const pageHeading =
-    lobbyPage === 'home'
-      ? t.lobbyNavHome
-      : lobbyPage === 'play'
-        ? t.lobbyNavPlay
-        : lobbyPage === 'leaderboard'
-          ? t.leaderboard
-          : lobbyPage === 'friends'
-            ? t.friends
-            : t.lobbyNavLearn
-
   if (!user) return null
 
   const timePresets = [
@@ -214,39 +202,15 @@ function ModeSelection() {
         onLogout={logout}
         onSetLanguage={setLanguage}
         onToggleTheme={() => setUiTheme(uiTheme === 'dark' ? 'light' : 'dark')}
+        onCopyPublicId={() => {
+          void navigator.clipboard.writeText(user.public_id)
+          setNotification({ text: t.idCopied, type: 'success' })
+        }}
       />
       <div
         className="custom-scrollbar min-h-screen overflow-y-auto pl-[var(--lobby-sidebar-w)]"
         style={{ minHeight: '100dvh' }}
       >
-        <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--lobby-main)]/95 px-4 py-2.5 backdrop-blur-md sm:px-5">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <Avatar src={user.avatar || '👤'} size="sm" />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-sm font-bold sm:text-[15px]">{user.username}</span>
-                <CountryFlag code={user.country_code} />
-              </div>
-              <div className="flex flex-wrap items-baseline gap-x-2 text-[10px] text-[var(--text-muted)] sm:text-[11px]">
-                <span>{getUserTitle(user.wins, t)}</span>
-                <span className="hidden opacity-60 sm:inline">·</span>
-                <span className="font-semibold text-[var(--accent-green)]">{pageHeading}</span>
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard.writeText(user.public_id)
-              setNotification({ text: t.idCopied, type: 'success' })
-            }}
-            className="flex shrink-0 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--lobby-card)] px-2.5 py-1.5 text-[10px] font-mono font-bold text-[#81b64c] hover:bg-[var(--lobby-card-inner)] sm:text-xs"
-          >
-            {t.copyID}
-            <span className="tracking-widest">{user.public_id}</span>
-          </button>
-        </header>
-
         <div className="px-4 py-4 sm:px-5 sm:py-5">
           {lobbyPage === 'home' && (
             <>

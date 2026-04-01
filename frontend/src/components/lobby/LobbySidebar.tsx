@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { Logo } from './LobbyLogo'
 import { Avatar } from '../Avatar'
 import { CountryFlag } from '../game/CountryFlag'
 import type { User } from '../../store'
@@ -17,6 +16,7 @@ type LobbySidebarProps = {
   onLogout: () => void
   onSetLanguage: (lang: Language) => void
   onToggleTheme: () => void
+  onCopyPublicId: () => void
 }
 
 const langs: { id: Language; label: string }[] = [
@@ -63,20 +63,13 @@ export function LobbySidebar({
   onLogout,
   onSetLanguage,
   onToggleTheme,
+  onCopyPublicId,
 }: LobbySidebarProps) {
   const isDark = uiTheme === 'dark'
 
   return (
     <aside className="fixed left-0 top-0 z-30 flex h-screen w-[var(--lobby-sidebar-w)] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--lobby-side)] text-[var(--text-main)]">
-      <div className="flex shrink-0 items-center gap-2 px-3 py-3">
-        <Logo size={26} />
-        <div className="min-w-0 leading-tight">
-          <div className="truncate text-[14px] font-bold tracking-tight">{t.title}</div>
-          <div className="truncate text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">{t.subtitle}</div>
-        </div>
-      </div>
-
-      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 py-1">
+      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         <NavItem
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -169,6 +162,14 @@ export function LobbySidebar({
             </div>
             <span className="text-[10px] text-[var(--text-muted)]">{t.lobbyEditProfileHint}</span>
           </div>
+        </button>
+        <button
+          type="button"
+          onClick={onCopyPublicId}
+          className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface-3)] px-2 py-1.5 text-left transition-colors hover:bg-[var(--surface-2)]"
+        >
+          <span className="text-[9px] font-bold uppercase tracking-wide text-[var(--text-muted)]">{t.copyID}</span>
+          <span className="mt-0.5 block truncate font-mono text-[11px] font-bold tracking-widest text-[#81b64c]">{user.public_id}</span>
         </button>
         <button
           type="button"
