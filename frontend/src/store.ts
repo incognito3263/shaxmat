@@ -250,7 +250,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   signup: async (username, password, avatar) => {
     set({ loading: true, authError: null })
     try {
-      const res = await fetch(`/game/signup`, {
+      const res = await fetch(`/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, avatar }),
@@ -275,7 +275,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   login: async (username, password) => {
     set({ loading: true, authError: null })
     try {
-      const res = await fetch(`/game/login`, {
+      const res = await fetch(`/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -301,7 +301,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await fetch('/game/upload-avatar', {
+      const res = await fetch('/upload-avatar', {
         method: 'POST',
         body: formData,
       })
@@ -318,7 +318,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch('/game/update-profile', {
+      const res = await fetch('/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ public_id: user.public_id, avatar })
@@ -504,7 +504,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   searchUser: async (publicId: string) => {
     try {
-      const res = await fetch(`/game/users/search/${publicId}`)
+      const res = await fetch(`/users/search/${publicId}`)
       if (!res.ok) return null
       return await res.json()
     } catch {
@@ -514,7 +514,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   fetchLeaderboard: async () => {
     try {
-      const res = await fetch(`/game/leaderboard`)
+      const res = await fetch(`/leaderboard`)
       if (res.ok) {
         const data = await res.json()
         set({ leaderboard: data })
@@ -528,7 +528,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/users/friends/${user.id}`)
+      const res = await fetch(`/users/friends/${user.id}`)
       if (res.ok) {
         const data = await res.json()
         set({ friends: data })
@@ -542,7 +542,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/users/friend-requests/${user.id}`)
+      const res = await fetch(`/users/friend-requests/${user.id}`)
       if (res.ok) {
         const data = await res.json()
         set({ pendingRequests: data })
@@ -556,7 +556,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/notifications/${user.id}`)
+      const res = await fetch(`/notifications/${user.id}`)
       if (res.ok) {
         const data = await res.json()
         const unread = data.filter((n: any) => !n.is_read).length
@@ -569,7 +569,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   markNotificationRead: async (id: number) => {
     try {
-      const res = await fetch(`/game/notifications/mark-read/${id}`, { method: 'POST' })
+      const res = await fetch(`/notifications/mark-read/${id}`, { method: 'POST' })
       if (res.ok) {
         set(state => ({
           notifications: state.notifications.map(n => n.id === id ? { ...n, is_read: true } : n),
@@ -585,7 +585,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user, socket } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/users/friend-request/${targetId}?current_user_id=${user.id}`, { method: 'POST' })
+      const res = await fetch(`/users/friend-request/${targetId}?current_user_id=${user.id}`, { method: 'POST' })
       if (res.ok && socket) {
         socket.send(JSON.stringify({ type: 'friend_request', target_id: targetId }))
       }
@@ -599,7 +599,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const request = pendingRequests.find(r => r.id === requestId)
     if (!request) return
     try {
-      const res = await fetch(`/game/users/friend-respond/${requestId}?accept=${accept}`, { method: 'POST' })
+      const res = await fetch(`/users/friend-respond/${requestId}?accept=${accept}`, { method: 'POST' })
       if (res.ok) {
         if (socket) {
           socket.send(JSON.stringify({ type: 'friend_respond', target_id: request.from_user.public_id, accepted: accept }))
@@ -616,7 +616,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/users/follow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
+      const res = await fetch(`/users/follow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
       if (res.ok) { await get().fetchFriends() }
     } catch (e) { console.error("Follow failed", e) }
   },
@@ -625,7 +625,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/users/unfollow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
+      const res = await fetch(`/users/unfollow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
       if (res.ok) { await get().fetchFriends() }
     } catch (e) { console.error("Unfollow failed", e) }
   },
@@ -647,7 +647,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ loading: true, error: null, vsAI: mode === 'AI' })
     try {
       const { user } = get()
-      const res = await fetch(`/game/game/create`, {
+      const res = await fetch(`/game/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -675,7 +675,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameId } = get()
     if (!gameId) return
     try {
-      const res = await fetch(`/game/game/${gameId}`)
+      const res = await fetch(`/game/${gameId}`)
       if (!res.ok) {
         set({ error: `Game not found (${res.status})` });
         return;
@@ -711,7 +711,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   fetchLiveGames: async () => {
     try {
-      const res = await fetch(`/game/game/live`)
+      const res = await fetch(`/game/live`)
       if (res.ok) { const data = await res.json(); set({ liveGames: data }) }
     } catch (e) { console.error("Failed to fetch live games", e) }
   },
@@ -720,7 +720,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/game/user/${user.id}/history`)
+      const res = await fetch(`/game/user/${user.id}/history`)
       if (res.ok) { const data = await res.json(); set({ matchHistory: data }) }
     } catch (e) { console.error("Failed to fetch match history", e) }
   },
@@ -794,7 +794,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameId, user, goBackToMenu } = get()
     if (!gameId || !user) return
     try {
-      await fetch(`/game/game/${gameId}/resign?user_id=${user.id}`, { method: 'POST' })
+      await fetch(`/game/${gameId}/resign?user_id=${user.id}`, { method: 'POST' })
       goBackToMenu()
     } catch (e) { console.error("Resign failed", e); goBackToMenu() }
   },
@@ -813,7 +813,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { socket, game, user, drawOffer } = get()
     if (!socket || !game || !user || !drawOffer) return
     socket.send(JSON.stringify({ type: 'draw_respond', target_id: drawOffer.from_id, accepted: accept }))
-    if (accept) { await fetch(`/game/game/${game.id}/draw`, { method: 'POST' }); get().fetchGame() }
+    if (accept) { await fetch(`/game/${game.id}/draw`, { method: 'POST' }); get().fetchGame() }
     set({ drawOffer: null })
   },
 
@@ -866,7 +866,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const targetIndex = Math.max(0, Math.min(index, game.move_history.length))
     if (targetIndex === game.move_history.length) { set({ reviewIndex: targetIndex, reviewBoardData: null }); return }
     try {
-      const res = await fetch(`/game/game/${gameId}/review/${targetIndex}`)
+      const res = await fetch(`/game/${gameId}/review/${targetIndex}`)
       if (res.ok) { const data = await res.json(); set({ reviewIndex: targetIndex, reviewBoardData: data }) }
     } catch (e) { console.error("Failed to fetch review state", e) }
   },
