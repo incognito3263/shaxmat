@@ -3,41 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0A0C10;
-  --surface: #131820;
-  --surface-2: #1C2330;
-  --border: #252D3D;
-  --board-dark: #1E2D40;
-  --board-light: #2E4055;
-  --accent-white: #E8EDF2;
-  --accent-cyan: #4DD9E8;
-  --check-red: #FF3B3B;
-  --legal-blue: #3B9EFF;
-  --selected-gold: #F5C518;
-  --promo-glow: rgba(77, 217, 232, 0.15);
-  --text-main: #E8EDF2;
-  --text-muted: #94A3B8;
-  --surface-hover: rgba(255, 255, 255, 0.05);
-  --shadow: rgba(0, 0, 0, 0.5);
+  --bg: #0F1117;
+  --surface: #161B22;
+  --surface-2: #21262D;
+  --border: #30363D;
+  --board-dark: #34495E;
+  --board-light: #BDC3C7;
+  --accent-white: #F0F6FC;
+  --accent-cyan: #58A6FF;
+  --check-red: #F85149;
+  --legal-blue: #388BFD;
+  --selected-gold: #D29922;
+  --promo-glow: rgba(88, 166, 255, 0.1);
+  --text-main: #C9D1D9;
+  --text-muted: #8B949E;
+  --surface-hover: #30363D;
 }
 
 [data-theme="light"] {
-  --bg: #F1F5F9;
+  --bg: #F6F8FA;
   --surface: #FFFFFF;
-  --surface-2: #E2E8F0;
-  --border: #CBD5E1;
-  --board-dark: #94A3B8;
-  --board-light: #CBD5E1;
-  --accent-white: #1E293B;
-  --accent-cyan: #0891B2;
-  --check-red: #EF4444;
-  --legal-blue: #2563EB;
-  --selected-gold: #EAB308;
-  --promo-glow: rgba(8, 145, 178, 0.1);
-  --text-main: #1E293B;
-  --text-muted: #64748B;
-  --surface-hover: rgba(0, 0, 0, 0.03);
-  --shadow: rgba(0, 0, 0, 0.1);
+  --surface-2: #F3F4F6;
+  --border: #D0D7DE;
+  --board-dark: #7F8C8D;
+  --board-light: #ECF0F1;
+  --accent-white: #1F2328;
+  --accent-cyan: #0969DA;
+  --check-red: #D1242F;
+  --legal-blue: #0969DA;
+  --selected-gold: #9A6700;
+  --text-main: #1F2328;
+  --text-muted: #656D76;
+  --surface-hover: #F3F4F6;
 }
 
 * {
@@ -52,25 +49,29 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   background: var(--bg);
-  color: var(--accent-white);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar */
+/* Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--surface);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 2px;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
-/* Board square base */
+/* Board Style */
 .sq {
   position: relative;
   display: flex;
@@ -78,62 +79,34 @@ body {
   justify-content: center;
   cursor: pointer;
   user-select: none;
-  transition: filter 0.1s ease;
 }
 
 .sq:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.05);
 }
 
-/* Piece drop shadow */
+/* Remove piece shadows for minimalist look */
 .piece-shadow {
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+  filter: none;
 }
 
-/* Check pulse animation */
+/* Clean UI Panels */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Animations */
 @keyframes checkPulse {
-  0%, 100% { box-shadow: inset 0 0 0 2px var(--check-red), 0 0 12px rgba(255,59,59,0.4); }
-  50% { box-shadow: inset 0 0 0 3px var(--check-red), 0 0 24px rgba(255,59,59,0.7); }
+  0%, 100% { background: rgba(248, 81, 73, 0.4); }
+  50% { background: rgba(248, 81, 73, 0.7); }
 }
 
 .check-pulse {
-  animation: checkPulse 1s ease-in-out infinite;
+  animation: checkPulse 1.5s ease-in-out infinite;
 }
 
-/* Glow effects */
-.glow-white {
-  filter: drop-shadow(0 0 6px rgba(232,237,242,0.5));
-}
-
-.glow-cyan {
-  filter: drop-shadow(0 0 6px rgba(77,217,232,0.5));
-}
-
-/* Glass effect */
-.glass {
-  background: rgba(19, 24, 32, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-
-/* Rank/file labels */
-.board-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  opacity: 0.4;
-  pointer-events: none;
-  user-select: none;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }

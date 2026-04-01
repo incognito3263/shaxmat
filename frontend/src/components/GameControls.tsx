@@ -3,258 +3,58 @@ import { useGameStore } from '../store'
 
 export default function GameControls() {
   const { game, goBackToMenu, resign, offerDraw, boardTheme, setTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
+  const themes = [ { id: 'default', label: t.default }, { id: 'classic', label: t.classic }, { id: 'wood', label: t.wood }, { id: 'forest', label: t.forest }, { id: 'ocean', label: t.ocean }, { id: 'midnight', label: t.midnight } ]
 
-  const themes = [
-    { id: 'default', label: t.default },
-    { id: 'classic', label: t.classic },
-    { id: 'wood', label: t.wood },
-    { id: 'forest', label: t.forest },
-    { id: 'ocean', label: t.ocean },
-    { id: 'midnight', label: t.midnight },
-  ]
-
-  const statusText = () => {
+  const Status = () => {
     if (!game) return null
-    if (reviewMode) {
-      return <div className="text-accentCyan text-sm font-bold tracking-wider uppercase text-center">{t.reviewGame} ({reviewIndex}/{game.move_history.length})</div>
-    }
-    if (game.status === 'checkmate') {
-      return (
-        <div className="text-center">
-          <div className="text-checkRed font-bold text-sm tracking-wider uppercase">{t.checkmate}</div>
-          <div className="text-gray-400 text-xs mt-1">
-            {game.winner === 'white' ? `⬜ ${t.white}` : `⬛ ${t.black}`}
-          </div>
-        </div>
-      )
-    }
-    if (game.status === 'resigned') {
-      return (
-        <div className="text-center">
-          <div className="text-checkRed font-bold text-sm tracking-wider uppercase">{t.resigned}</div>
-          <div className="text-gray-400 text-xs mt-1">
-            {game.winner === 'white' ? `⬜ ${t.white}` : `⬛ ${t.black}`}
-          </div>
-        </div>
-      )
-    }
-    if (game.status === 'stalemate') {
-      return <div className="text-accentCyan text-sm font-bold tracking-wider uppercase text-center">{t.stalemate}</div>
-    }
-    if (game.status === 'draw_agreement') {
-      return <div className="text-accentCyan text-sm font-bold tracking-wider uppercase text-center">{t.draw} (🤝)</div>
-    }
-    if (game.status?.startsWith('draw')) {
-      return (
-        <div className="text-center">
-          <div className="text-accentCyan text-sm font-bold tracking-wider uppercase">{t.draw}</div>
-        </div>
-      )
-    }
-    if (game.in_check) {
-      return (
-        <div className="text-center">
-          <div className="text-checkRed font-bold text-sm tracking-wider uppercase animate-pulse">
-            {t.check}
-          </div>
-        </div>
-      )
-    }
-    return null
+    if (reviewMode) return <div className="text-[var(--accent-cyan)] text-[10px] font-bold uppercase tracking-widest text-center">Reviewing ({reviewIndex}/{game.move_history.length})</div>
+    const color = game.turn === 'white' ? 'var(--accent-white)' : 'var(--accent-cyan)'
+    const label = game.turn === 'white' ? t.white : t.black
+    return (
+      <div className="text-center">
+        <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.turn}</div>
+        <div className="text-xs font-bold uppercase tracking-widest" style={{ color }}>{label}</div>
+      </div>
+    )
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Status */}
-      {game && (
-        <div
-          className="rounded-xl px-4 py-3"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-        >
-          {statusText() || (
-            <div className="text-center">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t.turn}</div>
-              <div
-                className="text-sm font-bold tracking-wider"
-                style={{ color: game.turn === 'white' ? 'var(--accent-white)' : 'var(--accent-cyan)' }}
-              >
-                {game.turn === 'white' ? `⬜ ${t.white}` : `⬛ ${t.black}`}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Move counter */}
-      {game && !reviewMode && (
-        <div
-          className="rounded-xl px-4 py-3"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-        >
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600 uppercase tracking-wider">{t.move}</span>
-            <span className="text-sm font-mono text-gray-300">{game.fullmove_number}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Review Controls */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 shadow-sm"><Status /></div>
+      
       {reviewMode && game && (
         <div className="flex gap-2">
-          <button
-            onClick={() => setReviewIndex(reviewIndex - 1)}
-            disabled={reviewIndex <= 0}
-            className="flex-1 py-3 rounded-xl bg-white/10 text-[var(--accent-white)] font-bold text-xs uppercase tracking-widest hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            ← {t.prevMove}
-          </button>
-          <button
-            onClick={() => setReviewIndex(reviewIndex + 1)}
-            disabled={reviewIndex >= game.move_history.length}
-            className="flex-1 py-3 rounded-xl bg-[var(--accent-cyan)] text-black font-bold text-xs uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {t.nextMove} →
-          </button>
+          <button onClick={() => setReviewIndex(reviewIndex - 1)} disabled={reviewIndex <= 0} className="flex-1 py-2 rounded-md bg-[var(--surface-2)] text-[var(--text-main)] border border-[var(--border)] font-bold text-[9px] uppercase tracking-widest hover:bg-[var(--surface-hover)] disabled:opacity-30 transition-all">Prev</button>
+          <button onClick={() => setReviewIndex(reviewIndex + 1)} disabled={reviewIndex >= game.move_history.length} className="flex-1 py-2 rounded-md bg-[var(--accent-cyan)] text-black font-bold text-[9px] uppercase tracking-widest hover:brightness-105 disabled:opacity-30 transition-all">Next</button>
         </div>
       )}
 
-      {/* New game button */}
       <div className="flex flex-col gap-2">
         {!isSpectator && game?.game_mode === 'Person' && game.status === 'active' && (
-          <motion.button
-            onClick={offerDraw}
-            className="w-full py-2.5 rounded-xl text-[10px] font-black tracking-[0.2em] uppercase transition-all"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-muted)',
-            }}
-            whileHover={{ background: 'rgba(255,255,255,0.06)' }}
-          >
-            🤝 {t.offerDraw}
-          </motion.button>
+          <button onClick={offerDraw} className="w-full py-2.5 rounded-md bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold text-[10px] uppercase tracking-widest transition-all">🤝 {t.offerDraw}</button>
         )}
-
-        {!isSpectator && game?.game_mode === 'AI' && (
-          <div
-            className="w-full py-2.5 rounded-xl text-[10px] font-bold tracking-[0.2em] uppercase text-center flex items-center justify-center gap-2"
-            style={{
-              background: 'rgba(77,217,232,0.05)',
-              border: '1px solid rgba(77,217,232,0.2)',
-              color: 'var(--accent-cyan)',
-            }}
-          >
-            🤖 {t.aiActive}
-          </div>
-        )}
-        
-        <motion.button
-          onClick={() => {
-            if (!isSpectator && game?.game_mode === 'Person' && game.status === 'active') {
-              if (confirm(t.exitGame + '?')) resign()
-            } else {
-              goBackToMenu()
-            }
-          }}
-          className="w-full py-3 rounded-xl text-sm font-semibold tracking-wider uppercase transition-all"
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid var(--border)',
-            color: 'var(--accent-white)',
-          }}
-          whileHover={{ background: 'rgba(255,255,255,0.06)' }}
-          whileTap={{ scale: 0.97 }}
-        >
-          {t.exitGame}
-        </motion.button>
+        <button onClick={() => { if (!isSpectator && game?.game_mode === 'Person' && game.status === 'active') { if (confirm(t.exitGame + '?')) resign() } else { goBackToMenu() } }} className="w-full py-2.5 rounded-md bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-main)] font-bold text-[10px] uppercase tracking-widest hover:bg-[var(--surface-hover)] transition-all">{t.exitGame}</button>
       </div>
 
-      {/* Theme Selector */}
-      <div className="rounded-xl px-4 py-4 space-y-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4 space-y-6 shadow-sm">
         <div className="space-y-3">
-          <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.theme}</div>
-          <div className="grid grid-cols-3 gap-1 bg-[var(--surface-hover)] p-1 rounded-xl border border-white/5">
+          <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest text-center">{t.theme}</div>
+          <div className="grid grid-cols-3 gap-1">
             {themes.map(th => (
-              <button
-                key={th.id}
-                onClick={() => setTheme(th.id)}
-                className={`py-1.5 rounded-lg text-[9px] font-black transition-all ${boardTheme === th.id ? 'bg-[var(--accent-cyan)] text-black shadow-lg shadow-cyan-500/20' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-              >
-                {th.label.toUpperCase()}
-              </button>
+              <button key={th.id} onClick={() => setTheme(th.id)} className={`py-1.5 rounded text-[8px] font-bold transition-all ${boardTheme === th.id ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)]'}`}>{th.label.toUpperCase()}</button>
             ))}
           </div>
         </div>
-
         <div className="space-y-3">
-          <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.pieces}</div>
-          <div className="py-2 rounded-xl text-center text-[10px] font-black uppercase tracking-widest bg-[var(--accent-cyan)]/12 border border-[var(--accent-cyan)]/30 text-[var(--accent-cyan)]">
-            {t.classicSet}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.sounds}</div>
+          <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest text-center">{t.sounds}</div>
           <div className="grid grid-cols-2 gap-2">
             {(['move', 'capture', 'check', 'end'] as const).map(s => {
-              const { setSoundSettings } = useGameStore.getState()
-              const isActive = useGameStore(state => state.soundSettings[s])
-              
-              const labels: Record<string, string> = {
-                move: t.move,
-                capture: t.capture,
-                check: t.check.replace('!', ''),
-                end: t.gameOver
-              }
-
-              return (
-                <button
-                  key={s}
-                  onClick={() => setSoundSettings({ [s]: !isActive })}
-                  className={`py-1.5 rounded-lg text-[9px] font-black transition-all border flex items-center justify-center gap-2 ${isActive ? 'bg-[var(--accent-cyan)]/10 border-[var(--accent-cyan)] text-[var(--accent-cyan)]' : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--text-main)]'}`}
-                >
-                  <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-[var(--accent-cyan)]' : 'bg-gray-600'}`} />
-                  {(labels[s] || s).toUpperCase()}
-                </button>
-              )
+              const { setSoundSettings } = useGameStore.getState(); const isActive = useGameStore(state => state.soundSettings[s]);
+              return ( <button key={s} onClick={() => setSoundSettings({ [s]: !isActive })} className={`py-1.5 rounded text-[8px] font-bold border transition-all ${isActive ? 'bg-[var(--accent-cyan)]/10 border-[var(--accent-cyan)] text-[var(--accent-cyan)]' : 'border-[var(--border)] text-[var(--text-muted)]'}`}>{s.toUpperCase()}</button> )
             })}
           </div>
         </div>
       </div>
-
-      {/* Legend */}
-      <div
-        className="rounded-xl px-4 py-3 space-y-2"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-      >
-        <div className="text-xs text-gray-600 uppercase tracking-wider mb-2">{t.legend}</div>
-        <LegendItem color="rgba(245,197,24,0.6)" label={t.selected} />
-        <LegendItem color="rgba(59,158,255,0.65)" label={t.legalMove} circle />
-        <LegendItem color="rgba(59,158,255,0.7)" label={t.capture} ring />
-        <LegendItem color="rgba(255,59,59,0.7)" label={t.check} />
-      </div>
-    </div>
-  )
-}
-
-function LegendItem({
-  color, label, circle, ring
-}: {
-  color: string; label: string; circle?: boolean; ring?: boolean
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <div
-        className="shrink-0"
-        style={{
-          width: 16,
-          height: 16,
-          borderRadius: circle ? '50%' : ring ? 0 : 3,
-          background: ring ? 'transparent' : color,
-          border: ring ? `2px solid ${color}` : 'none',
-        }}
-      />
-      <span className="text-xs text-gray-500">{label}</span>
     </div>
   )
 }
