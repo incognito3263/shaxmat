@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 :root {
+  /* Lobby shell (Chess.com–style) */
+  --lobby-sidebar-w: 15.5rem;
+  --lobby-main: #262421;
+  --lobby-side: #21201d;
+  --lobby-card: #312e2b;
+  --lobby-card-inner: #2a2825;
+
   /* Premium Dark Theme (Default) */
   --bg: #1b1a17;
   --surface: #262421;
@@ -28,6 +35,11 @@
 }
 
 [data-theme="light"] {
+  --lobby-main: #f3f1ec;
+  --lobby-side: #e8e6e1;
+  --lobby-card: #ffffff;
+  --lobby-card-inner: #f6f5f2;
+
   --bg: #f1f1f1;
   --surface: #ffffff;
   --surface-2: #e2e2e2;

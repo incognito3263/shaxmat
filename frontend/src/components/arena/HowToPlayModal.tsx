@@ -1,21 +1,6 @@
 import { motion } from 'framer-motion'
 import { useGameStore } from '../../store'
-
-function Section({ title, body }: { title: string; body: string }) {
-  const paragraphs = body.split('\n\n').filter(Boolean)
-  return (
-    <section className="border-b border-[var(--border)]/60 py-5 last:border-0">
-      <h3 className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-[var(--accent-green)]">{title}</h3>
-      <div className="space-y-3 text-sm leading-relaxed text-[var(--text-main)]">
-        {paragraphs.map((p, i) => (
-          <p key={i} className="whitespace-pre-line">
-            {p}
-          </p>
-        ))}
-      </div>
-    </section>
-  )
-}
+import { HowToPlaySections } from '../lobby/HowToPlayContent'
 
 export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { t } = useGameStore()
@@ -43,10 +28,7 @@ export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
           </button>
         </div>
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-6 sm:px-8">
-          <Section title={t.howToPlayBasicsTitle} body={t.howToPlayBasicsBody} />
-          <Section title={t.howToPlayBoardTitle} body={t.howToPlayBoardBody} />
-          <Section title={t.howToPlaySuppliersTitle} body={t.howToPlaySuppliersBody} />
-          <Section title={t.howToPlayPlatformTitle} body={t.howToPlayPlatformBody} />
+          <HowToPlaySections />
         </div>
         <div className="shrink-0 border-t border-[var(--border)] p-4 sm:p-6">
           <button type="button" onClick={onClose} className="btn-primary w-full py-3 font-bold">
