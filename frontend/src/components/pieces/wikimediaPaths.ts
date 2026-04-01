@@ -3,7 +3,7 @@
  * @see https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces
  *
  * Direct stable URLs on upload.wikimedia.org (CC BY-SA 3.0).
- * In-game suppliers (S) use Commoner (x…), distinct from pawns (p…), for the four “front” pieces.
+ * Suppliers (S) are custom inline SVGs in SupplierPiece.tsx, not Wikimedia files.
  */
 export type WikimediaPieceColor = 'white' | 'black'
 
@@ -17,7 +17,6 @@ const PIECE_URLS: Record<string, [string, string]> = {
   B: [`${COMMONS}/b/b1/Chess_blt45.svg`, `${COMMONS}/9/98/Chess_bdt45.svg`],
   N: [`${COMMONS}/7/70/Chess_nlt45.svg`, `${COMMONS}/e/ef/Chess_ndt45.svg`],
   P: [`${COMMONS}/4/45/Chess_plt45.svg`, `${COMMONS}/c/c7/Chess_pdt45.svg`],
-  S: [`${COMMONS}/e/eb/Chess_xlt45.svg`, `${COMMONS}/c/c4/Chess_xdt45.svg`],
 }
 
 export function wikimediaPieceSrc(type: string, color: WikimediaPieceColor): string {
