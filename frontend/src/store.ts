@@ -63,6 +63,7 @@ interface GameStore {
   pendingPromotion: { from: string; to: string; color: string } | null
   loading: boolean
   error: string | null
+  authError: string | null
   vsAI: boolean
   socket: WebSocket | null
   inviteRequest: { from_id: string; from_username: string; time_limit?: number; time_increment?: number } | null
@@ -96,6 +97,7 @@ interface GameStore {
 
   signup: (username: string, password: string, avatar: string) => Promise<void>
   login: (username: string, password: string) => Promise<void>
+  clearAuthError: () => void
   uploadAvatar: (file: File) => Promise<string | null>
   updateProfile: (avatar: string) => Promise<void>
   logout: () => void
@@ -185,19 +187,15 @@ const SOUNDS: Record<string, HTMLAudioElement> = {
 
 function playSound(type: keyof typeof SOUNDS) {
   const { soundSettings } = useGameStore.getState()
-  
-  // Map internal sound keys to settings
   const settingKeyMap: Record<string, keyof typeof soundSettings> = {
     move: 'move',
     capture: 'capture',
     check: 'check',
     end: 'end',
-    start: 'move' // Use move setting for start sound
+    start: 'move'
   }
-  
   const settingKey = settingKeyMap[type]
   if (settingKey && !soundSettings[settingKey]) return
-
   const audio = SOUNDS[type];
   if (audio) {
     audio.currentTime = 0;
@@ -215,6 +213,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pendingPromotion: null,
   loading: false,
   error: null,
+  authError: null,
   vsAI: true,
   socket: null,
   inviteRequest: null,
@@ -246,10 +245,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   notifications: [],
   unreadCount: 0,
 
+  clearAuthError: () => set({ authError: null }),
+
   signup: async (username, password, avatar) => {
-    set({ loading: true, error: null })
+    set({ loading: true, authError: null })
     try {
-      const res = await fetch(`/signup`, {
+      const res = await fetch(`/game/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, avatar }),
@@ -259,22 +260,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
         throw new Error(getApiErrorMessage(data, 'Signup failed'))
       }
       if (!data.user) throw new Error('Invalid response from server')
-      set({ user: data.user, token: data.access_token })
+      set({ user: data.user, token: data.access_token, authError: null })
       localStorage.setItem('shaxmat_token', data.access_token)
       localStorage.setItem('shaxmat_user', JSON.stringify(data.user))
       get().initSocket(data.user.public_id)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Network error'
-      set({ error: msg })
+      set({ authError: msg })
     } finally {
       set({ loading: false })
     }
   },
 
   login: async (username, password) => {
-    set({ loading: true, error: null })
+    set({ loading: true, authError: null })
     try {
-      const res = await fetch(`/login`, {
+      const res = await fetch(`/game/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -284,13 +285,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
         throw new Error(getApiErrorMessage(data, 'Incorrect username or password'))
       }
       if (!data.user) throw new Error('Invalid response from server')
-      set({ user: data.user, token: data.access_token })
+      set({ user: data.user, token: data.access_token, authError: null })
       localStorage.setItem('shaxmat_token', data.access_token)
       localStorage.setItem('shaxmat_user', JSON.stringify(data.user))
       get().initSocket(data.user.public_id)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Network error. Check if backend is running.'
-      set({ error: msg })
+      set({ authError: msg })
     } finally {
       set({ loading: false })
     }
@@ -300,13 +301,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await fetch('/upload-avatar', {
+      const res = await fetch('/game/upload-avatar', {
         method: 'POST',
         body: formData,
       })
       if (!res.ok) throw new Error('Upload failed')
       const data = await res.json()
-      return data.url // e.g. "/uploads/avatars/uuid.png"
+      return data.url
     } catch (e) {
       console.error("Avatar upload failed", e)
       return null
@@ -317,7 +318,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch('/update-profile', {
+      const res = await fetch('/game/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ public_id: user.public_id, avatar })
@@ -337,7 +338,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     localStorage.removeItem('shaxmat_user')
     localStorage.removeItem('shaxmat_game_id')
     get().socket?.close()
-    set({ user: null, token: null, gameId: null, game: null, socket: null, inviteRequest: null, matchedOpponent: null, matchOffer: null, isSearching: false })
+    set({ user: null, token: null, gameId: null, game: null, socket: null, inviteRequest: null, matchedOpponent: null, matchOffer: null, isSearching: false, authError: null })
   },
 
   setLanguage: (lang: Language) => {
@@ -351,7 +352,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setPieceTheme: (_theme: 'classic' | 'modern') => {
-    // Force classic pieces globally
     set({ pieceTheme: 'classic' })
     localStorage.setItem('shaxmat_piece_theme', 'classic')
   },
@@ -379,29 +379,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   initSocket: (publicId: string) => {
-    // If we already have a connecting or open socket, don't re-init
     const existing = get().socket;
     if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
-      console.log("DEBUG: WS already open or connecting, skipping init");
       return;
     }
-    
-    console.log(`DEBUG: Initializing WS for ${publicId}`);
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    // In production (Docker/same-origin), use same host so nginx can proxy; in dev use port 8000
     const wsHost = import.meta.env.PROD ? window.location.host : `${window.location.hostname}:8000`
     const wsUrl = `${protocol}//${wsHost}/ws/${publicId}`
     const socket = new WebSocket(wsUrl)
     let pingInterval: any;
     
     socket.onopen = () => {
-      console.log("DEBUG: WS Connected successfully");
       const gid = get().gameId
       if (gid && get().isSpectator) {
         socket.send(JSON.stringify({ type: 'spectate', game_id: gid }))
       }
-
-      // Heartbeat to keep connection alive
       pingInterval = setInterval(() => {
         if (socket.readyState === WebSocket.OPEN) {
           socket.send(JSON.stringify({ type: 'ping' }));
@@ -410,32 +402,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     };
 
     socket.onmessage = async (event) => {
-      console.log("DEBUG: WS Received raw data:", event.data);
       const msg = JSON.parse(event.data)
-      console.log("DEBUG: WS Parsed message:", msg);
-      
       if (msg.type === 'game_invite') {
-        // Use state instead of confirm() to avoid browser suppression
         set({ inviteRequest: { 
           from_id: msg.from_id, 
           from_username: msg.from_username,
           time_limit: msg.time_limit,
           time_increment: msg.time_increment
         } });
-      } else if (msg.type === 'invite_accepted') {
-        console.log("DEBUG: Invite accepted by opponent");
       } else if (msg.type === 'game_start') {
         const gid = msg.game_id
         set({ gameId: gid, chatMessages: [], isInviting: null })
         localStorage.setItem('shaxmat_game_id', gid.toString())
-        // Give backend 500ms to settle
-        setTimeout(() => {
-          get().fetchGame()
-        }, 500)
+        setTimeout(() => { get().fetchGame() }, 500)
         playSound('start')
       } else if (msg.type === 'move_made') {
         get().fetchGame()
-        // Sound will be played inside fetchGame after checking logic
       } else if (msg.type === 'opponent_resigned') {
         set({ opponentResignedName: msg.from_username || 'Opponent' });
         get().fetchGame()
@@ -451,14 +433,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
           get().setNotification({ text: "Opponent declined the draw.", type: 'info' })
         }
       } else if (msg.type === 'friend_request') {
-        console.log("DEBUG: Friend request received from", msg.from_username);
-        // Small delay to ensure DB is written
-        setTimeout(() => {
-          get().fetchFriendRequests()
-        }, 1000)
+        setTimeout(() => { get().fetchFriendRequests() }, 1000)
         get().setNotification({ text: get().t.friendRequestReceived.replace('{name}', msg.from_username), type: 'info' })
       } else if (msg.type === 'friend_respond') {
-        console.log("DEBUG: Friend respond received. Accepted:", msg.accepted);
         if (msg.accepted) {
           const text = get().t.friendAccepted.replace('{name}', msg.from_username)
           get().setNotification({ text, type: 'success' })
@@ -469,31 +446,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
       } else if (msg.type === 'match_offer') {
         set({ matchOffer: { from_id: msg.from_id, from_username: msg.from_username, time_limit: msg.time_limit, time_increment: msg.time_increment } })
       } else if (msg.type === 'user_status') {
-        // Update online status in leaderboard and friends list
         set(state => ({
-          leaderboard: state.leaderboard.map(u => 
-            u.public_id === msg.public_id ? { ...u, is_online: msg.online } : u
-          ),
-          friends: state.friends.map(u =>
-            u.public_id === msg.public_id ? { ...u, is_online: msg.online } : u
-          )
+          leaderboard: state.leaderboard.map(u => u.public_id === msg.public_id ? { ...u, is_online: msg.online } : u),
+          friends: state.friends.map(u => u.public_id === msg.public_id ? { ...u, is_online: msg.online } : u)
         }))
       } else if (msg.type === 'ping') {
         socket.send(JSON.stringify({ type: 'pong' }));
       }
     }
 
-    socket.onclose = (e) => {
-      console.log("DEBUG: WS Disconnected. Attempting reconnect in 3s...", e.reason);
+    socket.onclose = () => {
       clearInterval(pingInterval);
       setTimeout(() => {
         const currentUser = get().user;
         if (currentUser) get().initSocket(currentUser.public_id);
       }, 3000);
-    };
-
-    socket.onerror = (err) => {
-      console.error("DEBUG: WS Error:", err);
     };
 
     set({ socket })
@@ -502,12 +469,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   respondToInvite: (accept: boolean) => {
     const { inviteRequest, socket } = get();
     if (!inviteRequest || !socket) return;
-
     if (accept) {
       socket.send(JSON.stringify({ type: 'accept_invite', target_id: inviteRequest.from_id }));
       get().createGame('Person', inviteRequest.from_id, undefined, inviteRequest.time_limit, inviteRequest.time_increment);
     }
-
     set({ inviteRequest: null });
   },
   goBackToMenu: () => {
@@ -515,8 +480,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (socket && gameId && isSpectator) {
       socket.send(JSON.stringify({ type: 'leave_spectate', game_id: gameId }))
     }
-
-    // Refresh user data to get updated stats (wins, losses, draws)
     if (user) {
       searchUser(user.public_id).then(updatedUser => {
         if (updatedUser) {
@@ -525,7 +488,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       })
     }
-
     localStorage.removeItem('shaxmat_game_id')
     localStorage.removeItem('shaxmat_spectator')
     set({
@@ -542,7 +504,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   searchUser: async (publicId: string) => {
     try {
-      const res = await fetch(`/users/search/${publicId}`)
+      const res = await fetch(`/game/users/search/${publicId}`)
       if (!res.ok) return null
       return await res.json()
     } catch {
@@ -552,7 +514,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   fetchLeaderboard: async () => {
     try {
-      const res = await fetch(`/leaderboard`)
+      const res = await fetch(`/game/leaderboard`)
       if (res.ok) {
         const data = await res.json()
         set({ leaderboard: data })
@@ -566,7 +528,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/users/friends/${user.id}`)
+      const res = await fetch(`/game/users/friends/${user.id}`)
       if (res.ok) {
         const data = await res.json()
         set({ friends: data })
@@ -580,7 +542,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/users/friend-requests/${user.id}`)
+      const res = await fetch(`/game/users/friend-requests/${user.id}`)
       if (res.ok) {
         const data = await res.json()
         set({ pendingRequests: data })
@@ -594,7 +556,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/notifications/${user.id}`)
+      const res = await fetch(`/game/notifications/${user.id}`)
       if (res.ok) {
         const data = await res.json()
         const unread = data.filter((n: any) => !n.is_read).length
@@ -607,7 +569,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   markNotificationRead: async (id: number) => {
     try {
-      const res = await fetch(`/notifications/mark-read/${id}`, { method: 'POST' })
+      const res = await fetch(`/game/notifications/mark-read/${id}`, { method: 'POST' })
       if (res.ok) {
         set(state => ({
           notifications: state.notifications.map(n => n.id === id ? { ...n, is_read: true } : n),
@@ -623,9 +585,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user, socket } = get()
     if (!user) return
     try {
-      const res = await fetch(`/users/friend-request/${targetId}?current_user_id=${user.id}`, { method: 'POST' })
+      const res = await fetch(`/game/users/friend-request/${targetId}?current_user_id=${user.id}`, { method: 'POST' })
       if (res.ok && socket) {
-        // Still notify via websocket for real-time update
         socket.send(JSON.stringify({ type: 'friend_request', target_id: targetId }))
       }
     } catch (e) {
@@ -637,16 +598,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { socket, pendingRequests } = get()
     const request = pendingRequests.find(r => r.id === requestId)
     if (!request) return
-
     try {
-      const res = await fetch(`/users/friend-respond/${requestId}?accept=${accept}`, { method: 'POST' })
+      const res = await fetch(`/game/users/friend-respond/${requestId}?accept=${accept}`, { method: 'POST' })
       if (res.ok) {
         if (socket) {
-          socket.send(JSON.stringify({ 
-            type: 'friend_respond', 
-            target_id: request.from_user.public_id, 
-            accepted: accept 
-          }))
+          socket.send(JSON.stringify({ type: 'friend_respond', target_id: request.from_user.public_id, accepted: accept }))
         }
         await get().fetchFriends()
         await get().fetchFriendRequests()
@@ -660,26 +616,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/users/follow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
-      if (res.ok) {
-        await get().fetchFriends()
-      }
-    } catch (e) {
-      console.error("Follow failed", e)
-    }
+      const res = await fetch(`/game/users/follow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
+      if (res.ok) { await get().fetchFriends() }
+    } catch (e) { console.error("Follow failed", e) }
   },
 
   unfollowUser: async (pid: string) => {
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/users/unfollow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
-      if (res.ok) {
-        await get().fetchFriends()
-      }
-    } catch (e) {
-      console.error("Unfollow failed", e)
-    }
+      const res = await fetch(`/game/users/unfollow/${pid}?current_user_id=${user.id}`, { method: 'POST' })
+      if (res.ok) { await get().fetchFriends() }
+    } catch (e) { console.error("Unfollow failed", e) }
   },
 
   sendInvite: (targetPublicId: string, timeLimit?: number, timeIncrement?: number) => {
@@ -699,7 +647,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ loading: true, error: null, vsAI: mode === 'AI' })
     try {
       const { user } = get()
-      const res = await fetch(`/game/create`, {
+      const res = await fetch(`/game/game/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -711,156 +659,78 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ai_difficulty: aiDifficulty || 'normal'
         })
       })
-
       if (!res.ok) throw new Error('Failed to create game')
       const data = await res.json().catch(() => ({}))
       set({ gameId: data.id })
       localStorage.setItem('shaxmat_game_id', data.id.toString())
-      
-      // If we are accepting an invite (mode is Person and we have opponentId)
-      // Tell the inviter to start the game
       if (mode === 'Person' && opponentId) {
         const { socket } = get()
-        if (socket) {
-          socket.send(JSON.stringify({ 
-            type: 'game_start', 
-            target_id: opponentId, 
-            game_id: data.id 
-          }))
-        }
+        if (socket) { socket.send(JSON.stringify({ type: 'game_start', target_id: opponentId, game_id: data.id })) }
       }
-
       await get().fetchGame()
-    } catch (e: any) {
-      set({ error: e.message })
-    } finally {
-      set({ loading: false })
-    }
+    } catch (e: any) { set({ error: e.message }) } finally { set({ loading: false }) }
   },
 
   fetchGame: async () => {
     const { gameId } = get()
-    if (!gameId) {
-      console.warn("DEBUG: fetchGame called but gameId is null");
-      return
-    }
-    
-    console.log(`DEBUG: Fetching game data for ID: ${gameId}`);
+    if (!gameId) return
     try {
-      const res = await fetch(`/game/${gameId}`)
+      const res = await fetch(`/game/game/${gameId}`)
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`DEBUG: Fetch failed with status ${res.status}: ${errorText}`);
         set({ error: `Game not found (${res.status})` });
         return;
       }
-      
-      const data = await res.json().catch((err) => {
-        console.error("DEBUG: JSON parsing error:", err);
-        return null;
-      });
-
+      const data = await res.json().catch(() => null);
       if (!data || !data.board) {
-        console.error("DEBUG: Incomplete game data received:", data);
         set({ error: "Received invalid board data from server" });
         return;
       }
-
-      console.log("DEBUG: Successfully received game data:", data);
       const oldGame = get().game
       const oldHistoryLen = oldGame?.move_history?.length || 0
       const newHistoryLen = data.move_history?.length || 0
-
-      // If game just ended, refresh user stats
       if (data.status !== 'active' && oldGame?.status === 'active') {
         const { user, searchUser } = get()
-        if (user) {
-          searchUser(user.public_id).then(u => {
-            if (u) {
-              set({ user: u })
-              localStorage.setItem('shaxmat_user', JSON.stringify(u))
-            }
-          })
-        }
+        if (user) { searchUser(user.public_id).then(u => { if (u) { set({ user: u }); localStorage.setItem('shaxmat_user', JSON.stringify(u)) } }) }
       }
-
-      // Play sounds based on what happened
-      if (newHistoryLen > oldHistoryLen) {        if (data.status !== 'active') {
-          playSound('end')
-        } else if (data.in_check) {
-          playSound('check')
-        } else {
-          // Check if last move was a capture
+      if (newHistoryLen > oldHistoryLen) {
+        if (data.status !== 'active') playSound('end')
+        else if (data.in_check) playSound('check')
+        else {
           const lastMove = data.move_history[data.move_history.length - 1]
-          const oldCapturedW = oldGame?.captured_pieces?.white?.length || 0
-          const oldCapturedB = oldGame?.captured_pieces?.black?.length || 0
-          const newCapturedW = data.captured_pieces?.white?.length || 0
-          const newCapturedB = data.captured_pieces?.black?.length || 0
-
-          if (lastMove.includes('x') || newCapturedW > oldCapturedW || newCapturedB > oldCapturedB) {
-            playSound('capture')
-          } else {
-            playSound('move')
-          }
+          if (lastMove.includes('x')) playSound('capture')
+          else playSound('move')
         }
       }
-
-      set({
-        game: data,
-        selectedSquare: null,
-        legalMoves: [],
-        vsAI: data.game_mode === 'AI',
-        error: null
-      })
-      
-      // Auto-trigger AI move if it's black's turn and AI mode
+      set({ game: data, selectedSquare: null, legalMoves: [], vsAI: data.game_mode === 'AI', error: null })
       if (data.game_mode === 'AI' && data.turn === 'black' && data.status === 'active') {
         const { aiMove, loading } = get()
-        if (!loading) {
-          setTimeout(() => aiMove(), 600)
-        }
+        if (!loading) { setTimeout(() => aiMove(), 600) }
       }
-    } catch (e: any) {
-      set({ error: e.message })
-    }
+    } catch (e: any) { set({ error: e.message }) }
   },
 
   fetchLiveGames: async () => {
     try {
-      const res = await fetch(`/game/live`)
-      if (res.ok) {
-        const data = await res.json()
-        set({ liveGames: data })
-      }
-    } catch (e) {
-      console.error("Failed to fetch live games", e)
-    }
+      const res = await fetch(`/game/game/live`)
+      if (res.ok) { const data = await res.json(); set({ liveGames: data }) }
+    } catch (e) { console.error("Failed to fetch live games", e) }
   },
 
   fetchMatchHistory: async () => {
     const { user } = get()
     if (!user) return
     try {
-      const res = await fetch(`/game/user/${user.id}/history`)
-      if (res.ok) {
-        const data = await res.json()
-        set({ matchHistory: data })
-      }
-    } catch (e) {
-      console.error("Failed to fetch match history", e)
-    }
+      const res = await fetch(`/game/game/user/${user.id}/history`)
+      if (res.ok) { const data = await res.json(); set({ matchHistory: data }) }
+    } catch (e) { console.error("Failed to fetch match history", e) }
   },
 
   spectateGame: async (gid: number) => {
     set({ loading: true, isSpectator: true, gameId: gid })
     localStorage.setItem('shaxmat_game_id', gid.toString())
     localStorage.setItem('shaxmat_spectator', 'true')
-    
     const { socket } = get()
-    if (socket) {
-      socket.send(JSON.stringify({ type: 'spectate', game_id: gid }))
-    }
-    
+    if (socket) { socket.send(JSON.stringify({ type: 'spectate', game_id: gid })) }
     await get().fetchGame()
     set({ loading: false })
   },
@@ -868,46 +738,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectSquare: (square: string) => {
     const { game, selectedSquare, legalMoves, vsAI, user, isSpectator } = get()
     if (!game || game.status !== 'active' || isSpectator) return
-    
-    // Determine the user's color in this game
     let userColor: string | null = null
-    if (game.game_mode === 'AI') {
-      userColor = 'white' // In AI mode, human is always white for now
-    } else {
+    if (game.game_mode === 'AI') userColor = 'white'
+    else {
       if (user?.id === game.white_player_id) userColor = 'white'
       else if (user?.id === game.black_player_id) userColor = 'black'
     }
-
-    // 1. In AI mode, block human from selecting or moving for black
     if (vsAI && game.turn === 'black') return
-    
-    // 2. In Multiplayer mode, only allow selecting pieces of the user's color
-    // and only when it's their turn
-    if (game.game_mode === 'Person' && game.turn !== userColor) {
-      // It's not this user's turn
-      return
-    }
-
-    // If clicking a legal target square (already have a selection)
+    if (game.game_mode === 'Person' && game.turn !== userColor) return
     if (selectedSquare && legalMoves.includes(square)) {
       const piece = getPieceAt(game.board, selectedSquare)
-      if (piece && isPromotionMove(piece, square)) {
-        set({ pendingPromotion: { from: selectedSquare, to: square, color: piece.color } })
-      } else {
-        get().makeMove(selectedSquare, square)
-      }
+      if (piece && isPromotionMove(piece, square)) { set({ pendingPromotion: { from: selectedSquare, to: square, color: piece.color } }) }
+      else { get().makeMove(selectedSquare, square) }
       return
     }
-
-    // Select a piece
     const piece = getPieceAt(game.board, square)
-    // Only allow selecting pieces that belong to the user's color AND match current turn
     if (piece && piece.color === game.turn && piece.color === userColor) {
       const moves = game.legal_moves?.[square] ?? []
       set({ selectedSquare: square, legalMoves: moves })
-    } else {
-      set({ selectedSquare: null, legalMoves: [] })
-    }
+    } else { set({ selectedSquare: null, legalMoves: [] }) }
   },
 
   makeMove: async (from: string, to: string, promotion?: string) => {
@@ -927,11 +776,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
       set({ selectedSquare: null, legalMoves: [], pendingPromotion: null })
       await get().fetchGame()
-    } catch (e: any) {
-      set({ error: e.message })
-    } finally {
-      set({ loading: false })
-    }
+    } catch (e: any) { set({ error: e.message }) } finally { set({ loading: false }) }
   },
 
   aiMove: async () => {
@@ -939,30 +784,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!gameId) return
     set({ loading: true, error: null })
     try {
-      const res = await fetch(`${API_BASE}/${gameId}/ai-move`, {
-        method: 'POST',
-      })
-      if (!res.ok) {
-        throw new Error('AI failed to generate move')
-      }
+      const res = await fetch(`${API_BASE}/${gameId}/ai-move`, { method: 'POST' })
+      if (!res.ok) throw new Error('AI failed to generate move')
       await get().fetchGame()
-    } catch (e: any) {
-      set({ error: e.message })
-    } finally {
-      set({ loading: false })
-    }
+    } catch (e: any) { set({ error: e.message }) } finally { set({ loading: false }) }
   },
 
   resign: async () => {
     const { gameId, user, goBackToMenu } = get()
     if (!gameId || !user) return
     try {
-      await fetch(`/game/${gameId}/resign?user_id=${user.id}`, { method: 'POST' })
+      await fetch(`/game/game/${gameId}/resign?user_id=${user.id}`, { method: 'POST' })
       goBackToMenu()
-    } catch (e) {
-      console.error("Resign failed", e)
-      goBackToMenu()
-    }
+    } catch (e) { console.error("Resign failed", e); goBackToMenu() }
   },
 
   offerDraw: () => {
@@ -978,18 +812,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   respondToDraw: async (accept: boolean) => {
     const { socket, game, user, drawOffer } = get()
     if (!socket || !game || !user || !drawOffer) return
-    
-    socket.send(JSON.stringify({ 
-      type: 'draw_respond', 
-      target_id: drawOffer.from_id, 
-      accepted: accept 
-    }))
-
-    if (accept) {
-      await fetch(`/game/${game.id}/draw`, { method: 'POST' })
-      get().fetchGame()
-    }
-
+    socket.send(JSON.stringify({ type: 'draw_respond', target_id: drawOffer.from_id, accepted: accept }))
+    if (accept) { await fetch(`/game/game/${game.id}/draw`, { method: 'POST' }); get().fetchGame() }
     set({ drawOffer: null })
   },
 
@@ -997,49 +821,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
   sendChatMessage: (text: string) => {
     const { socket, game, user } = get()
     if (!socket || !game || !user || !text.trim()) return
-    
-    // Find opponent ID
     const target_id = user.id === game.white_player_id ? game.black_player_public_id : game.white_player_public_id
-    
     if (target_id) {
       socket.send(JSON.stringify({ type: 'chat', target_id, text }))
-      // Add own message to chat
       set(state => ({ chatMessages: [...state.chatMessages, { from: user.username, text }] }))
     }
   },
 
   startMatchmaking: () => {
     const { socket } = get()
-    if (socket) {
-      socket.send(JSON.stringify({ type: 'find_match' }))
-      set({ isSearching: true })
-    }
+    if (socket) { socket.send(JSON.stringify({ type: 'find_match' })); set({ isSearching: true }) }
   },
 
   cancelMatchmaking: () => {
     const { socket } = get()
-    if (socket) {
-      socket.send(JSON.stringify({ type: 'leave_queue' }))
-    }
+    if (socket) { socket.send(JSON.stringify({ type: 'leave_queue' })) }
     set({ isSearching: false, matchedOpponent: null, matchOffer: null })
   },
 
   sendMatchStart: (targetId: string, timeLimit: number, timeIncrement: number) => {
     const { socket } = get()
     if (socket) {
-      socket.send(JSON.stringify({ 
-        type: 'match_start', 
-        target_id: targetId,
-        time_limit: timeLimit,
-        time_increment: timeIncrement
-      }))
+      socket.send(JSON.stringify({ type: 'match_start', target_id: targetId, time_limit: timeLimit, time_increment: timeIncrement }))
     }
   },
 
   acceptMatchOffer: () => {
     const { matchOffer, socket } = get()
     if (!matchOffer || !socket) return
-
     socket.send(JSON.stringify({ type: 'accept_invite', target_id: matchOffer.from_id }))
     get().createGame('Person', matchOffer.from_id, undefined, matchOffer.time_limit, matchOffer.time_increment)
     set({ matchedOpponent: null, matchOffer: null, isSearching: false })
@@ -1055,22 +864,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameId, game } = get()
     if (!gameId || !game) return
     const targetIndex = Math.max(0, Math.min(index, game.move_history.length))
-    
-    if (targetIndex === game.move_history.length) {
-      // Current state
-      set({ reviewIndex: targetIndex, reviewBoardData: null })
-      return
-    }
-
+    if (targetIndex === game.move_history.length) { set({ reviewIndex: targetIndex, reviewBoardData: null }); return }
     try {
-      const res = await fetch(`/game/${gameId}/review/${targetIndex}`)
-      if (res.ok) {
-        const data = await res.json()
-        set({ reviewIndex: targetIndex, reviewBoardData: data })
-      }
-    } catch (e) {
-      console.error("Failed to fetch review state", e)
-    }
+      const res = await fetch(`/game/game/${gameId}/review/${targetIndex}`)
+      if (res.ok) { const data = await res.json(); set({ reviewIndex: targetIndex, reviewBoardData: data }) }
+    } catch (e) { console.error("Failed to fetch review state", e) }
   },
 
   resolvePromotion: async (piece: string) => {
