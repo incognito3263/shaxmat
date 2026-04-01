@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    title: "CHESS NEXUS",
+    title: "SHAXMAT+",
     subtitle: "The Next Dimension",
     login: "Login",
     signup: "Sign Up",
@@ -132,7 +132,7 @@ export const translations = {
     aiActive: "AI ENGINE ACTIVE",
   },
   uz: {
-    title: "CHESS NEXUS",
+    title: "SHAXMAT+",
     subtitle: "Yangi O'lcha",
     login: "Kirish",
     signup: "Ro'yxatdan o'tish",
@@ -264,7 +264,7 @@ export const translations = {
     aiActive: "AI TIZIMI FAOL",
   },
   ru: {
-    title: "CHESS NEXUS",
+    title: "SHAXMAT+",
     subtitle: "Новое Измерение",
     login: "Вход",
     signup: "Регистрация",

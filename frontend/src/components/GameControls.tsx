@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useGameStore } from '../store'
 
 export default function GameControls() {
-  const { game, goBackToMenu, resign, offerDraw, boardTheme, setTheme, pieceTheme, setPieceTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
+  const { game, goBackToMenu, resign, offerDraw, boardTheme, setTheme, t, reviewMode, reviewIndex, setReviewIndex, isSpectator } = useGameStore()
 
   const themes = [
     { id: 'default', label: t.default },
@@ -188,29 +188,8 @@ export default function GameControls() {
 
         <div className="space-y-3">
           <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.pieces}</div>
-          <div className="flex p-1 rounded-full bg-[var(--surface-hover)] border border-white/5 relative">
-            <motion.div 
-              className="absolute h-[calc(100%-8px)] rounded-full bg-[var(--accent-cyan)] shadow-[0_0_15px_rgba(77,217,232,0.3)]"
-              initial={false}
-              animate={{ 
-                x: pieceTheme === 'classic' ? 0 : '100%', 
-                width: '50%' 
-              }}
-              transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              style={{ left: '4px', width: 'calc(50% - 4px)' }}
-            />
-            <button
-              onClick={() => setPieceTheme('classic')}
-              className={`relative z-10 flex-1 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'classic' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-            >
-              {t.classicSet.split(' ')[0]}
-            </button>
-            <button
-              onClick={() => setPieceTheme('modern')}
-              className={`relative z-10 flex-1 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'modern' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-            >
-              {t.modernSet.split(' ')[0]}
-            </button>
+          <div className="py-2 rounded-xl text-center text-[10px] font-black uppercase tracking-widest bg-[var(--accent-cyan)]/12 border border-[var(--accent-cyan)]/30 text-[var(--accent-cyan)]">
+            {t.classicSet}
           </div>
         </div>
 
@@ -218,7 +197,7 @@ export default function GameControls() {
           <div className="text-[10px] text-gray-600 uppercase tracking-widest text-center">{t.sounds}</div>
           <div className="grid grid-cols-2 gap-2">
             {(['move', 'capture', 'check', 'end'] as const).map(s => {
-              const { soundSettings, setSoundSettings } = useGameStore.getState()
+              const { setSoundSettings } = useGameStore.getState()
               const isActive = useGameStore(state => state.soundSettings[s])
               
               const labels: Record<string, string> = {

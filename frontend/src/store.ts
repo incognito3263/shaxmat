@@ -229,7 +229,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   isInviting: null,
   soundSettings: { move: true, capture: true, check: true, end: true },
   boardTheme: localStorage.getItem('shaxmat_theme') || 'default',
-  pieceTheme: (localStorage.getItem('shaxmat_piece_theme') as 'classic' | 'modern') || 'classic',
+  pieceTheme: 'classic',
   uiTheme: (localStorage.getItem('shaxmat_ui_theme') as 'dark' | 'light') || 'dark',
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
   drawOffer: null,
@@ -350,9 +350,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     localStorage.setItem('shaxmat_theme', theme)
   },
 
-  setPieceTheme: (theme: 'classic' | 'modern') => {
-    set({ pieceTheme: theme })
-    localStorage.setItem('shaxmat_piece_theme', theme)
+  setPieceTheme: (_theme: 'classic' | 'modern') => {
+    // Force classic pieces globally
+    set({ pieceTheme: 'classic' })
+    localStorage.setItem('shaxmat_piece_theme', 'classic')
   },
 
   setSoundSettings: (settings: any) => {

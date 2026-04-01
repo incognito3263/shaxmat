@@ -55,6 +55,22 @@ function AuthScreen() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { login, signup, loading, error, t, uploadAvatar } = useGameStore()
 
+  const handleGuestLogin = () => {
+    const guestUser = {
+      id: Date.now(),
+      username: "Guest",
+      public_id: String(Math.floor(10000000 + Math.random() * 90000000)),
+      is_online: true,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      avatar: "👤",
+    }
+    useGameStore.setState({ user: guestUser, token: "guest-token" })
+    localStorage.setItem("shaxmat_user", JSON.stringify(guestUser))
+    localStorage.setItem("shaxmat_token", "guest-token")
+  }
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -95,10 +111,10 @@ function AuthScreen() {
               <Logo size="lg" />
             </div>
             <h1 className="text-4xl font-black text-[var(--text-main)] tracking-[0.2em] mb-1 uppercase">
-              CHESS
+              SHAXMAT+
             </h1>
-            <h2 className="text-xl font-black text-[var(--accent-cyan)] tracking-[0.4em] mb-3 uppercase">
-              NEXUS
+            <h2 className="text-xl font-black text-[var(--accent-cyan)] tracking-[0.35em] mb-3 uppercase">
+              ESPORT ARENA
             </h2>
             <p className="text-[var(--text-muted)] text-xs tracking-[0.3em] uppercase">{t.subtitle}</p>
         </div>
@@ -188,6 +204,13 @@ function AuthScreen() {
             >
                 {loading ? t.processing : (isLogin ? t.signIn : t.createAccount)}
             </button>
+            <button
+                type="button"
+                onClick={handleGuestLogin}
+                className="w-full py-3 bg-[var(--surface-hover)] text-[var(--text-main)] border border-[var(--border)] font-black rounded-xl uppercase tracking-[0.2em] text-xs hover:border-[var(--accent-cyan)] transition-all"
+            >
+                Play As Guest
+            </button>
         </form>
 
       </motion.div>
@@ -206,96 +229,63 @@ function FriendsList() {
   if (!friends || !Array.isArray(friends)) return null
 
   return (
-    <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <h3 className="text-xl font-black text-[var(--accent-white)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
-          <span className="text-accentCyan">👥</span> {t.friends}
+    <div className="w-full h-full">
+      <div className="rounded-3xl p-6 h-full flex flex-col" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-lg font-black text-[var(--text-main)] mb-6 uppercase tracking-widest flex items-center gap-3">
+          <span className="text-[var(--accent-cyan)]">👥</span> {t.friends}
         </h3>
         
-        {/* Pending Requests */}
-        {pendingRequests && pendingRequests.length > 0 && (
-          <div className="mb-8 space-y-3">
-            <div className="text-xs text-accentCyan font-black uppercase tracking-[0.3em] mb-4 text-center">
-              {t.friendRequest} ({pendingRequests.length})
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar" style={{ maxHeight: '400px' }}>
+          {/* Pending Requests */}
+          {pendingRequests && pendingRequests.length > 0 && (
+            <div className="mb-6 space-y-3">
+              <div className="text-[9px] text-[var(--accent-cyan)] font-black uppercase tracking-[0.3em] mb-2">
+                {t.friendRequest} ({pendingRequests.length})
+              </div>
               {pendingRequests.map((req) => (
-                <div key={req.id} className="p-4 rounded-2xl bg-[var(--accent-cyan)]/5 border border-[var(--accent-cyan)]/20 flex items-center justify-between">
+                <div key={req.id} className="p-3 rounded-xl bg-[var(--accent-cyan)]/5 border border-[var(--accent-cyan)]/20 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar src={req.from_user.avatar} size="sm" />
-                    <div>
-                      <div className="text-sm font-bold text-[var(--text-main)]">{req.from_user.username}</div>
-                      <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest">{t.friendRequestReceived.replace(req.from_user.username, '')}</div>
-                    </div>
+                    <div className="text-xs font-bold text-[var(--text-main)] truncate max-w-[80px]">{req.from_user.username}</div>
                   </div>
                   <div className="flex gap-2">
-                    <button 
-                      onClick={() => respondToFriendRequest(req.id, false)}
-                      className="p-2 rounded-lg bg-[var(--check-red)]/10 text-[var(--check-red)] hover:bg-[var(--check-red)] hover:text-[var(--accent-white)] transition-all"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                    <button 
-                      onClick={() => respondToFriendRequest(req.id, true)}
-                      className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-[var(--accent-white)] transition-all"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </button>
+                    <button onClick={() => respondToFriendRequest(req.id, false)} className="p-1.5 rounded-lg bg-[var(--check-red)]/10 text-[var(--check-red)] hover:bg-[var(--check-red)] hover:text-white transition-all"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                    <button onClick={() => respondToFriendRequest(req.id, true)} className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+                  </div>
+                </div>
+              ))}
+              <div className="border-b border-[var(--border)] pt-2" />
+            </div>
+          )}
+
+          {friends.length === 0 ? (
+            <p className="text-center text-[var(--text-muted)] text-[10px] uppercase tracking-widest py-8">{t.noFriends}</p>
+          ) : (
+            <div className="space-y-2">
+              {friends.map((f) => (
+                <div key={f.id} className="p-3 rounded-xl bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-between group transition-all hover:border-[var(--accent-cyan)]/30">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Avatar src={f.avatar} size="sm" />
+                      {f.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border-2 border-[var(--surface)]" />}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[var(--text-main)] truncate max-w-[100px]">{f.username}</div>
+                      <div className="text-[9px] text-[var(--accent-cyan)] font-black uppercase tracking-tighter">{getUserTitle(f.wins, t)}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                    {f.is_online && (
+                      <button onClick={() => sendInvite(f.public_id)} className="p-1.5 rounded-lg bg-[var(--accent-cyan)] text-black hover:brightness-110" title={t.inviteFriend}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>
+                    )}
+                    <button onClick={() => unfollowUser(f.public_id)} className="p-1.5 rounded-lg bg-[var(--check-red)]/10 text-[var(--check-red)] border border-[var(--check-red)]/20 hover:bg-[var(--check-red)] hover:text-white transition-all" title={t.unfollow}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="border-b border-[var(--border)] pt-4" />
-          </div>
-        )}
-
-        {friends.length === 0 ? (
-          <p className="text-center text-[var(--text-muted)] text-sm uppercase tracking-widest py-4">{t.noFriends}</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {friends.map((f) => (
-              <div 
-                key={f.id}
-                className="p-4 rounded-2xl bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Avatar src={f.avatar} size="sm" />
-                    {f.is_online && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--surface)]" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
-                      {f.username}
-                      <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-tighter">ID: {f.public_id}</span>
-                    </div>
-                    <div className="text-[11px] text-[var(--accent-cyan)] font-black uppercase tracking-widest">{getUserTitle(f.wins, t)}</div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                  {f.is_online && (
-                    <button 
-                      onClick={() => sendInvite(f.public_id)}
-                      className="p-2 rounded-lg bg-[var(--accent-cyan)] text-black hover:brightness-110 transition-all"
-                      title={t.inviteFriend}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => unfollowUser(f.public_id)}
-                    className="p-2 rounded-lg bg-[var(--check-red)]/10 text-[var(--check-red)] border border-[var(--check-red)]/20 hover:bg-[var(--check-red)] hover:text-[var(--accent-white)] transition-all"
-                    title={t.unfollow}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
@@ -311,15 +301,15 @@ function MatchHistory() {
 
   if (!matchHistory || matchHistory.length === 0) return null
 
-  const displayedHistory = showAll ? matchHistory : matchHistory.slice(0, 3)
+  const displayedHistory = showAll ? matchHistory : matchHistory.slice(0, 5)
 
   return (
-    <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <h3 className="text-xl font-black text-[var(--text-main)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
+    <div className="w-full">
+      <div className="rounded-3xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-lg font-black text-[var(--text-main)] mb-6 uppercase tracking-widest flex items-center gap-3">
           <span className="text-[var(--accent-cyan)]">📜</span> {t.matchHistory}
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {displayedHistory.map((m) => {
             const isWhite = m.white === user?.username;
             const myColor = isWhite ? 'white' : 'black';
@@ -327,43 +317,29 @@ function MatchHistory() {
             const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement';
             
             return (
-              <div 
-                key={m.id}
-                className="p-4 rounded-2xl bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-between group hover:border-white/10 transition-all"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-2">
+              <div key={m.id} className="p-3 rounded-xl bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-between transition-all hover:border-[var(--accent-cyan)]/20">
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-1.5">
                     <Avatar src={m.white_avatar} size="sm" />
                     <Avatar src={m.black_avatar} size="sm" />
                   </div>
-                  <div>
-                    <div className="text-sm font-bold text-[var(--text-main)]">
-                      {m.white} <span className="text-[var(--text-muted)] mx-1">vs</span> {m.black}
-                    </div>
-                    <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">{m.date} • {m.game_mode}</div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold text-[var(--text-main)] truncate max-w-[120px]">{m.white} <span className="opacity-40">vs</span> {m.black}</div>
+                    <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">{m.date}</div>
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <div className={`text-xs font-black uppercase tracking-widest ${isDraw ? 'text-[var(--text-muted)]' : (didIWin ? 'text-green-400' : 'text-[var(--check-red)]')}`}>
-                    {isDraw ? t.draw : (didIWin ? t.victory : t.defeat)}
-                  </div>
-                  <div className="text-[10px] text-[var(--text-muted)] font-mono">#{m.id}</div>
+                <div className={`text-[10px] font-black uppercase tracking-widest ${isDraw ? 'text-[var(--text-muted)]' : (didIWin ? 'text-green-400' : 'text-[var(--check-red)]')}`}>
+                  {isDraw ? t.draw : (didIWin ? t.victory : t.defeat)}
                 </div>
               </div>
             );
           })}
         </div>
 
-        {matchHistory.length > 3 && (
-          <div className="mt-6 flex justify-center">
-            <button 
-              onClick={() => setShowAll(!showAll)}
-              className="text-xs font-black text-[var(--accent-cyan)] uppercase tracking-[0.3em] border-b border-[var(--accent-cyan)]/30 pb-1 hover:border-[var(--accent-cyan)] transition-all"
-            >
-              {showAll ? t.showLess : t.showMore}
-            </button>
-          </div>
+        {matchHistory.length > 5 && (
+          <button onClick={() => setShowAll(!showAll)} className="w-full mt-4 py-2 text-[9px] font-black text-[var(--accent-cyan)] uppercase tracking-[0.3em] bg-[var(--accent-cyan)]/5 rounded-lg border border-[var(--accent-cyan)]/10 hover:bg-[var(--accent-cyan)]/10 transition-all">
+            {showAll ? t.showLess : t.showMore}
+          </button>
         )}
       </div>
     </div>
@@ -382,31 +358,31 @@ function LiveGames() {
   if (!liveGames || liveGames.length === 0) return null
 
   return (
-    <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <h3 className="text-xl font-black text-[var(--text-main)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
+    <div className="w-full">
+      <div className="rounded-3xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h3 className="text-lg font-black text-[var(--text-main)] mb-6 uppercase tracking-widest flex items-center gap-3">
           <span className="text-[var(--check-red)] animate-pulse">●</span> {t.liveGames}
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {liveGames.map((g) => (
             <motion.div
               key={g.game_id}
               whileHover={{ scale: 1.02 }}
               onClick={() => spectateGame(g.game_id)}
-              className="p-4 rounded-2xl bg-[var(--surface-hover)] border border-[var(--border)] cursor-pointer flex items-center justify-between group transition-all hover:border-[var(--accent-cyan)]/40"
+              className="p-3 rounded-xl bg-[var(--surface-hover)] border border-[var(--border)] cursor-pointer flex items-center justify-between group transition-all hover:border-[var(--accent-cyan)]/40"
             >
               <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
+                <div className="flex -space-x-1.5">
                   <Avatar src={g.white_avatar} size="sm" />
                   <Avatar src={g.black_avatar} size="sm" />
                 </div>
-                <div className="text-sm">
-                  <div className="text-[var(--text-main)] font-bold">{g.white} vs {g.black}</div>
-                  <div className="text-[var(--text-muted)] uppercase tracking-widest text-[11px]">{g.move_count} {t.move}s</div>
+                <div>
+                  <div className="text-xs text-[var(--text-main)] font-bold">{g.white} vs {g.black}</div>
+                  <div className="text-[var(--text-muted)] uppercase tracking-widest text-[9px]">{g.move_count} {t.move}s</div>
                 </div>
               </div>
-              <div className="text-xs font-black text-[var(--accent-cyan)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
-                {t.spectate} →
+              <div className="text-[10px] font-black text-[var(--accent-cyan)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                {t.spectate}
               </div>
             </motion.div>
           ))}
@@ -425,21 +401,21 @@ function Leaderboard() {
   const friendIds = new Set(friends?.map(f => f.public_id) || []);
 
   return (
-    <div className="w-full max-w-4xl mt-8">
-      <div className="rounded-3xl p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <h3 className="text-xl font-black text-[var(--text-main)] mb-6 uppercase tracking-widest text-center flex items-center justify-center gap-3">
-          <span className="text-[var(--accent-cyan)]">🏆</span> {t.leaderboard} <span className="text-[var(--accent-cyan)]">🏆</span>
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border)]">
+    <div className="w-full">
+      <div className="rounded-3xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-black text-[var(--text-main)] uppercase tracking-widest flex items-center gap-3">
+            <span className="text-[var(--accent-cyan)]">🏆</span> {t.leaderboard}
+          </h3>
+        </div>
+        <div className="overflow-x-auto -mx-6 px-6">
+          <table className="w-full text-sm text-left min-w-[500px]">
+            <thead className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border)]">
               <tr>
-                <th className="px-4 py-3 w-16">{t.rank}</th>
-                <th className="px-4 py-3">{t.player}</th>
-                <th className="px-4 py-3 text-center">{t.wins}</th>
-                <th className="px-4 py-3 text-center">{t.draws}</th>
-                <th className="px-4 py-3 text-center">{t.losses}</th>
-                <th className="px-4 py-3 text-right"></th>
+                <th className="py-3 w-12">{t.rank}</th>
+                <th className="py-3">{t.player}</th>
+                <th className="py-3 text-center">{t.wins}</th>
+                <th className="py-3 text-right"></th>
               </tr>
             </thead>
             <tbody>
@@ -449,44 +425,35 @@ function Leaderboard() {
                 return (
                   <tr 
                     key={u.id} 
-                    className={`border-b border-[var(--border)]/50 transition-colors ${isMe ? 'bg-[var(--accent-cyan)]/10' : 'hover:bg-[var(--surface-hover)]'}`}
+                    className={`border-b border-[var(--border)]/30 transition-colors ${isMe ? 'bg-[var(--accent-cyan)]/5' : 'hover:bg-[var(--surface-hover)]'}`}
                   >
-                    <td className="px-4 py-4 font-mono font-bold text-[var(--accent-white)]">
+                    <td className="py-3 font-mono font-bold text-[var(--text-main)] text-xs">
                       {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                     </td>
-                    <td className="px-4 py-4 flex items-center gap-3">
+                    <td className="py-3 flex items-center gap-3">
                       <div className="relative">
                         <Avatar src={u.avatar} size="sm" />
-                        {u.is_online && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--surface)]" />
-                        )}
+                        {u.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border-2 border-[var(--surface)]" />}
                       </div>
-                      <div>
-                        <div className="font-bold text-[var(--text-main)] flex items-center gap-2">
+                      <div className="min-w-0">
+                        <div className="font-bold text-[var(--text-main)] text-xs flex items-center gap-2 truncate">
                           {u.username}
-                          {isMe && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-cyan)] text-black font-black uppercase tracking-tighter">YOU</span>}
-                          <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/20 uppercase tracking-widest">{getUserTitle(u.wins, t)}</span>
+                          {isMe && <span className="text-[8px] px-1 py-0.5 rounded bg-[var(--accent-cyan)] text-black font-black uppercase">YOU</span>}
                         </div>
-                        <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">ID: {u.public_id}</div>
+                        <div className="text-[9px] text-[var(--accent-cyan)] font-black uppercase tracking-widest">{getUserTitle(u.wins, t)}</div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-center font-mono text-green-400">{u.wins}</td>
-                    <td className="px-4 py-4 text-center font-mono text-[var(--text-muted)]">{u.draws}</td>
-                    <td className="px-4 py-4 text-center font-mono text-[var(--check-red)]">{u.losses}</td>
-                    <td className="px-4 py-4 text-right">
+                    <td className="py-3 text-center font-mono text-green-400 text-xs font-bold">{u.wins}</td>
+                    <td className="py-3 text-right">
                       {!isMe && !isFollowing && (
                         <button 
                           onClick={() => {
                             sendFriendRequest(u.public_id);
-                            setNotification({ 
-                              text: t.friendRequestSent.replace('{name}', u.username), 
-                              type: 'success' 
-                            });
+                            setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' });
                           }}
-                          className="p-2 rounded-lg bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)] hover:text-black transition-all"
-                          title={t.follow}
+                          className="p-1.5 rounded-lg bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)] hover:text-black transition-all"
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                         </button>
                       )}
                     </td>
@@ -540,15 +507,13 @@ function ModeSelection() {
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [foundUser, setFoundUser] = useState<any>(null)
-  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, friends, sendFriendRequest, setNotification, fetchFriendRequests, fetchNotifications, pieceTheme, setPieceTheme } = useGameStore()
+  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, setNotification, fetchFriendRequests, fetchNotifications } = useGameStore()
 
   useEffect(() => {
     fetchLeaderboard()
     fetchFriendRequests()
     fetchNotifications()
   }, [fetchLeaderboard, fetchFriendRequests, fetchNotifications])
-
-  const friendIds = new Set(friends?.map(f => f.public_id) || []);
 
   const totalGames = user ? (user.wins + user.losses + user.draws) : 0;
   const winRate = totalGames > 0 ? Math.round((user!.wins / totalGames) * 100) : 0;
@@ -576,231 +541,199 @@ function ModeSelection() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 gap-8">
-        <div className="flex justify-center mb-4">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
-        <div className="text-center flex flex-col items-center">
-            <div className="relative group cursor-pointer" onClick={() => setIsEditModalOpen(true)}>
+    <div className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 lg:p-12">
+      <div className="flex justify-center mb-8 gap-4">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Left Side: Profile & Actions */}
+        <div className="lg:col-span-5 space-y-8">
+          {/* Profile Card */}
+          <div className="p-8 rounded-[2rem] text-center relative overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--accent-cyan)] to-transparent opacity-30" />
+            
+            <div className="relative group mx-auto w-fit mb-4 cursor-pointer" onClick={() => setIsEditModalOpen(true)}>
               <Avatar src={user?.avatar || '👨‍🚀'} size="xl" />
-              <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                <span className="text-xs font-black text-[var(--text-main)] uppercase tracking-widest">Edit</span>
+              <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all border border-[var(--accent-cyan)]/30">
+                <span className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.2em]">Edit Profile</span>
               </div>
             </div>
-            <div className="text-[var(--text-muted)] text-xs uppercase tracking-[0.4em] mb-1 mt-3">{t.welcome}</div>
-            <div className="text-4xl font-black text-[var(--text-main)] uppercase tracking-wider mb-1 flex items-center gap-3">
+
+            <div className="text-[var(--text-muted)] text-[10px] uppercase tracking-[0.4em] mb-1">{t.welcome}</div>
+            <div className="text-3xl font-black text-[var(--text-main)] uppercase tracking-wider mb-1">
               {user?.username}
             </div>
-            <div className="text-[var(--accent-cyan)] text-sm uppercase tracking-widest font-bold mb-4 bg-[var(--accent-cyan)]/10 px-3 py-1 rounded-full border border-[var(--accent-cyan)]/20">
+            <div className="inline-block text-[var(--accent-cyan)] text-[11px] uppercase tracking-widest font-black mb-6 bg-[var(--accent-cyan)]/10 px-4 py-1.5 rounded-full border border-[var(--accent-cyan)]/20">
               {user ? getUserTitle(user.wins, t) : ''}
             </div>
-            <div className="flex flex-col items-center gap-2 mb-6">
-                <div className="flex flex-col items-center">
-                  <span className="text-[11px] text-[var(--text-muted)] uppercase font-black tracking-[0.3em] mb-1">{t.yourID}</span>
-                  <div className="relative group">
-                    <span className="text-[var(--accent-cyan)] font-mono text-2xl font-black px-8 py-3 rounded-2xl border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 shadow-[0_0_30px_rgba(77,217,232,0.15)] flex items-center gap-3">
-                      {user?.public_id}
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(user?.public_id || '');
-                          setNotification({ text: t.idCopied, type: 'success' });
-                        }}
-                        className="text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors"
-                        title={t.copyID}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                      </button>
-                    </span>
-                  </div>
-                </div>
-                <button 
-                  onClick={logout} 
-                  className="text-[var(--text-muted)] text-xs hover:text-[var(--check-red)] uppercase tracking-[0.3em] border-b border-[var(--border)] pb-0.5 mt-2 transition-all"
-                >
-                  {t.logout}
-                </button>
-            </div>
 
-            <div className="mt-8 w-full max-w-lg">
-              <div className="text-xs text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mb-4 text-center">{t.timeControl}</div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-[0.3em] mb-2">{t.yourID}</span>
+                <div 
+                  className="flex items-center gap-3 px-6 py-2.5 rounded-xl border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 cursor-pointer hover:bg-[var(--accent-cyan)]/10 transition-all"
+                  onClick={() => {
+                    navigator.clipboard.writeText(user?.public_id || '');
+                    setNotification({ text: t.idCopied, type: 'success' });
+                  }}
+                >
+                  <span className="text-[var(--accent-cyan)] font-mono text-xl font-black tracking-widest">{user?.public_id}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-60"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 w-full max-w-sm mt-4">
+                <div className="bg-[var(--bg)] border border-[var(--border)] rounded-2xl p-4 text-center">
+                  <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.winRate}</div>
+                  <div className="text-2xl font-black text-[var(--accent-cyan)]">{winRate}%</div>
+                </div>
+                <div className="bg-[var(--bg)] border border-[var(--border)] rounded-2xl p-4 text-center">
+                  <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.totalGames}</div>
+                  <div className="text-2xl font-black text-[var(--text-main)]">{totalGames}</div>
+                </div>
+              </div>
+
+              <button 
+                onClick={logout} 
+                className="text-[var(--text-muted)] text-[10px] hover:text-[var(--check-red)] uppercase tracking-[0.3em] border-b border-transparent hover:border-[var(--check-red)] pb-0.5 mt-2 transition-all"
+              >
+                {t.logout}
+              </button>
+            </div>
+          </div>
+
+          {/* Game Setup */}
+          <div className="p-8 rounded-[2rem]" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="mb-8">
+              <div className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                <span className="w-8 h-[1px] bg-[var(--border)]" />
+                {t.timeControl}
+                <span className="flex-1 h-[1px] bg-[var(--border)]" />
+              </div>
               <TimeSelector value={timeLimit} onChange={(s, i) => { setTimeLimit(s); setTimeIncrement(i); }} />
             </div>
 
-            <div className="mt-4 w-full max-w-lg">
-              <div className="text-xs text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mb-4 text-center">{t.pieceDesign}</div>
-              <div className="flex p-1.5 rounded-full bg-[var(--surface-hover)] border border-white/5 relative mx-auto w-fit">
-                <motion.div 
-                  className="absolute h-[calc(100%-12px)] rounded-full bg-[var(--accent-cyan)] shadow-[0_0_20px_rgba(77,217,232,0.4)]"
-                  initial={false}
-                  animate={{ 
-                    x: pieceTheme === 'classic' ? 0 : 120, 
-                    width: 120 
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  style={{ left: '6px' }}
-                />
-                <button
-                  onClick={() => setPieceTheme('classic')}
-                  className={`relative z-10 w-[120px] py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'classic' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-                >
-                  {t.classicSet}
-                </button>
-                <button
-                  onClick={() => setPieceTheme('modern')}
-                  className={`relative z-10 w-[120px] py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors duration-300 ${pieceTheme === 'modern' ? 'text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-                >
-                  {t.modernSet}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-4 mt-6">
-
-              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-3 text-center">
-                <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.winRate}</div>
-                <div className="text-xl font-black text-[var(--accent-cyan)]">{winRate}%</div>
-              </div>
-              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-3 text-center">
-                <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mb-1">{t.totalGames}</div>
-                <div className="text-xl font-black text-[var(--text-main)]">{totalGames}</div>
-              </div>
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-            <motion.div 
-                whileHover={{ y: -5, borderColor: 'rgba(77,217,232,0.4)' }}
-                onClick={startAIGame}
-                className="p-10 rounded-3xl cursor-pointer flex flex-col items-center text-center gap-6 group transition-all"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-            >
-                <div className="w-20 h-20 bg-[var(--accent-cyan)]/10 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🤖</div>
-                <div className="w-full">
-                    <div className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-widest">{t.singlePlayer}</div>
-                    <div className="text-[var(--text-muted)] text-sm leading-relaxed mb-6">{t.practiceAI}</div>
-                    
-                    <div className="flex gap-2 bg-[var(--bg)] p-1.5 rounded-xl border border-[var(--border)]">
-                        {[
-                            { id: 'easy', label: t.easy },
-                            { id: 'normal', label: t.normal },
-                            { id: 'hard', label: t.hard },
-                        ].map(d => (
-                            <button
-                                key={d.id}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDifficulty(d.id);
-                                }}
-                                className={`flex-1 py-2 rounded-lg text-xs font-black transition-all ${difficulty === d.id ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
-                            >
-                                {d.label.toUpperCase()}
-                            </button>
-                        ))}
-                    </div>
+            <div className="space-y-4">
+              {/* Play AI */}
+              <div className="group p-6 rounded-3xl bg-[var(--bg)] border border-[var(--border)] hover:border-[var(--accent-cyan)]/40 transition-all">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-[var(--accent-cyan)]/10 rounded-xl flex items-center justify-center text-2xl">🤖</div>
+                  <div className="flex-1">
+                    <div className="text-lg font-black text-[var(--text-main)] uppercase tracking-widest">{t.singlePlayer}</div>
+                    <div className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest">{t.practiceAI}</div>
+                  </div>
                 </div>
-            </motion.div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-2 bg-[var(--surface)] p-1.5 rounded-xl border border-[var(--border)]">
+                    {['easy', 'normal', 'hard'].map(d => (
+                      <button
+                        key={d}
+                        onClick={() => setDifficulty(d)}
+                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${difficulty === d ? 'bg-[var(--accent-cyan)] text-black shadow-[0_4px_12px_rgba(77,217,232,0.3)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+                      >
+                        {(t as any)[d]}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={startAIGame}
+                    className="w-full py-4 bg-[var(--accent-cyan)] text-black font-black rounded-2xl uppercase tracking-[0.2em] text-xs hover:brightness-110 active:scale-[0.98] transition-all"
+                  >
+                    Start AI Battle
+                  </button>
+                </div>
+              </div>
 
-            <motion.div 
-                whileHover={{ y: -5, borderColor: 'rgba(77,217,232,0.4)' }}
+              {/* Quick Play */}
+              <button 
                 onClick={startMatchmaking}
-                className="p-10 rounded-3xl cursor-pointer flex flex-col items-center text-center gap-6 group transition-all"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-            >
-                <div className="w-20 h-20 bg-[var(--accent-cyan)]/10 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">🌍</div>
-                <div>
-                    <div className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-widest">{t.quickPlay}</div>
-                    <div className="text-[var(--text-muted)] text-sm leading-relaxed">{t.searching}</div>
+                className="w-full p-6 rounded-3xl bg-[var(--bg)] border border-[var(--border)] hover:border-[var(--accent-cyan)]/40 transition-all flex items-center gap-4 group"
+              >
+                <div className="w-12 h-12 bg-[var(--accent-cyan)]/10 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🌍</div>
+                <div className="text-left flex-1">
+                  <div className="text-lg font-black text-[var(--text-main)] uppercase tracking-widest">{t.quickPlay}</div>
+                  <div className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest">{t.searching}</div>
                 </div>
-            </motion.div>
+                <div className="text-[var(--accent-cyan)] text-xl font-black">→</div>
+              </button>
 
-            <motion.div 
-                whileHover={{ y: -5, borderColor: 'rgba(77,217,232,0.4)' }}
-                className="p-10 rounded-3xl flex flex-col items-center text-center gap-6 transition-all"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-            >
-                <div className="w-20 h-20 bg-[var(--accent-cyan)]/10 rounded-2xl flex items-center justify-center text-4xl">👤</div>
-                <div className="w-full">
-                    <div className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-widest">{t.multiplayer}</div>
-                    <div className="text-[var(--text-muted)] text-sm mb-6 leading-relaxed">{t.playPerson}</div>
-                    
-                    {!foundUser ? (
-                      <div className="flex gap-2">
-                          <input 
-                              type="text" 
-                              maxLength={8}
-                              value={opponentId}
-                              onChange={e => {
-                                  const val = e.target.value.replace(/\D/g, '');
-                                  setOpponentId(val);
-                              }}
-                              placeholder={t.opponentID}
-                              className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-xl px-3 py-3 text-[var(--text-main)] text-center font-mono text-sm outline-none focus:border-[var(--accent-cyan)] tracking-[0.1em] min-w-0"
-                          />
-                          <button 
-                              onClick={handleSearch}
-                              className="bg-[var(--accent-cyan)] text-black px-4 py-3 rounded-xl font-black uppercase hover:brightness-110 active:scale-95 transition-all text-xs whitespace-nowrap"
-                          >
-                              {t.go}
-                          </button>
-                      </div>
-                    ) : (
-                      <div className="bg-[var(--bg)] p-4 rounded-2xl border border-[var(--accent-cyan)]/30 animate-in fade-in zoom-in duration-300">
-                        <div className="flex items-center gap-3 mb-4">
-                          <Avatar src={foundUser.avatar} size="md" />
-                          <div className="text-left">
-                            <div className="text-sm font-bold text-[var(--text-main)]">{foundUser.username}</div>
-                            <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-tighter">ID: {foundUser.public_id}</div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => startPersonGame(foundUser.public_id)}
-                            className="flex-1 py-2.5 bg-[var(--accent-cyan)] text-black font-black text-[10px] uppercase rounded-lg hover:brightness-110 transition-all"
-                          >
-                            {t.inviteFriend}
-                          </button>
-                          {!friendIds.has(foundUser.public_id) && (
-                            <button 
-                              onClick={() => {
-                                sendFriendRequest(foundUser.public_id);
-                                setNotification({ 
-                                  text: t.friendRequestSent.replace('{name}', foundUser.username), 
-                                  type: 'success' 
-                                });
-                                setFoundUser(null);
-                                setOpponentId('');
-                              }}
-                              className="p-2.5 bg-[var(--surface-hover)] border border-white/10 text-[var(--text-main)] rounded-lg hover:bg-[var(--surface-hover)] transition-all"
-                              title={t.follow}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => {
-                              setFoundUser(null);
-                              setOpponentId('');
-                            }}
-                            className="p-2.5 bg-[var(--check-red)]/10 border border-[var(--check-red)]/20 text-[var(--check-red)] rounded-lg hover:bg-[var(--check-red)] hover:text-[var(--text-main)] transition-all"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    )}
+              {/* Multiplayer / Invite */}
+              <div className="p-6 rounded-3xl bg-[var(--bg)] border border-[var(--border)]">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-[var(--accent-cyan)]/10 rounded-xl flex items-center justify-center text-2xl">👤</div>
+                  <div className="flex-1 text-left">
+                    <div className="text-lg font-black text-[var(--text-main)] uppercase tracking-widest">{t.multiplayer}</div>
+                    <div className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest">{t.playPerson}</div>
+                  </div>
                 </div>
-            </motion.div>
+                
+                {!foundUser ? (
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      maxLength={8}
+                      value={opponentId}
+                      onChange={e => setOpponentId(e.target.value.replace(/\D/g, ''))}
+                      placeholder={t.opponentID}
+                      className="flex-1 bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-main)] text-center font-mono text-sm outline-none focus:border-[var(--accent-cyan)] tracking-[0.2em]"
+                    />
+                    <button 
+                      onClick={handleSearch}
+                      className="bg-[var(--accent-cyan)] text-black px-6 py-3 rounded-xl font-black uppercase hover:brightness-110 active:scale-95 transition-all text-xs"
+                    >
+                      {t.go}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--accent-cyan)]/30">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Avatar src={foundUser.avatar} size="md" />
+                      <div className="text-left">
+                        <div className="text-sm font-bold text-[var(--text-main)]">{foundUser.username}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">ID: {foundUser.public_id}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => startPersonGame(foundUser.public_id)}
+                        className="flex-1 py-3 bg-[var(--accent-cyan)] text-black font-black text-[10px] uppercase rounded-lg hover:brightness-110 transition-all"
+                      >
+                        {t.inviteFriend}
+                      </button>
+                      <button 
+                        onClick={() => { setFoundUser(null); setOpponentId(''); }}
+                        className="p-3 bg-[var(--check-red)]/10 text-[var(--check-red)] rounded-lg hover:bg-[var(--check-red)] hover:text-white transition-all"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <LiveGames />
-        <FriendsList />
-        <MatchHistory />
-        <Leaderboard />
-        <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+        {/* Right Side: Social & Lists */}
+        <div className="lg:col-span-7 space-y-8">
+          <div className="grid grid-cols-1 gap-8">
+            <Leaderboard />
+            <LiveGames />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              <FriendsList />
+              <MatchHistory />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
     </div>
   )
 }
+
 
 function ViewSwitcher() {
   const { viewMode, setViewMode, t, setNotification } = useGameStore()
@@ -1707,8 +1640,8 @@ export default function App() {
           >
             <Logo size="sm" />
             <div className="flex flex-col">
-              <span className="text-sm font-black tracking-[0.3em] uppercase text-[var(--accent-white)] leading-none group-hover:text-accentCyan transition-colors">CHESS</span>
-              <span className="text-[10px] font-black tracking-[0.5em] uppercase text-accentCyan leading-none mt-1">NEXUS</span>
+              <span className="text-sm font-black tracking-[0.3em] uppercase text-[var(--accent-white)] leading-none group-hover:text-accentCyan transition-colors">SHAXMAT+</span>
+              <span className="text-[10px] font-black tracking-[0.35em] uppercase text-accentCyan leading-none mt-1">ARENA</span>
             </div>
           </div>
         </div>
