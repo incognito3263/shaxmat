@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 from engine import GameState, Move
+from engine.board import board_has_legacy_wrong_white_suppliers
 from models import Game, User
 from database import SessionLocal
 
@@ -27,7 +28,18 @@ def pos_to_square(row: int, col: int) -> str:
 
 def load_game_state_from_db(game: Game) -> GameState:
     if game.board_state and isinstance(game.board_state, dict) and "board" in game.board_state:
-        return GameState.from_dict(game.board_state)
+        gs = GameState.from_dict(game.board_state)
+        # Self-heal: old servers saved the wrong white Supplier files in board_state JSON.
+        # No moves yet + legacy pattern → replace with correct GameState and persist.
+        if (
+            not gs.move_history
+            and game.status == "active"
+            and board_has_legacy_wrong_white_suppliers(gs.board)
+            and game.id is not None
+        ):
+            gs = GameState()
+            put_game_state(game.id, gs)
+        return gs
     return GameState()
 
 

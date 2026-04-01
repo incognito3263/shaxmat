@@ -120,3 +120,21 @@ class Board:
             lines.append(row_str.rstrip())
         lines.append("   a b c d e f g h")
         return '\n'.join(lines)
+
+
+# Columns where a *buggy* build once placed white Suppliers (same as black's files).
+_LEGACY_WRONG_WHITE_SUPPLIER_COLS = frozenset({1, 3, 5, 7})
+
+
+def board_has_legacy_wrong_white_suppliers(board: Board) -> bool:
+    """
+    True when rank 3 has white Suppliers only on b,d,f,h — the pre-fix deployment.
+    Correct layout uses a,c,e,g (cols 0,2,4,6). Used to self-repair frozen DB snapshots.
+    """
+    row = 2
+    cols = {
+        c
+        for c in range(BOARD_COLS)
+        if (p := board.get_piece_at(row, c)) and p.type == "S" and p.color == "white"
+    }
+    return cols == _LEGACY_WRONG_WHITE_SUPPLIER_COLS

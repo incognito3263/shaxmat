@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import pytest
 from engine import GameState, Move
-from engine.board import Board
+from engine.board import Board, board_has_legacy_wrong_white_suppliers, create_initial_board
 from engine.pieces import King, Queen, Rook, Bishop, Knight, Pawn, Supplier
 
 
@@ -28,6 +28,16 @@ def test_initial_board():
     assert gs.board.get_piece_at(9, 4).type == "K"
     assert gs.board.get_piece_at(2, 0).type == "S"
     assert gs.board.get_piece_at(7, 1).type == "S"
+
+
+def test_board_has_legacy_wrong_white_suppliers():
+    b = create_initial_board()
+    assert not board_has_legacy_wrong_white_suppliers(b)
+    for c in [0, 2, 4, 6]:
+        b.set_piece_at(2, c, None)
+    for c in [1, 3, 5, 7]:
+        b.set_piece_at(2, c, Supplier("white", (2, c)))
+    assert board_has_legacy_wrong_white_suppliers(b)
 
 
 def test_initial_legal_moves():
