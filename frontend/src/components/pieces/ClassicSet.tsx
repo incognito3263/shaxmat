@@ -9,12 +9,12 @@ interface PieceProps {
 
 const ClassicBase = ({ color, children, size = "100%" }: React.PropsWithChildren<PieceProps>) => {
   const isWhite = color === "white";
-  const fill = isWhite ? "#FFFFFF" : "#454341";
-  const stroke = isWhite ? "#454341" : "#FFFFFF";
+  const fill = isWhite ? "#ffffff" : "#454341";
+  const stroke = isWhite ? "#000000" : "#ffffff";
 
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="piece-shadow">
-      <g fill={fill} stroke={stroke} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
+      <g fill={fill} stroke={stroke} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
         {children}
       </g>
     </svg>
@@ -23,66 +23,69 @@ const ClassicBase = ({ color, children, size = "100%" }: React.PropsWithChildren
 
 export const ClassicKing = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <path d="M50 15v10M42 20h16" fill="none" strokeWidth="4" />
-    <path d="M50 25c-8 0-12 5-12 12 0 5 4 10 12 18 8-8 12-13 12-18 0-7-4-12-12-12z" />
-    <path d="M25 80c0-5 5-10 10-12V55h30v13c5 2 10 7 10 12v5H25v-5z" />
-    <path d="M25 70c15-5 35-5 50 0M25 75c15-5 35-5 50 0" fill="none" />
+    <path d="M22.5 6V11M20 8.5H25" fill="none" strokeWidth="1.5" />
+    <path d="M22.5 25s4.5-7.5 4.5-10.5c0-2.1-1.69-3.5-3.5-3.5s-3.5 1.4-3.5 3.5c0 3 4.5 10.5 4.5 10.5z" />
+    <path d="M11.5 37c0-3.3 2-6.5 5-8.5V22h12v6.5c3 2 5 5.2 5 8.5v2h-22v-2z" />
+    <path d="M11.5 30c5.5-3 15.5-3 21 0M11.5 33.5c5.5-3 15.5-3 21 0" fill="none" />
   </ClassicBase>
 );
 
 export const ClassicQueen = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <circle cx="20" cy="25" r="4" />
-    <circle cx="35" cy="18" r="4" />
-    <circle cx="50" cy="15" r="4" />
-    <circle cx="65" cy="18" r="4" />
-    <circle cx="80" cy="25" r="4" />
-    <path d="M20 30l10 15 20-10 20 10 10-15-5 25H25l-5-25z" />
-    <path d="M25 55c5-3 45-3 50 0l-5 25H30l-5-25z" />
-    <path d="M25 65c15-3 35-3 50 0M25 72c15-3 35-3 50 0" fill="none" />
-    <path d="M25 80h50v5H25v-5z" />
+    <g>
+      <path d="M9 26c8.5-1.5 21-1.5 27 0l2.5-12.5L31 25V11l-5.5 13.5-3-15-3 15-5.5-13.5V25L7 13.5 9.5 26z" />
+      <path d="M9 26c0 2 1.5 2 2.5 4 1 3 1 1 1 1h20s0 2 1-1c1-2 2.5-2 2.5-4 0-1.5 0-1.5 0-1.5H9s0 0 0 1.5z" />
+      <path d="M11.5 37v2h22v-2l-3-1h-16l-3 1z" />
+    </g>
+    <circle cx="6.5" cy="11.5" r="2" />
+    <circle cx="14.5" cy="8.5" r="2" />
+    <circle cx="22.5" cy="7" r="2" />
+    <circle cx="30.5" cy="8.5" r="2" />
+    <circle cx="38.5" cy="11.5" r="2" />
   </ClassicBase>
 );
 
 export const ClassicRook = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <path d="M25 20v10h10V20h10v10h10V20h10v10h10V20H25z" strokeLinecap="butt" />
-    <path d="M30 30h40v40H30V30z" />
-    <path d="M25 70h50l5 10H20l5-10z" />
-    <path d="M25 35h50M25 65h50" fill="none" />
+    <path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" />
+    <path d="M34 14l-3 3H14l-3-3V14z" />
+    <path d="M31 17v12.5H14V17h17z" />
+    <path d="M31 29.5l1.5 2.5h-20l1.5-2.5h17z" />
+    <path d="M11 14h23" fill="none" />
   </ClassicBase>
 );
 
 export const ClassicBishop = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <circle cx="50" cy="20" r="5" />
-    <path d="M50 25c-10 0-15 10-15 20 0 10 5 15 15 25 10-10 15-15 15-25 0-10-5-20-15-20z" />
-    <path d="M30 80c5-5 35-5 40 0v5H30v-5z" />
-    <path d="M40 45h20M38 52h24" fill="none" strokeWidth="2" />
+    <path d="M9 36c3.39 1.06 15.39 1.06 18.78 0l3.22 3h-25.22l3.22-3z" />
+    <path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" />
+    <path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+    <path d="M17.5 26h10M15 30c2.5 2.5 12.5 2.5 15 0" fill="none" />
   </ClassicBase>
 );
 
 export const ClassicKnight = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <path d="M30 80c0-15 10-35 30-40 5-2 15 0 15 10 0 5-5 10-5 15l10 5-5 10-15-5c-5 10-10 10-30 5z" />
-    <path d="M45 35c5-5 15-5 20 0" fill="none" />
-    <circle cx="65" cy="30" r="2" fill={props.color === 'white' ? '#000' : '#fff'} stroke="none" />
-    <path d="M30 80h40v5H30v-5z" />
+    <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" />
+    <path d="M24 18c.38 2.43-4.65 7.32-6 10-3 6-1 11-1 11" />
+    <path d="M9.5 25.5A.5.5 0 1 1 9 25a.5.5 0 0 1 .5.5z" fill={props.color === 'white' ? '#000' : '#fff'} />
+    <path d="M15 15.5c4.5 2 5 2 10 0 0 0-2.5-2.5-2.5-4s.5-4 .5-4c-1.49.3-2 2.35-3 2.5L15 15.5z" />
+    <path d="M24 18c-1.5 1-3.5 1-5 0" fill="none" />
+    <circle cx="27" cy="14" r="1.2" fill={props.color === 'white' ? '#000' : '#fff'} stroke="none" />
   </ClassicBase>
 );
 
 export const ClassicPawn = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <circle cx="50" cy="35" r="12" />
-    <path d="M50 47c-10 0-18 8-18 20 0 5 5 10 18 13 13-3 18-8 18-13 0-12-8-20-18-20z" />
-    <path d="M32 80h36v5H32v-5z" />
+    <path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 13 18.5 13 21c0 2.03 3.5 3.5 3.5 3.5V32c0 1.5-1.5 2.5-1.5 2.5h15s-1.5-1-1.5-2.5v-7.5s3.5-1.47 3.5-3.5c0-2.5-4.33-4.5-6.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" />
   </ClassicBase>
 );
 
 export const ClassicSupplier = (props: PieceProps) => (
   <ClassicBase {...props}>
-    <path d="M50 15l15 15-15 15-15-15L50 15z" />
-    <path d="M50 45v15M35 60h30v10H35V60z" />
-    <path d="M32 80h36v5H32v-5z" />
+    <path d="M22.5 7l10 10-10 10-10-10L22.5 7z" />
+    <path d="M22.5 27v8" fill="none" />
+    <path d="M14 35h17v4H14v-4z" />
+    <path d="M12 39h21l2 3H10l2-3z" />
   </ClassicBase>
 );
