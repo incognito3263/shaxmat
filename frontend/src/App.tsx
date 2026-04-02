@@ -37,9 +37,9 @@ function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const s = size === 'sm' ? 24 : size === 'md' ? 32 : 48;
   return (
     <svg width={s} height={s} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 4L26 10V22L16 28L6 22V10L16 4Z" stroke="var(--accent-green)" strokeWidth="2" />
-      <path d="M16 10V22M10 13L22 19M22 13L10 19" stroke="var(--accent-green)" strokeWidth="1.5" opacity="0.5" />
-      <circle cx="16" cy="16" r="4" fill="var(--accent-green)" fillOpacity="0.2" />
+      <path d="M16 4L26 10V22L16 28L6 22V10L16 4Z" stroke="#81b64c" strokeWidth="2" />
+      <path d="M16 10V22M10 13L22 19M22 13L10 19" stroke="#81b64c" strokeWidth="1.5" opacity="0.5" />
+      <circle cx="16" cy="16" r="4" fill="#81b64c" fillOpacity="0.2" />
     </svg>
   )
 }
@@ -272,7 +272,7 @@ function Chat() {
   return (
     <div className="flex flex-col h-[300px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl text-[var(--text-main)]">
       <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-white">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
-      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-white">
         {chatMessages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-white">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[#3c3a37] text-white border border-[#403d39]'}`}>{msg.text}</div></div>
         ))}
@@ -311,7 +311,7 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
   const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
   return (
     <div className={`flex items-center justify-between w-full p-2 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
-      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-base font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1 mt-0.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
+      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1 mt-0.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
       <div className={`px-5 py-1.5 rounded-lg font-mono text-xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
     </div>
   )
@@ -370,7 +370,7 @@ export default function App() {
   
   return (
     <div className="h-screen w-full flex flex-col bg-[#1b1a17] overflow-hidden text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2 shadow-2xl relative z-50">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2.5 shadow-2xl relative z-50">
         <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col text-white"><span className="text-2xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[9px] font-black tracking-[0.4em] text-[#81b64c] mt-1 leading-none uppercase">Arena</span></div></div>
         <div className="flex items-center gap-8">
           <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1 tracking-widest">{user.username}</span><span className="text-[11px] font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
@@ -380,7 +380,7 @@ export default function App() {
       <main className="flex flex-1 overflow-hidden p-4 gap-8 max-w-[1800px] mx-auto w-full items-center justify-center">
         <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto min-h-0">
           {game && <div className="w-full mb-2 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
-          <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-160px)]">
+          <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-170px)]">
             <Board />
           </div>
           {game && <div className="w-full mt-2 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
