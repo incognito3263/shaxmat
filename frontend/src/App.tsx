@@ -7,6 +7,9 @@ import GameControls from './components/GameControls'
 import MoveHistory from './components/MoveHistory'
 import PromotionModal from './components/PromotionModal'
 
+// --- Constants ---
+const AVATARS = ['👨‍🚀', '🥷', '🧙‍♂️', '🧛', '🤖', '👾', '👽', '🦊']
+
 // --- Reusable UI Components ---
 
 function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
@@ -50,8 +53,6 @@ function AuthScreen() {
     if (isLogin) login(username, password)
     else signup(username, password, avatar)
   }
-
-  const AVATARS = ['👨‍🚀', '🥷', '🧙‍♂️', '🧛', '🤖', '👾', '👽', '🦊']
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-screen bg-[#1b1a17]">
@@ -147,7 +148,7 @@ function ModeSelection() {
                 <div className="text-sm font-black uppercase tracking-widest mb-6 text-left text-white">👤 {t.multiplayer}</div>
                 <div className="flex gap-3">
                   <input type="text" maxLength={8} value={opponentId} onChange={e => setOpponentId(e.target.value.replace(/\D/g, ''))} placeholder="Opponent ID" className="flex-1 bg-[#2d2b28] border border-[#403d39] rounded-lg px-5 py-3 text-lg text-center font-mono outline-none focus:border-[#81b64c] text-white" />
-                  <button onClick={async () => { if (opponentId.length === 8) { if (opponentId === user?.public_id) { setNotification({ text: t.selfPlayError, type: 'error' }); return } const target = await searchUser(opponentId); if (target) sendInvite(target.public_id, timeLimit, timeIncrement); else setNotification({ text: t.userNotFound, type: 'error' }); } }} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-2 px-6 rounded-lg shadow-[0_3px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-xs">{t.go}</button>
+                  <button onClick={async () => { if (opponentId.length === 8) { if (opponentId === user?.public_id) { setNotification({ text: t.selfPlayError, type: 'error' }); return } const target = await searchUser(opponentId); if (target) sendInvite(target.public_id, timeLimit, timeIncrement); else setNotification({ text: t.userNotFound, type: 'error' }); } }} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-2 px-6 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-xs">{t.go}</button>
                 </div>
               </div>
             </div>
@@ -314,33 +315,17 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
 export default function App() {
   const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t, tickClock } = useGameStore()
-  
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', uiTheme)
-    const saved = localStorage.getItem('shaxmat_user'), token = localStorage.getItem('shaxmat_token'), savedGameId = localStorage.getItem('shaxmat_game_id'), savedIsSpectator = localStorage.getItem('shaxmat_spectator') === 'true', savedLang = localStorage.getItem('shaxmat_lang') as Language
-    if (savedLang) setLanguage(savedLang)
-    if (saved && token && !user) {
-      const u = JSON.parse(saved); useGameStore.setState({ user: u, token: token, isSpectator: savedIsSpectator }); initSocket(u.public_id)
-      if (savedGameId) { const gid = parseInt(savedGameId, 10); useGameStore.setState({ gameId: gid }) }
-    }
-  }, [user, initSocket, setLanguage, uiTheme])
-
-  useEffect(() => { 
-    if (gameId) { 
-      fetchGame(); 
-      const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); 
-      const clockInterval = setInterval(() => { tickClock() }, 1000);
-      return () => { clearInterval(interval); clearInterval(clockInterval); } 
-    } 
-  }, [gameId, fetchGame, tickClock])
-
-  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[#1b1a17] text-white"><div className="text-center bg-[#262421] border border-[#403d39] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload(); }} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-10 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide">Reset Application</button></div></div>
+  useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id)
+    if (localStorage.getItem('shaxmat_game_id')) { useGameStore.setState({ gameId: parseInt(localStorage.getItem('shaxmat_game_id')!, 10) }) }
+  } }, [user, initSocket, setLanguage, uiTheme])
+  useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); const clockInterval = setInterval(() => { tickClock() }, 1000); return () => { clearInterval(interval); clearInterval(clockInterval); } } }, [gameId, fetchGame, tickClock])
+  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[#1b1a17] text-white"><div className="text-center bg-[#262421] border border-[#403d39] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload() }} className="btn-primary py-4 px-10">Reset Application</button></div></div>
   if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
   if (!gameId) return <div className="min-h-screen flex flex-col bg-[#1b1a17]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /></div>
   const isGameOver = game && game.status !== 'active'; const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
   return (
-    <div className="min-h-screen flex flex-col bg-[#1b1a17] overflow-hidden">
-      <header className="flex shrink-0 items-center justify-between px-10 py-8 border-b border-[#403d3a] bg-[#262421] shadow-2xl relative z-50">
+    <div className="flex h-screen w-full flex-col bg-[#1b1a17] overflow-hidden text-white">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-8 shadow-2xl relative z-50">
         <div className="flex cursor-pointer items-center gap-8 group" onClick={goBackToMenu}><Logo size="md" /><div className="flex flex-col"><span className="text-3xl font-black tracking-tight text-white group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[11px] font-black tracking-[0.5em] text-[#81b64c] mt-2 leading-none uppercase">Arena</span></div></div>
         <div className="flex items-center gap-12">
           <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1.5 tracking-widest">{user.username}</span><span className="text-sm font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
@@ -349,7 +334,7 @@ export default function App() {
       </header>
       <main className="flex flex-1 overflow-hidden p-8 gap-12 max-w-[1700px] mx-auto w-full items-start justify-center">
         <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto">{game && <div className="w-full mb-6 flex items-end"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}<div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)]"><Board /></div>{game && <div className="w-full mt-6 flex items-start"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}</section>
-        <aside className="w-full xl:w-[450px] order-2 flex flex-col gap-8 shrink-0"><GameControls /><div className="flex flex-col gap-8 flex-1"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
+        <aside className="w-full xl:w-[450px] order-2 flex flex-col gap-8 shrink-0"><GameControls /><div className="flex flex-1 flex-col gap-8 flex-1 overflow-hidden"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
       </main>
       <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>
