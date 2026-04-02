@@ -104,7 +104,7 @@ function ModeSelection() {
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [manualOpen, setManualOpen] = useState(false)
-  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, setNotification, fetchFriendRequests, fetchNotifications, language, setLanguage, uiTheme, setUiTheme, fetchMatchHistory, fetchFriends } = useGameStore()
+  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, setNotification, fetchFriendRequests, fetchNotifications, language, setLanguage, uiTheme, setUiTheme, fetchMatchHistory, fetchFriends, fetchLiveGames } = useGameStore()
 
   useEffect(() => { 
     if (user) {
@@ -113,8 +113,9 @@ function ModeSelection() {
       fetchNotifications();
       fetchMatchHistory();
       fetchFriends();
+      fetchLiveGames();
     }
-  }, [user, fetchLeaderboard, fetchFriendRequests, fetchNotifications, fetchMatchHistory, fetchFriends])
+  }, [user, fetchLeaderboard, fetchFriendRequests, fetchNotifications, fetchMatchHistory, fetchFriends, fetchLiveGames])
 
   const totalGames = (user?.wins || 0) + (user?.losses || 0) + (user?.draws || 0)
   const winRate = totalGames > 0 ? Math.round(((user?.wins || 0) / totalGames) * 100) : 0
@@ -270,9 +271,9 @@ function Chat() {
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight }, [chatMessages])
   const handleSend = (e: React.FormEvent) => { e.preventDefault(); if (text.trim()) { sendChatMessage(text); setText('') } }
   return (
-    <div className="flex flex-col h-[300px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl text-[var(--text-main)]">
+    <div className="flex flex-col h-[350px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl text-[var(--text-main)]">
       <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-white">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
-      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-white">
         {chatMessages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-white">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[#3c3a37] text-white border border-[#403d39]'}`}>{msg.text}</div></div>
         ))}
@@ -310,8 +311,8 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
   const isWhite = color === 'white'; const avatar = isWhite ? game?.white_avatar : game?.black_avatar; const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0);
   const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
   return (
-    <div className={`flex items-center justify-between w-full p-2.5 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
-      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1.5 mt-1 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
+    <div className={`flex items-center justify-between w-full p-2 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
+      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1 mt-0.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
       <div className={`px-6 py-2 rounded-lg font-mono text-2xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
     </div>
   )
@@ -342,7 +343,7 @@ function InviteModal() {
 
 function SearchingModal() {
   const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer } = useGameStore()
-  const { t } = useGameStore.getState()
+  const t = useGameStore.getState().t
   if (!isSearching) return null
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
@@ -371,7 +372,7 @@ export default function App() {
   
   return (
     <div className="h-screen w-full flex flex-col bg-[#1b1a17] overflow-hidden text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2.5 shadow-2xl relative z-50">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2 shadow-2xl relative z-50">
         <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col text-white"><span className="text-2xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[9px] font-black tracking-[0.4em] text-[#81b64c] mt-1 leading-none uppercase">Arena</span></div></div>
         <div className="flex items-center gap-8">
           <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1 tracking-widest">{user.username}</span><span className="text-[11px] font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>

@@ -191,7 +191,7 @@ const SOUNDS: Record<string, HTMLAudioElement> = {
 function playSound(type: keyof typeof SOUNDS) {
   const { soundSettings } = useGameStore.getState()
   const audio = SOUNDS[type];
-  if (audio && soundSettings[type as keyof typeof soundSettings] !== false) {
+  if (audio && (soundSettings as any)[type] !== false) {
     audio.currentTime = 0; audio.play().catch(() => {});
   }
 }
@@ -315,7 +315,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   fetchLiveGames: async () => {
     try {
-      const res = await fetch(`/game/live`)
+      const res = await fetch(`/game/game/live`)
       if (res.ok) { const data = await res.json(); set({ liveGames: data }) }
     } catch (e) { console.error(e) }
   },
@@ -323,7 +323,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   createGame: async (mode, opponentId, aiDifficulty, timeLimit, timeIncrement) => {
     set({ loading: true, error: null })
     try {
-      const res = await fetch(`/game/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ game_mode: mode, opponent_public_id: opponentId, creator_public_id: get().user?.public_id, time_limit: timeLimit, time_increment: timeIncrement, ai_difficulty: aiDifficulty }) })
+      const res = await fetch(`/game/game/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ game_mode: mode, opponent_public_id: opponentId, creator_public_id: get().user?.public_id, time_limit: timeLimit, time_increment: timeIncrement, ai_difficulty: aiDifficulty }) })
       if (res.ok) { const data = await res.json(); set({ gameId: data.id }); localStorage.setItem('shaxmat_game_id', data.id.toString()); get().fetchGame() }
     } catch (e: any) { set({ error: e.message }) } finally { set({ loading: false }) }
   },
@@ -331,7 +331,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchGame: async () => {
     const { gameId } = get(); if (!gameId) return
     try {
-      const res = await fetch(`/game/${gameId}`)
+      const res = await fetch(`/game/game/${gameId}`)
       if (res.ok) {
         const data = await res.json()
         const oldHistoryLen = get().game?.move_history?.length || 0
@@ -349,7 +349,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchMatchHistory: async () => {
     const { user } = get(); if (!user) return
     try {
-      const res = await fetch(`/game/history/${user.id}`)
+      const res = await fetch(`/game/game/user/${user.id}/history`)
       if (res.ok) { const data = await res.json(); set({ matchHistory: data }) }
     } catch (e) { console.error(e) }
   },
@@ -373,13 +373,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   makeMove: async (from, to, promotion) => {
     try {
-      const res = await fetch(`/game/${get().gameId}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from_square: from, to_square: to, promotion }) })
+      const res = await fetch(`/game/game/${get().gameId}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from_square: from, to_square: to, promotion }) })
       if (res.ok) { set({ selectedSquare: null, legalMoves: [], pendingPromotion: null }); get().fetchGame() }
     } catch (e) { console.error(e) }
   },
 
   aiMove: async () => {
-    try { await fetch(`/game/${get().gameId}/ai-move`, { method: 'POST' }); get().fetchGame() }
+    try { await fetch(`/game/game/${get().gameId}/ai-move`, { method: 'POST' }); get().fetchGame() }
     catch (e) { console.error(e) }
   },
 
@@ -392,9 +392,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   cancelMatchmaking: () => { get().socket?.send(JSON.stringify({ type: 'leave_queue' })); set({ isSearching: false }) },
   acceptMatchOffer: () => { if (get().matchOffer) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().matchOffer!.from_id })); get().createGame('Person', get().matchOffer!.from_id) }; set({ matchOffer: null, isSearching: false }) },
   spectateGame: async (gid) => { set({ isSpectator: true, gameId: gid }); get().fetchGame() },
-  resign: async () => { await fetch(`/game/${get().gameId}/resign?user_id=${get().user?.id}`, { method: 'POST' }); get().goBackToMenu() },
+  resign: async () => { await fetch(`/game/game/${get().gameId}/resign?user_id=${get().user?.id}`, { method: 'POST' }); get().goBackToMenu() },
   startReview: () => set({ reviewMode: true }),
-  setReviewIndex: async (idx) => { const res = await fetch(`/game/${get().gameId}/review/${idx}`); if (res.ok) set({ reviewIndex: idx, reviewBoardData: await res.json() }) },
+  setReviewIndex: async (idx) => { const res = await fetch(`/game/game/${get().gameId}/review/${idx}`); if (res.ok) set({ reviewIndex: idx, reviewBoardData: await res.json() }) },
   resolvePromotion: async (p) => { if (get().pendingPromotion) get().makeMove(get().pendingPromotion!.from, get().pendingPromotion!.to, p) },
   cancelPromotion: () => set({ pendingPromotion: null }),
   setPieceTheme: () => {}, setSoundSettings: () => {}, markNotificationRead: async () => {}, sendFriendRequest: async () => {}, respondToFriendRequest: async () => {}, followUser: async () => {}, unfollowUser: async () => {}, offerDraw: () => {}, respondToDraw: () => {}, sendChatMessage: () => {}, sendMatchStart: () => {}, newGame: async () => {}
