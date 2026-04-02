@@ -103,7 +103,7 @@ interface GameStore {
   login: (username: string, password: string) => Promise<void>
   clearAuthError: () => void
   uploadAvatar: (file: File) => Promise<string | null>
-  updateProfile: (avatar: string, countryCode?: string) => Promise<void>
+  updateProfile: (avatar?: string, countryCode?: string) => Promise<void>
   logout: () => void
   setLanguage: (lang: Language) => void
   setTheme: (theme: string) => void
@@ -329,14 +329,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  updateProfile: async (avatar: string, countryCode?: string) => {
+  updateProfile: async (avatar, countryCode) => {
     const { user } = get()
     if (!user) return
     try {
       const res = await fetch('/game/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id: user.public_id, avatar, country_code: countryCode })
+        body: JSON.stringify({ 
+          public_id: user.public_id, 
+          avatar: avatar || user.avatar, 
+          country_code: countryCode !== undefined ? countryCode : user.country_code 
+        })
       })
       if (res.ok) {
         const updatedUser = await res.json()

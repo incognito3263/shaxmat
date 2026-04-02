@@ -33,7 +33,7 @@ export function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose
             {t.countryRegion}
             <select
               value={user.country_code || ''}
-              onChange={(e) => void updateProfile({ country_code: e.target.value || null })}
+              onChange={(e) => void updateProfile(undefined, e.target.value || undefined)}
               className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-3)] px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-[var(--accent-green)]"
             >
               {COUNTRY_OPTIONS.map((o) => (
@@ -42,7 +42,7 @@ export function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose
                 </option>
               ))}
             </select>
-            <p className="mt-1.5 text-[10px] normal-case font-normal tracking-normal text-[var(--text-muted)] opacity-80">{t.countryRegionHint}</p>
+            <p className="mt-1.5 text-[10px] normal-case font-normal tracking-normal text-[var(--text-muted)] opacity-80">{(t as any).countryRegionHint}</p>
           </label>
           <div className="w-full space-y-6">
             <button
@@ -61,7 +61,7 @@ export function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose
                 if (f) {
                   setIsUploading(true)
                   const url = await uploadAvatar(f)
-                  if (url) await updateProfile({ avatar: url })
+                  if (url) await updateProfile(url)
                   setIsUploading(false)
                 }
               }}
@@ -73,7 +73,7 @@ export function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose
                 <button
                   key={a}
                   type="button"
-                  onClick={() => void updateProfile({ avatar: a })}
+                  onClick={() => void updateProfile(a)}
                   className={`rounded p-4 text-4xl transition-all hover:bg-[var(--surface-2)] ${
                     user.avatar === a ? 'scale-110 bg-[var(--surface-2)] shadow-xl' : 'opacity-30 hover:opacity-100'
                   }`}

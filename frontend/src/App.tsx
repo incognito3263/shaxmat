@@ -346,7 +346,7 @@ function GameOverModal() {
 }
 
 export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t } = useGameStore()
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme } = useGameStore()
   useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id) } }, [user, initSocket, setLanguage, uiTheme])
   useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); return () => clearInterval(interval) } }, [gameId, fetchGame])
   useEffect(() => { if (!gameId) return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [gameId])
