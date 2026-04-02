@@ -344,7 +344,26 @@ function GameOverModal() {
 
 export default function App() {
   const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme } = useGameStore()
-  useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id) } }, [user, initSocket, setLanguage, uiTheme])
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', uiTheme);
+    const saved = localStorage.getItem('shaxmat_user');
+    const token = localStorage.getItem('shaxmat_token');
+    const savedGameId = localStorage.getItem('shaxmat_game_id');
+    const savedIsSpectator = localStorage.getItem('shaxmat_spectator') === 'true';
+    const savedLang = localStorage.getItem('shaxmat_lang') as Language;
+    
+    if (savedLang) setLanguage(savedLang);
+    if (saved && token && !user) {
+      const u = JSON.parse(saved);
+      useGameStore.setState({ user: u, token, isSpectator: savedIsSpectator });
+      initSocket(u.public_id);
+      
+      if (savedGameId) {
+        const gid = parseInt(savedGameId, 10);
+        useGameStore.setState({ gameId: gid });
+      }
+    }
+  }, [user, initSocket, setLanguage, uiTheme])
   useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); return () => clearInterval(interval) } }, [gameId, fetchGame])
   useEffect(() => { if (!gameId) return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [gameId])
   if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[var(--bg)] text-white"><div className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border)] p-16 max-w-md shadow-2xl"><h2 className="text-3xl font-black mb-6">⚠️ Arena Error</h2><p className="text-[var(--text-muted)] mb-10 text-lg leading-relaxed">{error}</p><button onClick={() => { localStorage.clear(); window.location.reload() }} className="btn-primary px-12">Restart Application</button></div></div>
