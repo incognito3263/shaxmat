@@ -194,7 +194,7 @@ function FriendsSection() {
           {friends?.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">No friends yet.</p> : 
             friends?.map((f) => (
               <div key={f.id} className="flex items-center justify-between rounded-xl p-4 transition-all hover:bg-[var(--surface-2)] group">
-                <div className="flex items-center gap-4"><div className="relative"><Avatar src={f.avatar} size="sm" />{f.is_online && <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-lg" />}</div><div><div className="text-base font-bold">{f.username}</div><div className="text-[10px] uppercase font-bold text-[#81b64c]">{getUserTitle(f.wins, t)}</div></div></div>
+                <div className="flex items-center gap-4"><div className="relative"><Avatar src={f.avatar} size="sm" />{f.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-lg" />}</div><div><div className="text-base font-bold">{f.username}</div><div className="text-[10px] uppercase font-bold text-[#81b64c]">{getUserTitle(f.wins, t)}</div></div></div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all"><button onClick={() => sendInvite(f.public_id)} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-2 rounded transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button><button onClick={() => unfollowUser(f.public_id)} className="text-red-500 hover:bg-red-500/10 p-2 rounded transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
               </div>
             ))
@@ -260,8 +260,8 @@ function Chat() {
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight }, [chatMessages])
   const handleSend = (e: React.FormEvent) => { e.preventDefault(); if (text.trim()) { sendChatMessage(text); setText('') } }
   return (
-    <div className="flex flex-col h-[350px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl">
-      <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-[var(--text-main)]">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
+    <div className="flex flex-col h-[300px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl">
+      <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
       <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-[var(--text-main)]">
         {chatMessages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-[var(--text-main)]">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[#3c3a37] text-white border border-[#403d39]'}`}>{msg.text}</div></div>
