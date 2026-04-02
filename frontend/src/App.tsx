@@ -174,8 +174,8 @@ function FriendsSection() {
   useEffect(() => { fetchFriends(); fetchFriendRequests(); }, [fetchFriends, fetchFriendRequests])
   if (!friends) return null
   return (
-    <div className="w-full bg-[#262421] border border-[#403d39] rounded-[2rem] p-8 flex flex-col shadow-2xl">
-      <h3 className="text-sm font-bold text-white mb-8 uppercase tracking-widest flex items-center gap-3">👤 {t.friends}</h3>
+    <div className="w-full bg-[#262421] border border-[#403d39] rounded-[2rem] p-8 flex flex-col shadow-2xl text-white">
+      <h3 className="text-sm font-bold mb-8 uppercase tracking-widest flex items-center gap-3">👤 {t.friends}</h3>
       <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar" style={{ maxHeight: '400px' }}>
         {pendingRequests?.map((req: any) => (
           <div key={req.id} className="p-4 rounded bg-green-500/5 border border-green-500/20 flex items-center justify-between">
@@ -185,9 +185,9 @@ function FriendsSection() {
         ))}
         {friends.length === 0 ? <p className="text-center text-[#bababa] text-xs uppercase py-10 opacity-30">{t.noFriends}</p> : 
           friends.map((f) => (
-            <div key={f.id} className="p-4 rounded hover:bg-[#3c3a37] flex items-center justify-between group transition-all">
+            <div key={f.id} className="p-4 rounded hover:bg-[#3c3a37] flex items-center justify-between group transition-all text-white">
               <div className="flex items-center gap-4"><div className="relative"><Avatar src={f.avatar} size="sm" />{f.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#2d2b28]" />}</div><div><div className="text-base font-bold text-white">{f.username}</div><div className="text-xs text-[#81b64c] font-black uppercase tracking-wider">{getUserTitle(f.wins, t)}</div></div></div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all text-white">
                 <button onClick={() => sendInvite(f.public_id)} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-2 rounded"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>
                 <button onClick={() => unfollowUser(f.public_id)} className="text-red-500 hover:bg-red-500/10 p-2 rounded"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
               </div>
@@ -207,12 +207,12 @@ function MatchHistorySection() {
   const displayed = showAll ? history : history.slice(0, 5)
   return (
     <div className="w-full bg-[#262421] border border-[#403d39] rounded-[2rem] p-8 shadow-2xl text-white">
-      <h3 className="text-sm font-bold text-white mb-8 uppercase tracking-widest flex items-center gap-3">📜 {t.matchHistory}</h3>
+      <h3 className="text-sm font-bold mb-8 uppercase tracking-widest flex items-center gap-3">📜 {t.matchHistory}</h3>
       <div className="space-y-3">
         {history.length === 0 ? <p className="py-10 text-center text-[#bababa] text-xs uppercase opacity-30">No games yet.</p> : 
           displayed.map((m) => {
             const isWhite = m.white === user?.username; const didIWin = m.winner === (isWhite ? 'white' : 'black'); const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement';
-            return ( <div key={m.id} className="p-3 rounded bg-[#211f1d] border border-[#403d3a] flex items-center justify-between text-sm"><div className="flex items-center gap-4 text-white"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[120px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
+            return ( <div key={m.id} className="p-3 rounded bg-[#211f1d] border border-[#403d3a] flex items-center justify-between text-sm"><div className="flex items-center gap-4 text-white"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[100px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
           })
         }
       </div>
@@ -272,7 +272,7 @@ function LanguageSwitcher() {
   const { language, setLanguage } = useGameStore()
   const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
   return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
+    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a] text-white">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
   )
 }
 
@@ -309,7 +309,42 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const fileInputRef = useRef<HTMLInputElement>(null)
   if (!isOpen || !user) return null
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 bg-[#262421] border border-[#403d39] rounded-[2rem] relative shadow-2xl"><button onClick={onClose} className="absolute top-8 right-8 text-white/30 hover:text-white transition-colors text-3xl">✕</button><h2 className="text-2xl font-black uppercase tracking-widest mb-10 text-center text-white">{t.editProfile}</h2><div className="flex flex-col items-center gap-10"><Avatar src={user.avatar} size="lg" /><div className="w-full space-y-8"><button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-base">{isUploading ? '...' : t.chooseAvatar}</button><input type="file" ref={fileInputRef} onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setIsUploading(true); const url = await uploadAvatar(f); if (url) await updateProfile(url); setIsUploading(false); } }} className="hidden" accept="image/*" /><div className="grid grid-cols-4 gap-4 bg-[#211f1d] p-4 rounded-xl border border-[#403d3a]">{AVATARS.map(a => <button key={a} onClick={() => void updateProfile(a)} className={`text-4xl p-4 rounded hover:bg-[#3c3a37] transition-all ${user.avatar === a ? 'bg-[#3c3a37] shadow-xl scale-110' : 'opacity-30 hover:opacity-100'}`}>{a}</button>)}</div></div></div></motion.div></div>
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 bg-[#262421] border border-[#403d39] rounded-[2rem] relative shadow-2xl"><button onClick={onClose} className="absolute top-8 right-8 text-white/30 hover:text-white transition-colors text-3xl">✕</button><h2 className="text-2xl font-black uppercase tracking-widest mb-10 text-center text-white">{t.editProfile}</h2><div className="flex flex-col items-center gap-10"><Avatar src={user.avatar} size="lg" /><div className="w-full space-y-8"><button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-base">{isUploading ? '...' : t.chooseAvatar}</button><input type="file" ref={fileInputRef} onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setIsUploading(true); const url = await uploadAvatar(f); if (url) await updateProfile(url); setIsUploading(false); } }} className="hidden" accept="image/*" /><div className="grid grid-cols-4 gap-4 bg-[#211f1d] p-4 rounded-xl border border-[#403d3a] text-white">{AVATARS.map(a => <button key={a} onClick={() => void updateProfile(a)} className={`text-4xl p-4 rounded hover:bg-[#3c3a37] transition-all ${user.avatar === a ? 'bg-[#3c3a37] shadow-xl scale-110' : 'opacity-30 hover:opacity-100'}`}>{a}</button>)}</div></div></div></motion.div></div>
+  )
+}
+
+function NotificationToast() {
+  const { notification, setNotification } = useGameStore()
+  if (!notification) return null
+  return ( <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} onClick={() => setNotification(null)} className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[200] px-10 py-5 rounded-xl text-black font-black text-sm uppercase tracking-widest shadow-2xl cursor-pointer ${notification.type === 'error' ? 'bg-red-500' : 'bg-[#81b64c]'}`}>{notification.text}<button onClick={() => setNotification(null)} className="ml-4 opacity-50 hover:opacity-100">✕</button></motion.div> )
+}
+
+function GameOverModal() {
+  const { game, user, goBackToMenu, opponentResignedName, reviewMode, t } = useGameStore()
+  if (!game || game.status === 'active' || reviewMode) return null
+  const isWinner = (game.winner === 'white' && user?.id === game.white_player_id) || (game.winner === 'black' && user?.id === game.black_player_id)
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-16 rounded-[2rem] text-center border border-[#403d3a] bg-[#262421] shadow-[0_50px_150px_rgba(0,0,0,1)]"><div className="text-9xl mb-10">{isWinner ? '🏆' : '🏁'}</div><h2 className="text-5xl font-black uppercase mb-4 text-white tracking-tighter">{isWinner ? t.victory : t.gameOver}</h2><p className="text-[#bababa] text-base mb-12 uppercase font-black tracking-widest text-white">{game.status === 'resigned' ? t.opponentLeft.replace('{name}', opponentResignedName || '') : t.betterLuck}</p><div className="flex flex-col gap-5"><button onClick={() => useGameStore.getState().startReview()} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-5 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-2xl">{t.reviewGame}</button><button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-xl">{t.backToMenu}</button></div></motion.div></div>
+  )
+}
+
+function InviteModal() {
+  const { inviteRequest, respondToInvite, t } = useGameStore()
+  if (!inviteRequest) return null
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#262421] border border-[#403d39] rounded-[2.5rem] text-center shadow-[0_40px_120px_rgba(0,0,0,1)]"><div className="text-6xl mb-8">🎮</div><h2 className="text-3xl font-black text-white uppercase mb-4 tracking-tighter">Challenge</h2><p className="text-[#bababa] text-base mb-10 font-black uppercase tracking-widest text-white"><span className="text-[#81b64c]">{inviteRequest.from_username}</span> wants to play!</p><div className="flex gap-5"><button onClick={() => respondToInvite(false)} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base shadow-2xl">Accept</button></div></motion.div></div>
+  )
+}
+
+function SearchingModal() {
+  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer, t } = useGameStore()
+  if (!isSearching) return null
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
+      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
+        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
+      )}
+    </div>
   )
 }
 
@@ -350,48 +385,5 @@ export default function App() {
       </main>
       <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>
-  )
-}
-
-function NotificationToast() {
-  const { notification, setNotification } = useGameStore()
-  if (!notification) return null
-  return ( <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} onClick={() => setNotification(null)} className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[200] px-10 py-5 rounded-xl text-black font-black text-sm uppercase tracking-widest shadow-2xl cursor-pointer ${notification.type === 'error' ? 'bg-red-500' : 'bg-[#81b64c]'}`}>{notification.text}<button onClick={() => setNotification(null)} className="ml-4 opacity-50 hover:opacity-100">✕</button></motion.div> )
-}
-
-function GameOverModal() {
-  const { game, user, goBackToMenu, opponentResignedName, reviewMode, t } = useGameStore()
-  if (!game || game.status === 'active' || reviewMode) return null
-  const isWinner = (game.winner === 'white' && user?.id === game.white_player_id) || (game.winner === 'black' && user?.id === game.black_player_id)
-  return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-16 rounded-[2rem] text-center border border-[#403d3a] bg-[#262421] shadow-[0_50px_150px_rgba(0,0,0,1)]"><div className="text-9xl mb-10">{isWinner ? '🏆' : '🏁'}</div><h2 className="text-5xl font-black uppercase mb-4 text-white tracking-tighter">{isWinner ? t.victory : t.gameOver}</h2><p className="text-[#bababa] text-base mb-12 uppercase font-black tracking-widest">{game.status === 'resigned' ? t.opponentLeft.replace('{name}', opponentResignedName || '') : t.betterLuck}</p><div className="flex flex-col gap-5"><button onClick={() => useGameStore.getState().startReview()} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-5 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-2xl">{t.reviewGame}</button><button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-xl">{t.backToMenu}</button></div></motion.div></div>
-  )
-}
-
-function InviteModal() {
-  const { inviteRequest, respondToInvite, t } = useGameStore()
-  if (!inviteRequest) return null
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#262421] border border-[#403d39] rounded-[2.5rem] text-center shadow-[0_40px_120px_rgba(0,0,0,1)]"><div className="text-6xl mb-8">🎮</div><h2 className="text-3xl font-black text-white uppercase mb-4 tracking-tighter">Challenge</h2><p className="text-[#bababa] text-base mb-10 font-black uppercase tracking-widest text-white"><span className="text-[#81b64c]">{inviteRequest.from_username}</span> wants to play!</p><div className="flex gap-5"><button onClick={() => respondToInvite(false)} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base shadow-2xl">Accept</button></div></motion.div></div>
-  )
-}
-
-function SearchingModal() {
-  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer, t } = useGameStore()
-  if (!isSearching) return null
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
-      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
-        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
-      )}
-    </div>
-  )
-}
-
-function LanguageSwitcher() {
-  const { language, setLanguage } = useGameStore()
-  const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
-  return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
   )
 }
