@@ -212,7 +212,7 @@ function MatchHistorySection() {
         {history.length === 0 ? <p className="py-10 text-center text-[#bababa] text-xs uppercase opacity-30">No games yet.</p> : 
           displayed.map((m) => {
             const isWhite = m.white === user?.username; const didIWin = m.winner === (isWhite ? 'white' : 'black'); const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement';
-            return ( <div key={m.id} className="p-3 rounded bg-[#211f1d] border border-[#403d3a] flex items-center justify-between text-sm"><div className="flex items-center gap-4 text-white"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[100px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
+            return ( <div key={m.id} className="p-3 rounded bg-[#211f1d] border border-[#403d3a] flex items-center justify-between text-sm"><div className="flex items-center gap-4 text-white"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[120px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
           })
         }
       </div>
@@ -296,9 +296,9 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
   const isWhite = color === 'white'; const avatar = isWhite ? game?.white_avatar : game?.black_avatar; const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0);
   const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
   return (
-    <div className={`flex items-center justify-between w-full p-4 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
-      <div className="flex items-center gap-6"><Avatar src={avatar || ''} size="md" /><div><div className="text-xl font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1.5 mt-1.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-base font-bold">{p}</span>)}</div></div></div>
-      <div className={`px-8 py-3 rounded-xl font-mono text-3xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
+    <div className={`flex items-center justify-between w-full p-2.5 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
+      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1.5 mt-1 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
+      <div className={`px-6 py-2 rounded-lg font-mono text-2xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
     </div>
   )
 }
@@ -310,41 +310,6 @@ function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   if (!isOpen || !user) return null
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 bg-[#262421] border border-[#403d39] rounded-[2rem] relative shadow-2xl"><button onClick={onClose} className="absolute top-8 right-8 text-white/30 hover:text-white transition-colors text-3xl">✕</button><h2 className="text-2xl font-black uppercase tracking-widest mb-10 text-center text-white">{t.editProfile}</h2><div className="flex flex-col items-center gap-10"><Avatar src={user.avatar} size="lg" /><div className="w-full space-y-8"><button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-base">{isUploading ? '...' : t.chooseAvatar}</button><input type="file" ref={fileInputRef} onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setIsUploading(true); const url = await uploadAvatar(f); if (url) await updateProfile(url); setIsUploading(false); } }} className="hidden" accept="image/*" /><div className="grid grid-cols-4 gap-4 bg-[#211f1d] p-4 rounded-xl border border-[#403d3a]">{AVATARS.map(a => <button key={a} onClick={() => void updateProfile(a)} className={`text-4xl p-4 rounded hover:bg-[#3c3a37] transition-all ${user.avatar === a ? 'bg-[#3c3a37] shadow-xl scale-110' : 'opacity-30 hover:opacity-100'}`}>{a}</button>)}</div></div></div></motion.div></div>
-  )
-}
-
-function NotificationToast() {
-  const { notification, setNotification } = useGameStore()
-  if (!notification) return null
-  return ( <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} onClick={() => setNotification(null)} className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[200] px-10 py-5 rounded-xl text-black font-black text-sm uppercase tracking-widest shadow-2xl cursor-pointer ${notification.type === 'error' ? 'bg-red-500' : 'bg-[#81b64c]'}`}>{notification.text}<button onClick={() => setNotification(null)} className="ml-4 opacity-50 hover:opacity-100">✕</button></motion.div> )
-}
-
-function GameOverModal() {
-  const { game, user, t, goBackToMenu, opponentResignedName, reviewMode } = useGameStore()
-  if (!game || game.status === 'active' || reviewMode) return null
-  const isWinner = (game.winner === 'white' && user?.id === game.white_player_id) || (game.winner === 'black' && user?.id === game.black_player_id)
-  return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-16 rounded-[2rem] text-center border border-[#403d3a] bg-[#262421] shadow-[0_50px_150px_rgba(0,0,0,1)]"><div className="text-9xl mb-10">{isWinner ? '🏆' : '🏁'}</div><h2 className="text-5xl font-black uppercase mb-4 text-white tracking-tighter">{isWinner ? t.victory : t.gameOver}</h2><p className="text-[#bababa] text-base mb-12 uppercase font-black tracking-widest">{game.status === 'resigned' ? t.opponentLeft.replace('{name}', opponentResignedName || '') : t.betterLuck}</p><div className="flex flex-col gap-5"><button onClick={() => useGameStore.getState().startReview()} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-5 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-2xl">{t.reviewGame}</button><button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-xl">{t.backToMenu}</button></div></motion.div></div>
-  )
-}
-
-function InviteModal() {
-  const { inviteRequest, respondToInvite, t } = useGameStore()
-  if (!inviteRequest) return null
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#262421] border border-[#403d39] rounded-[2.5rem] text-center shadow-[0_40px_120px_rgba(0,0,0,1)]"><div className="text-6xl mb-8">🎮</div><h2 className="text-3xl font-black text-white uppercase mb-4 tracking-tighter">Challenge</h2><p className="text-[#bababa] text-base mb-10 font-black uppercase tracking-widest text-white"><span className="text-[#81b64c]">{inviteRequest.from_username}</span> wants to play!</p><div className="flex gap-5"><button onClick={() => respondToInvite(false)} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base shadow-2xl">{t.accept}</button></div></motion.div></div>
-  )
-}
-
-function SearchingModal() {
-  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer, t } = useGameStore()
-  if (!isSearching) return null
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
-      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
-        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
-      )}
-    </div>
   )
 }
 
@@ -365,19 +330,68 @@ export default function App() {
   const isGameOver = game && game.status !== 'active'; const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
   
   return (
-    <div className="min-h-screen flex flex-col bg-[#1b1a17] overflow-hidden text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-8 shadow-2xl relative z-50">
-        <div className="flex cursor-pointer items-center gap-8 group" onClick={goBackToMenu}><Logo size="md" /><div className="flex flex-col text-white"><span className="text-3xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[11px] font-black tracking-[0.5em] text-[#81b64c] mt-2 leading-none uppercase">Arena</span></div></div>
-        <div className="flex items-center gap-12">
-          <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1.5 tracking-widest">{user.username}</span><span className="text-sm font-mono font-bold text-[#81b64c] mt-1.5 opacity-70 tracking-widest">ID: {user.public_id}</span></div>
-          <button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-2.5 px-6 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-xs shadow-md">Exit Arena</button>
+    <div className="h-screen w-full flex flex-col bg-[#1b1a17] overflow-hidden text-white">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-4 shadow-2xl relative z-50">
+        <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col text-white"><span className="text-2xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[9px] font-black tracking-[0.4em] text-[#81b64c] mt-1 leading-none uppercase">Arena</span></div></div>
+        <div className="flex items-center gap-10">
+          <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1 tracking-widest">{user.username}</span><span className="text-[11px] font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
+          <button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-2 px-5 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-[10px] shadow-md">Exit</button>
         </div>
       </header>
-      <main className="flex flex-1 overflow-hidden p-8 gap-12 max-w-[1700px] mx-auto w-full items-start justify-center">
-        <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto">{game && <div className="w-full mb-6 flex items-end"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}<div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)]"><Board /></div>{game && <div className="w-full mt-6 flex items-start"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}</section>
-        <aside className="w-full xl:w-[450px] order-2 flex flex-col gap-8 shrink-0"><GameControls /><div className="flex flex-1 flex-col gap-8 flex-1 overflow-hidden"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
+      <main className="flex flex-1 overflow-hidden p-6 gap-10 max-w-[1700px] mx-auto w-full items-start justify-center">
+        <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto min-h-0">
+          {game && <div className="w-full mb-4 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
+          <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-220px)]">
+            <Board />
+          </div>
+          {game && <div className="w-full mt-4 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
+        </section>
+        <aside className="hidden xl:flex w-[400px] order-2 flex-col gap-6 shrink-0 min-h-0"><GameControls /><div className="flex flex-1 flex-col gap-6 min-h-0 overflow-hidden"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
       </main>
       <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>
+  )
+}
+
+function NotificationToast() {
+  const { notification, setNotification } = useGameStore()
+  if (!notification) return null
+  return ( <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} onClick={() => setNotification(null)} className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[200] px-10 py-5 rounded-xl text-black font-black text-sm uppercase tracking-widest shadow-2xl cursor-pointer ${notification.type === 'error' ? 'bg-red-500' : 'bg-[#81b64c]'}`}>{notification.text}<button onClick={() => setNotification(null)} className="ml-4 opacity-50 hover:opacity-100">✕</button></motion.div> )
+}
+
+function GameOverModal() {
+  const { game, user, goBackToMenu, opponentResignedName, reviewMode, t } = useGameStore()
+  if (!game || game.status === 'active' || reviewMode) return null
+  const isWinner = (game.winner === 'white' && user?.id === game.white_player_id) || (game.winner === 'black' && user?.id === game.black_player_id)
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-16 rounded-[2rem] text-center border border-[#403d3a] bg-[#262421] shadow-[0_50px_150px_rgba(0,0,0,1)]"><div className="text-9xl mb-10">{isWinner ? '🏆' : '🏁'}</div><h2 className="text-5xl font-black uppercase mb-4 text-white tracking-tighter">{isWinner ? t.victory : t.gameOver}</h2><p className="text-[#bababa] text-base mb-12 uppercase font-black tracking-widest">{game.status === 'resigned' ? t.opponentLeft.replace('{name}', opponentResignedName || '') : t.betterLuck}</p><div className="flex flex-col gap-5"><button onClick={() => useGameStore.getState().startReview()} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-5 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-2xl">{t.reviewGame}</button><button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-lg shadow-xl">{t.backToMenu}</button></div></motion.div></div>
+  )
+}
+
+function InviteModal() {
+  const { inviteRequest, respondToInvite, t } = useGameStore()
+  if (!inviteRequest) return null
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#262421] border border-[#403d39] rounded-[2.5rem] text-center shadow-[0_40px_120px_rgba(0,0,0,1)]"><div className="text-6xl mb-8">🎮</div><h2 className="text-3xl font-black text-white uppercase mb-4 tracking-tighter">Challenge</h2><p className="text-[#bababa] text-base mb-10 font-black uppercase tracking-widest text-white"><span className="text-[#81b64c]">{inviteRequest.from_username}</span> wants to play!</p><div className="flex gap-5"><button onClick={() => respondToInvite(false)} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base shadow-2xl">Accept</button></div></motion.div></div>
+  )
+}
+
+function SearchingModal() {
+  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer, t } = useGameStore()
+  if (!isSearching) return null
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
+      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
+        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
+      )}
+    </div>
+  )
+}
+
+function LanguageSwitcher() {
+  const { language, setLanguage } = useGameStore()
+  const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
+  return (
+    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
   )
 }
