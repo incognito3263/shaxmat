@@ -374,7 +374,7 @@ export default function App() {
     <div className="h-screen w-full flex flex-col bg-[#1b1a17] overflow-hidden text-white">
       <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2 shadow-2xl relative z-50">
         <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col text-white"><span className="text-2xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[9px] font-black tracking-[0.4em] text-[#81b64c] mt-1 leading-none uppercase">Arena</span></div></div>
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-10">
           <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1 tracking-widest">{user.username}</span><span className="text-[11px] font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
           <button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-2 px-5 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-[10px] shadow-md">Exit</button>
         </div>
