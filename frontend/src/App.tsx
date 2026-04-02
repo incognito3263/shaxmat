@@ -6,6 +6,12 @@ import Board from './components/Board'
 import GameControls from './components/GameControls'
 import MoveHistory from './components/MoveHistory'
 import PromotionModal from './components/PromotionModal'
+import { PlayOpponentCard } from './components/arena/PlayOpponentCard'
+import { HowToPlayModal } from './components/arena/HowToPlayModal'
+import { EditProfileModal } from './components/EditProfileModal'
+import { LobbySidebar } from './components/lobby/LobbySidebar'
+import type { LobbyPage } from './components/lobby/LobbyPage'
+import { HowToPlaySections } from './components/lobby/HowToPlayContent'
 
 // --- Reusable UI Components ---
 
@@ -16,9 +22,7 @@ function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' |
     lg: 'w-20 h-20 text-3xl',
     xl: 'w-28 h-28 text-5xl',
   }[size]
-
   const isImage = src && (src.startsWith('/') || src.startsWith('http'))
-
   return (
     <div className={`${sizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-2)] shadow-inner`}>
       {isImage ? <img src={src} alt="avatar" className="h-full w-full object-cover" /> : <span>{src || '👤'}</span>}
@@ -26,417 +30,185 @@ function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' |
   )
 }
 
-function StatCard({ label, value, colorClass = 'text-[var(--text-main)]' }: { label: string; value: string | number; colorClass?: string }) {
+function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const s = size === 'sm' ? 24 : size === 'md' ? 32 : 48;
   return (
-    <div className="arena-card p-4 text-center">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{label}</div>
-      <div className={`mt-1 text-2xl font-black ${colorClass}`}>{value}</div>
+    <svg width={s} height={s} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 4L26 10V22L16 28L6 22V10L16 4Z" stroke="var(--accent-green)" strokeWidth="2" />
+      <path d="M16 10V22M10 13L22 19M22 13L10 19" stroke="var(--accent-green)" strokeWidth="1.5" opacity="0.5" />
+      <circle cx="16" cy="16" r="4" fill="var(--accent-green)" fillOpacity="0.2" />
+    </svg>
+  )
+}
+
+function AuthScreen() {
+  const [isLogin, setIsLogin] = useState(true)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [avatar, setAvatar] = useState('👨‍🚀')
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { login, signup, loading, authError, clearAuthError, t, uploadAvatar } = useGameStore()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!username || !password) return
+    if (isLogin) login(username, password)
+    else signup(username, password, avatar)
+  }
+
+  const AVATARS = ['👨‍🚀', '🥷', '🧙‍♂️', '🧛', '🤖', '👾', '👽', '🦊']
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-screen bg-[var(--bg)]">
+      <div className="mb-8 flex gap-4"><LanguageSwitcher /><ThemeSwitcher /></div>
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl">
+        <div className="text-center mb-10">
+            <div className="flex justify-center mb-6"><Logo size="lg" /></div>
+            <h1 className="text-3xl font-black text-[var(--text-main)] tracking-tight mb-1 uppercase">SHAXMAT PLUS</h1>
+            <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest">{t.subtitle}</p>
+        </div>
+        <div className="flex mb-10 bg-[var(--surface-3)] p-1 rounded-lg">
+            <button onClick={() => { setIsLogin(true); clearAuthError(); }} className={`flex-1 py-3 rounded text-sm font-bold uppercase transition-all ${isLogin ? 'bg-[var(--surface-2)] text-[var(--text-main)] shadow-lg' : 'text-[var(--text-muted)]'}`}>{t.login}</button>
+            <button onClick={() => { setIsLogin(false); clearAuthError(); }} className={`flex-1 py-3 rounded text-sm font-bold uppercase transition-all ${!isLogin ? 'bg-[var(--surface-2)] text-[var(--text-main)] shadow-lg' : 'text-[var(--text-muted)]'}`}>{t.signup}</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 bg-[var(--surface-3)] p-4 rounded-lg border border-[var(--border)]">
+                  <Avatar src={avatar} size="md" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="btn-secondary flex-1 py-2 text-xs">{isUploading ? '...' : t.uploadPhoto}</button>
+                  <input type="file" ref={fileInputRef} onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setIsUploading(true); const url = await uploadAvatar(f); if (url) setAvatar(url); setIsUploading(false); } }} className="hidden" accept="image/*" />
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {AVATARS.map(a => <button key={a} type="button" onClick={() => setAvatar(a)} className={`text-2xl p-2 rounded hover:bg-[var(--surface-hover)] ${avatar === a ? 'bg-[var(--surface-2)] scale-110 shadow-lg' : 'opacity-40'}`}>{a}</button>)}
+                </div>
+              </div>
+            )}
+            <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-[var(--surface-3)] border border-[var(--border)] rounded-lg px-5 py-4 text-[var(--text-main)] outline-none focus:border-[var(--accent-green)]" placeholder={t.username} />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-[var(--surface-3)] border border-[var(--border)] rounded-lg px-5 py-4 text-[var(--text-main)] outline-none focus:border-[var(--accent-green)]" placeholder={t.password} />
+            {authError && <p className="text-[var(--check-red)] text-sm text-center font-bold">{authError}</p>}
+            <button type="submit" disabled={loading} className="btn-primary w-full py-4 rounded-lg">{loading ? '...' : (isLogin ? t.signIn : t.createAccount)}</button>
+        </form>
+      </motion.div>
     </div>
   )
 }
 
-// --- Main Application Sections ---
+const LOBBY_BTN = 'rounded-md bg-[#81b64c] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-px active:shadow-none disabled:opacity-50 sm:px-4 sm:py-2 sm:text-xs'
 
-function Lobby() {
-  const [activeTab, setActivePage] = useState<'home' | 'arena' | 'friends' | 'leaderboard'>('home')
-  const { user, logout, t, uiTheme, setUiTheme, setLanguage, language, setNotification } = useGameStore()
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-
-  if (!user) return null
-
-  return (
-    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg)]">
-      {/* Sidebar Nav */}
-      <aside className="flex w-[var(--lobby-sidebar-w)] flex-col border-r border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl">
-        <div className="mb-10 flex items-center gap-3">
-          <Logo size="md" />
-          <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight leading-none text-[var(--text-main)]">SHAXMAT+</span>
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--accent-green)]">Arena</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-2">
-          {[
-            { id: 'home', label: t.backToMenu, icon: '🏠' },
-            { id: 'arena', label: t.quickPlay, icon: '⚔️' },
-            { id: 'leaderboard', label: t.leaderboard, icon: '🏆' },
-            { id: 'friends', label: t.friends, icon: '👥' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActivePage(item.id as any)}
-              className={`flex w-full items-center gap-4 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                activeTab === item.id ? 'bg-[var(--accent-green)] text-white shadow-lg' : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-main)]'
-              }`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="mt-auto space-y-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
-            <Avatar src={user.avatar} size="sm" />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-black text-[var(--text-main)]">{user.username}</div>
-              <div className="truncate text-[9px] font-bold uppercase tracking-wider text-[var(--accent-green)]">{getUserTitle(user.wins, t)}</div>
-            </div>
-            <button onClick={() => setIsEditModalOpen(true)} className="text-xs opacity-40 hover:opacity-100">⚙️</button>
-          </div>
-          
-          <div className="flex items-center justify-between gap-2">
-            <LanguageSwitcher compact />
-            <button
-              onClick={() => setUiTheme(uiTheme === 'dark' ? 'light' : 'dark')}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--surface-2)] border border-[var(--border)]"
-            >
-              {uiTheme === 'dark' ? '🌙' : '☀️'}
-            </button>
-          </div>
-
-          <button onClick={logout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] py-3 text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all">
-            🚪 {t.logout}
-          </button>
-        </div>
-      </aside>
-
-      {/* Content Area */}
-      <main className="custom-scrollbar flex-1 overflow-y-auto p-8 lg:p-12">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {activeTab === 'home' && <LobbyHome user={user} t={t} onPlay={() => setActivePage('arena')} />}
-            {activeTab === 'arena' && <ArenaSetup />}
-            {activeTab === 'leaderboard' && <LeaderboardSection />}
-            {activeTab === 'friends' && <FriendsSection />}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-
-      <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
-      <NotificationToast />
-    </div>
-  )
-}
-
-function LobbyHome({ user, t, onPlay }: { user: any; t: any; onPlay: () => void }) {
-  const totalGames = user.wins + user.losses + user.draws
-  const winRate = totalGames > 0 ? Math.round((user.wins / totalGames) * 100) : 0
-
-  return (
-    <div className="mx-auto max-w-5xl space-y-10">
-      <header className="flex flex-col gap-6 md:flex-row md:items-end">
-        <Avatar src={user.avatar} size="xl" />
-        <div className="flex-1">
-          <h1 className="text-4xl font-black tracking-tight text-[var(--text-main)] sm:text-5xl">{user.username}</h1>
-          <p className="mt-2 text-sm font-medium text-[var(--text-muted)] uppercase tracking-[0.3em]">{getUserTitle(user.wins, t)}</p>
-          <div className="mt-6 flex gap-3">
-            <button onClick={onPlay} className="btn-primary flex items-center gap-3">
-              <span className="text-xl">⚔️</span> {t.quickPlay}
-            </button>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(user.public_id)
-                useGameStore.getState().setNotification({ text: t.idCopied, type: 'success' })
-              }}
-              className="btn-secondary flex items-center gap-3"
-            >
-              🆔 {user.public_id}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label={t.winRate} value={`${winRate}%`} colorClass="text-green-500" />
-        <StatCard label={t.wins} value={user.wins} colorClass="text-green-500" />
-        <StatCard label={t.losses} value={user.losses} colorClass="text-red-500" />
-        <StatCard label={t.totalGames} value={totalGames} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <LiveGamesSection />
-        <MatchHistorySection />
-      </div>
-    </div>
-  )
-}
-
-function ArenaSetup() {
+function ModeSelection() {
+  const [lobbyPage, setLobbyPage] = useState<LobbyPage>('home')
   const [opponentId, setOpponentId] = useState('')
   const [difficulty, setDifficulty] = useState('normal')
   const [timeLimit, setTimeLimit] = useState(600)
   const [timeIncrement, setTimeIncrement] = useState(0)
-  const { createGame, startMatchmaking, searchUser, sendInvite, user, t, setNotification } = useGameStore()
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [manualOpen, setManualOpen] = useState(false)
+  const { createGame, user, searchUser, logout, sendInvite, t, fetchLeaderboard, startMatchmaking, setNotification, fetchFriendRequests, fetchNotifications, language, setLanguage, uiTheme, setUiTheme } = useGameStore()
 
-  const handleInvite = async () => {
+  useEffect(() => { fetchLeaderboard(); fetchFriendRequests(); fetchNotifications(); }, [fetchLeaderboard, fetchFriendRequests, fetchNotifications])
+
+  const totalGames = user ? (user.wins + user.losses + user.draws) : 0
+  const winRate = totalGames > 0 ? Math.round((user!.wins / totalGames) * 100) : 0
+
+  const inviteById = async () => {
     if (opponentId.length !== 8) return
-    if (opponentId === user?.public_id) {
-      setNotification({ text: t.selfPlayError, type: 'error' })
-      return
-    }
+    if (opponentId === user?.public_id) { setNotification({ text: t.selfPlayError, type: 'error' }); return }
     const target = await searchUser(opponentId)
     if (target) sendInvite(target.public_id, timeLimit, timeIncrement)
     else setNotification({ text: t.userNotFound, type: 'error' })
   }
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <div className="arena-card p-8">
-        <h2 className="mb-8 text-xl font-black uppercase tracking-widest text-[var(--text-main)]">⚙️ {t.timeControl}</h2>
-        <div className="grid grid-cols-4 gap-3 sm:grid-cols-7">
-          {[
-            { l: '1m', s: 60, i: 0 }, { l: '1+1', s: 60, i: 1 },
-            { l: '3m', s: 180, i: 0 }, { l: '3+2', s: 180, i: 2 },
-            { l: '5m', s: 300, i: 0 }, { l: '10m', s: 600, i: 0 },
-            { l: '30m', s: 1800, i: 0 },
-          ].map((tc) => (
-            <button
-              key={tc.l}
-              onClick={() => { setTimeLimit(tc.s); setTimeIncrement(tc.i) }}
-              className={`rounded-lg py-3 text-[11px] font-black transition-all border ${
-                timeLimit === tc.s && timeIncrement === tc.i
-                  ? 'bg-[var(--accent-green)] text-white border-[var(--accent-green)] shadow-lg'
-                  : 'bg-[var(--bg)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--text-main)]'
-              }`}
-            >
-              {tc.l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
+  if (!user) return null
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="arena-card p-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-black uppercase tracking-widest text-sm">🤖 {t.singlePlayer}</h3>
+  const playPanel = (
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl">
+      <div className="mb-4 text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.timeControl}</div>
+      <div className="mb-6 grid grid-cols-4 gap-2 sm:grid-cols-7">
+        {[{l:'1m',s:60,i:0},{l:'1+1',s:60,i:1},{l:'3m',s:180,i:0},{l:'3+2',s:180,i:2},{l:'5m',s:300,i:0},{l:'10m',s:600,i:0},{l:'30m',s:1800,i:0}].map((tc) => (
+          <button key={tc.l} onClick={() => { setTimeLimit(tc.s); setTimeIncrement(tc.i) }} className={`rounded-lg py-2 text-[10px] font-black transition-all ${timeLimit === tc.s && timeIncrement === tc.i ? 'bg-[#81b64c] text-white shadow-lg' : 'border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-muted)] hover:border-[#81b64c]/40'}`}>{tc.l.toUpperCase()}</button>
+        ))}
+      </div>
+      <div className="space-y-4">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-5 shadow-inner">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-black uppercase tracking-widest">🤖 {t.singlePlayer}</span>
             <div className="flex gap-1">
-              {['easy', 'normal', 'hard'].map(d => (
-                <button
-                  key={d}
-                  onClick={() => setDifficulty(d)}
-                  className={`rounded px-2 py-1 text-[10px] font-black uppercase transition-all ${
-                    difficulty === d ? 'bg-[var(--accent-green)] text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                  }`}
-                >
-                  {(t as any)[d]}
-                </button>
+              {['easy', 'normal', 'hard'].map((d) => (
+                <button key={d} onClick={() => setDifficulty(d)} className={`rounded px-3 py-1 text-[10px] font-black uppercase transition-all ${difficulty === d ? 'bg-[#81b64c] text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}>{(t as any)[d]}</button>
               ))}
             </div>
           </div>
-          <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="btn-primary w-full">
-            Start Training
-          </button>
+          <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className={`${LOBBY_BTN} w-full py-3 text-sm`}>{t.lobbyBattleAi}</button>
         </div>
-
-        <button onClick={startMatchmaking} className="btn-primary flex h-full flex-col items-center justify-center gap-4 text-center">
-          <span className="text-4xl">🌍</span>
-          <div className="flex flex-col">
-            <span className="text-lg">{t.quickPlay}</span>
-            <span className="text-[10px] font-medium opacity-80">Find a random opponent</span>
-          </div>
-        </button>
-      </div>
-
-      <div className="arena-card p-8">
-        <h3 className="mb-6 font-black uppercase tracking-widest text-sm">👤 {t.multiplayer}</h3>
-        <div className="flex gap-3">
-          <input
-            type="text"
-            maxLength={8}
-            value={opponentId}
-            onChange={e => setOpponentId(e.target.value.replace(/\D/g, ''))}
-            placeholder={t.opponentID}
-            className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-6 py-4 font-mono text-xl tracking-[0.3em] outline-none focus:border-[var(--accent-green)] transition-all"
-          />
-          <button onClick={handleInvite} className="btn-primary px-10">
-            {t.go}
-          </button>
-        </div>
+        <button onClick={startMatchmaking} className={`${LOBBY_BTN} flex w-full items-center justify-center gap-3 py-4 text-base shadow-xl`}><span className="text-2xl">🌍</span>{t.quickPlay}</button>
+        <PlayOpponentCard opponentId={opponentId} onOpponentIdChange={setOpponentId} onInviteById={inviteById} />
       </div>
     </div>
   )
-}
-
-// --- Specialized Page Components ---
-
-function LeaderboardSection() {
-  const { leaderboard, t, user, friends, sendFriendRequest, setNotification } = useGameStore()
-  if (!leaderboard || leaderboard.length === 0) return null
-  const friendIds = new Set(friends?.map(f => f.public_id) || [])
 
   return (
-    <div className="arena-card overflow-hidden">
-      <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-8 py-6">
-        <h3 className="text-lg font-black uppercase tracking-widest">🏆 {t.leaderboard}</h3>
+    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg)] text-[var(--text-main)]">
+      <LobbySidebar user={user} activePage={lobbyPage} t={t as any} language={language} uiTheme={uiTheme} onNavigate={setLobbyPage} onEditProfile={() => setIsEditModalOpen(true)} onLogout={logout} onSetLanguage={setLanguage} onToggleTheme={() => setUiTheme(uiTheme === 'dark' ? 'light' : 'dark')} onCopyPublicId={() => { void navigator.clipboard.writeText(user.public_id); setNotification({ text: t.idCopied, type: 'success' }) }} />
+      <div className="custom-scrollbar min-h-screen flex-1 overflow-y-auto pl-[var(--lobby-sidebar-w)]">
+        <div className="p-8 lg:p-12">
+          {lobbyPage === 'home' && (
+            <div className="mx-auto max-w-5xl space-y-10">
+              <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-[var(--surface)] to-[var(--bg)] p-10 shadow-2xl">
+                <h2 className="text-3xl font-black tracking-tight">{t.lobbyBannerTitle}</h2>
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-[var(--text-muted)]">{t.lobbyBannerSub}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"><div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.winRate}</div><div className="mt-1 text-3xl font-black text-[#81b64c]">{winRate}%</div></div>
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"><div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.totalGames}</div><div className="mt-1 text-3xl font-black">{totalGames}</div></div>
+                <button onClick={() => setLobbyPage('play')} className="rounded-xl bg-[#81b64c] p-6 text-white shadow-lg hover:brightness-110 transition-all font-black uppercase text-sm">{t.lobbyNavPlay}</button>
+                <button onClick={() => setLobbyPage('guide')} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--text-main)] hover:bg-[var(--surface-2)] transition-all font-black uppercase text-sm">{t.howToPlayButton}</button>
+              </div>
+              <div className="grid gap-8 lg:grid-cols-2"><LiveGamesSection /><MatchHistorySection /></div>
+            </div>
+          )}
+          {lobbyPage === 'play' && <div className="mx-auto max-w-3xl">{playPanel}</div>}
+          {lobbyPage === 'leaderboard' && <div className="mx-auto max-w-4xl"><LeaderboardSection /></div>}
+          {lobbyPage === 'friends' && <div className="mx-auto max-w-5xl"><FriendsSection /></div>}
+          {lobbyPage === 'guide' && <div className="mx-auto max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 shadow-2xl"><h1 className="text-2xl font-black uppercase tracking-widest">{t.howToPlayTitle}</h1><p className="mt-4 text-base text-[var(--text-muted)]">{t.howToPlayIntro}</p><div className="mt-8"><HowToPlaySections /></div><button onClick={() => setManualOpen(true)} className="btn-primary mt-10">{t.howToPlayButton} (Full Guide)</button></div>}
+        </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-[var(--surface-3)] text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
-            <tr>
-              <th className="px-8 py-4 w-20">Rank</th>
-              <th className="px-8 py-4">Player</th>
-              <th className="px-8 py-4 text-center">Win Rate</th>
-              <th className="px-8 py-4 text-center">Wins</th>
-              <th className="px-8 py-4 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border)] font-bold">
-            {leaderboard.map((u, index) => {
-              const isMe = u.id === user?.id
-              const isFollowing = friendIds.has(u.public_id)
-              const total = u.wins + u.losses + u.draws
-              const rate = total > 0 ? Math.round((u.wins / total) * 100) : 0
-              
-              return (
-                <tr key={u.id} className={`transition-colors hover:bg-[var(--surface-hover)] ${isMe ? 'bg-[var(--accent-green)]/5' : ''}`}>
-                  <td className="px-8 py-5">
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-black ${
-                      index === 0 ? 'bg-yellow-500 text-black' : index === 1 ? 'bg-gray-300 text-black' : index === 2 ? 'bg-orange-500 text-black' : 'bg-[var(--surface-2)] text-[var(--text-muted)]'
-                    }`}>
-                      {index + 1}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <Avatar src={u.avatar} size="sm" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black flex items-center gap-2">
-                          {u.username}
-                          {isMe && <span className="rounded bg-[var(--accent-green)] px-1 py-0.5 text-[8px] uppercase text-white">You</span>}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-green)]">{getUserTitle(u.wins, t)}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5 text-center font-mono text-green-500">{rate}%</td>
-                  <td className="px-8 py-5 text-center font-mono">{u.wins}</td>
-                  <td className="px-8 py-5 text-right">
-                    {!isMe && !isFollowing && (
-                      <button 
-                        onClick={() => {
-                          sendFriendRequest(u.public_id)
-                          setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' })
-                        }}
-                        className="text-[var(--accent-green)] hover:underline text-xs"
-                      >
-                        Follow
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+      <HowToPlayModal isOpen={manualOpen} onClose={() => setManualOpen(false)} />
     </div>
   )
 }
 
 function FriendsSection() {
   const { friends, fetchFriends, unfollowUser, sendInvite, t, pendingRequests, fetchFriendRequests, respondToFriendRequest } = useGameStore()
-  useEffect(() => { fetchFriends(); fetchFriendRequests(); }, [])
-
+  useEffect(() => { fetchFriends(); fetchFriendRequests(); }, [fetchFriends, fetchFriendRequests])
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <div className="arena-card p-8 h-fit">
-        <h3 className="mb-8 text-lg font-black uppercase tracking-widest flex items-center gap-3">👥 {t.friends}</h3>
-        
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-2xl h-fit">
+        <h3 className="mb-8 text-lg font-black uppercase tracking-widest">👥 {t.friends}</h3>
         {pendingRequests?.length > 0 && (
           <div className="mb-8 space-y-3 border-b border-[var(--border)] pb-8">
-            <div className="text-[10px] font-black uppercase text-[var(--accent-green)] tracking-widest mb-4">Pending Requests</div>
             {pendingRequests.map((req: any) => (
-              <div key={req.id} className="flex items-center justify-between rounded-xl bg-[var(--accent-green)]/5 p-4 border border-[var(--accent-green)]/20">
-                <div className="flex items-center gap-3">
-                  <Avatar src={req.from_user.avatar} size="sm" />
-                  <span className="text-sm font-black">{req.from_user.username}</span>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => respondToFriendRequest(req.id, true)} className="rounded-lg bg-[var(--accent-green)] p-2 text-white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
-                  <button onClick={() => respondToFriendRequest(req.id, false)} className="rounded-lg bg-red-500/10 p-2 text-red-500 hover:bg-red-500 hover:text-white transition-all"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-                </div>
+              <div key={req.id} className="flex items-center justify-between rounded-xl bg-[#81b64c]/5 p-4 border border-[#81b64c]/20">
+                <div className="flex items-center gap-4"><Avatar src={req.from_user.avatar} size="sm" /><span className="text-base font-bold">{req.from_user.username}</span></div>
+                <div className="flex gap-2"><button onClick={() => respondToFriendRequest(req.id, true)} className="rounded-lg bg-[#81b64c] p-2 text-white shadow-md"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button></div>
               </div>
             ))}
           </div>
         )}
-
         <div className="space-y-2">
-          {friends?.length === 0 ? (
-            <div className="py-12 text-center text-sm text-[var(--text-muted)] italic">No friends yet. Follow players from the leaderboard!</div>
-          ) : (
+          {friends?.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">No friends yet.</p> : 
             friends?.map((f) => (
-              <div key={f.id} className="flex items-center justify-between rounded-xl p-4 transition-all hover:bg-[var(--surface-hover)] group">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Avatar src={f.avatar} size="sm" />
-                    {f.is_online && <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-lg" />}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-base font-black">{f.username}</span>
-                    <span className="text-[10px] uppercase font-bold text-[var(--accent-green)]">{getUserTitle(f.wins, t)}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                  {f.is_online && (
-                    <button onClick={() => sendInvite(f.public_id)} className="btn-secondary !py-2 !px-4 text-[10px]">{t.inviteFriend}</button>
-                  )}
-                  <button onClick={() => unfollowUser(f.public_id)} className="rounded-lg bg-red-500/10 p-2 text-red-500 hover:bg-red-500 hover:text-white transition-all">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                  </button>
-                </div>
+              <div key={f.id} className="flex items-center justify-between rounded-xl p-4 transition-all hover:bg-[var(--surface-2)] group">
+                <div className="flex items-center gap-4"><div className="relative"><Avatar src={f.avatar} size="sm" />{f.is_online && <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-lg" />}</div><div><div className="text-base font-bold">{f.username}</div><div className="text-[10px] uppercase font-bold text-[#81b64c]">{getUserTitle(f.wins, t)}</div></div></div>
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all"><button onClick={() => sendInvite(f.public_id)} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-2 rounded transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button><button onClick={() => unfollowUser(f.public_id)} className="text-red-500 hover:bg-red-500/10 p-2 rounded transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
               </div>
             ))
-          )}
+          }
         </div>
       </div>
-      
       <MatchHistorySection />
-    </div>
-  )
-}
-
-function LiveGamesSection() {
-  const { liveGames, fetchLiveGames, spectateGame, t } = useGameStore()
-  useEffect(() => { fetchLiveGames(); const interval = setInterval(fetchLiveGames, 10000); return () => clearInterval(interval); }, [])
-
-  return (
-    <div className="arena-card p-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" /> {t.liveGames}
-        </h3>
-        <span className="rounded-full bg-red-500/10 px-3 py-1 text-[10px] font-black text-red-500 uppercase">{liveGames?.length || 0} Live</span>
-      </div>
-      
-      <div className="space-y-4">
-        {liveGames?.length === 0 ? (
-          <div className="py-12 text-center text-sm text-[var(--text-muted)] italic">Quiet arena... No matches right now.</div>
-        ) : (
-          liveGames?.map((g) => (
-            <div key={g.game_id} onClick={() => spectateGame(g.game_id)} className="flex cursor-pointer items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-5 transition-all hover:border-[var(--accent-green)] group shadow-sm">
-              <div className="flex items-center gap-6">
-                <div className="flex -space-x-3">
-                  <Avatar src={g.white_avatar} size="sm" />
-                  <Avatar src={g.black_avatar} size="sm" />
-                </div>
-                <div className="flex flex-col">
-                  <div className="text-sm font-black">{g.white} vs {g.black}</div>
-                  <div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">{g.move_count} moves • {g.game_mode}</div>
-                </div>
-              </div>
-              <span className="text-xs font-black uppercase text-[var(--accent-green)] opacity-0 group-hover:opacity-100 transition-all">Watch Arena →</span>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   )
 }
@@ -444,302 +216,127 @@ function LiveGamesSection() {
 function MatchHistorySection() {
   const { matchHistory, fetchMatchHistory, t, user } = useGameStore()
   const [showAll, setShowAll] = useState(false)
-  useEffect(() => { fetchMatchHistory() }, [])
-
-  if (!matchHistory || matchHistory.length === 0) return null
-  const displayed = showAll ? matchHistory : matchHistory.slice(0, 5)
-
+  useEffect(() => { fetchMatchHistory() }, [fetchMatchHistory])
+  const history = matchHistory || []
+  const displayed = showAll ? history : history.slice(0, 5)
   return (
-    <div className="arena-card p-8">
-      <h3 className="mb-8 text-lg font-black uppercase tracking-widest flex items-center gap-3">📜 {t.matchHistory}</h3>
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-2xl">
+      <h3 className="mb-8 text-lg font-black uppercase tracking-widest">📜 {t.matchHistory}</h3>
       <div className="space-y-3">
-        {displayed.map((m) => {
-          const isWhite = m.white === user?.username
-          const didIWin = m.winner === (isWhite ? 'white' : 'black')
-          const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement'
-          
-          return (
-            <div key={m.id} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-3)] p-4 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="flex -space-x-2">
-                  <Avatar src={m.white_avatar} size="sm" />
-                  <Avatar src={m.black_avatar} size="sm" />
-                </div>
-                <div className="flex flex-col">
-                  <div className="text-xs font-black truncate max-w-[120px]">{m.white} vs {m.black}</div>
-                  <div className="text-[9px] font-bold text-[var(--text-muted)]">{m.date}</div>
-                </div>
-              </div>
-              <div className={`text-[10px] font-black uppercase tracking-wider ${isDraw ? 'text-[var(--text-muted)]' : didIWin ? 'text-green-500' : 'text-red-500'}`}>
-                {isDraw ? t.draw : didIWin ? t.victory : t.defeat}
-              </div>
-            </div>
-          )
-        })}
+        {history.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">No games yet.</p> : 
+          displayed.map((m) => {
+            const isWhite = m.white === user?.username; const didIWin = m.winner === (isWhite ? 'white' : 'black'); const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement';
+            return ( <div key={m.id} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 shadow-sm"><div className="flex items-center gap-4"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold text-[var(--text-main)] truncate max-w-[120px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
+          })
+        }
       </div>
-      {matchHistory.length > 5 && (
-        <button onClick={() => setShowAll(!showAll)} className="mt-6 w-full text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-green)] hover:underline">
-          {showAll ? t.showLess : t.showMore}
-        </button>
-      )}
+      {history.length > 5 && <button onClick={() => setShowAll(!showAll)} className="mt-6 w-full text-xs font-bold text-[#81b64c] uppercase tracking-widest hover:brightness-110 transition-all">{showAll ? t.showLess : t.showMore}</button>}
     </div>
   )
 }
 
-// --- Utils & Shared Layout ---
+function LiveGamesSection() {
+  const { liveGames, fetchLiveGames, spectateGame, t } = useGameStore()
+  useEffect(() => { fetchLiveGames(); const interval = setInterval(fetchLiveGames, 10000); return () => clearInterval(interval); }, [fetchLiveGames])
+  const games = liveGames || []
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-2xl">
+      <div className="mb-8 flex items-center justify-between"><h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" /> {t.liveGames}</h3><span className="rounded-full bg-red-500/10 px-3 py-1 text-[10px] font-black text-red-500 uppercase">{games.length} Live</span></div>
+      <div className="space-y-4">
+        {games.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">No matches right now.</p> : 
+          games.map((g) => ( <div key={g.game_id} onClick={() => spectateGame(g.game_id)} className="flex cursor-pointer items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-5 transition-all hover:border-[#81b64c] group shadow-sm"><div className="flex items-center gap-6"><div className="flex -space-x-3"><Avatar src={g.white_avatar} size="sm" /><Avatar src={g.black_avatar} size="sm" /></div><div className="flex flex-col"><div className="text-base font-bold">{g.white} vs {g.black}</div><div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">{g.move_count} moves • {g.game_mode}</div></div></div><span className="text-xs font-black uppercase text-[#81b64c] opacity-0 group-hover:opacity-100 transition-all">Watch Arena →</span></div> ))
+        }
+      </div>
+    </div>
+  )
+}
+
+function LeaderboardSection() {
+  const { leaderboard, t, user, friends, sendFriendRequest, setNotification } = useGameStore()
+  if (!leaderboard || leaderboard.length === 0) return null
+  const friendIds = new Set(friends?.map(f => f.public_id) || [])
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl overflow-hidden">
+      <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-10 py-8"><h3 className="text-xl font-black uppercase tracking-widest">🏆 {t.leaderboard}</h3></div>
+      <div className="overflow-x-auto text-[var(--text-main)]"><table className="w-full text-left min-w-[600px]"><thead className="bg-[var(--surface-3)] text-[10px] uppercase tracking-widest text-[var(--text-muted)]"><tr><th className="px-10 py-5 w-20">Rank</th><th className="px-10 py-5">Player</th><th className="px-10 py-5 text-center">Wins</th><th className="px-10 py-5 text-right">Action</th></tr></thead><tbody className="divide-y divide-[var(--border)] font-bold">{leaderboard.map((u, index) => { const isMe = u.id === user?.id; const isFollowing = friendIds.has(u.public_id); return ( <tr key={u.id} className={`transition-colors hover:bg-[var(--surface-hover)] ${isMe ? 'bg-[#81b64c]/5' : ''}`}><td className="px-10 py-6 font-mono opacity-30 text-xl">{index + 1}</td><td className="px-10 py-6"><div className="flex items-center gap-5"><Avatar src={u.avatar} size="sm" /><div><div className="flex items-center gap-3">{u.username}{isMe && <span className="rounded bg-[#81b64c] px-2 py-0.5 text-[9px] uppercase text-white shadow-md">You</span>}</div><div className="text-[11px] font-bold uppercase text-[#81b64c]">{getUserTitle(u.wins, t)}</div></div></div></td><td className="px-10 py-6 text-center font-mono text-green-500 text-2xl">{u.wins}</td><td className="px-10 py-6 text-right">{!isMe && !isFollowing && ( <button onClick={() => { sendFriendRequest(u.public_id); setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' }) }} className="text-[#81b64c] hover:underline font-black text-sm">Follow</button> )}</td></tr> ); })}</tbody></table></div>
+    </div>
+  )
+}
+
+function Chat() {
+  const { chatMessages, sendChatMessage, user } = useGameStore()
+  const [text, setText] = useState('')
+  const chatRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight }, [chatMessages])
+  const handleSend = (e: React.FormEvent) => { e.preventDefault(); if (text.trim()) { sendChatMessage(text); setText('') } }
+  return (
+    <div className="flex flex-col h-[300px] rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--surface)] shadow-2xl">
+      <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--surface-3)] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-[var(--text-main)]">
+        {chatMessages.map((msg, i) => (
+          <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-[var(--text-main)]">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[var(--surface-2)] text-[var(--text-main)] border border-[var(--border)]'}`}>{msg.text}</div></div>
+        ))}
+      </div>
+      <form onSubmit={handleSend} className="p-4 bg-[var(--surface-3)] border-t border-[var(--border)] flex gap-3"><input type="text" value={text} onChange={e => setText(e.target.value)} placeholder="..." className="flex-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-5 py-3 text-base text-[var(--text-main)] outline-none focus:border-[#81b64c] shadow-inner" /><button type="submit" className="bg-[#81b64c] text-white p-3 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button></form>
+    </div>
+  )
+}
 
 function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage } = useGameStore()
-  const langs: { id: Language; label: string; flag: string }[] = [
-    { id: 'uz', label: 'UZ', flag: '🇺🇿' },
-    { id: 'ru', label: 'RU', flag: '🇷🇺' },
-    { id: 'en', label: 'EN', flag: '🇺🇸' },
-  ]
-
-  if (compact) {
-    return (
-      <div className="flex rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-1">
-        {langs.map(l => (
-          <button
-            key={l.id}
-            onClick={() => setLanguage(l.id)}
-            className={`px-2 py-1 text-[9px] font-black transition-all ${language === l.id ? 'bg-[var(--accent-green)] text-white rounded' : 'text-[var(--text-muted)]'}`}
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
-    )
-  }
-
+  const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
   return (
-    <div className="flex gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-lg">
-      {langs.map(l => (
-        <button
-          key={l.id}
-          onClick={() => setLanguage(l.id)}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-black transition-all ${
-            language === l.id ? 'bg-[var(--accent-green)] text-white shadow-md' : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
-          }`}
-        >
-          <span>{l.flag}</span> {l.label}
-        </button>
-      ))}
-    </div>
+    <div className={`flex rounded-lg border border-[var(--border)] bg-[var(--surface-3)] p-1 ${compact ? '' : 'shadow-lg'}`}>{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-3 py-1.5 text-[10px] font-black transition-all ${language === l.id ? 'bg-[#81b64c] text-white rounded shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}>{l.label}</button> ))}</div>
   )
 }
 
 function ThemeSwitcher() {
-  const { uiTheme, setUiTheme, t } = useGameStore()
+  const { uiTheme, setUiTheme } = useGameStore()
   const isDark = uiTheme === 'dark'
   return (
-    <button
-      onClick={() => setUiTheme(isDark ? 'light' : 'dark')}
-      className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-2 text-xs font-black transition-all hover:bg-[var(--surface-2)] shadow-lg"
-    >
-      <span>{isDark ? '🌙' : '☀️'}</span>
-      <span className="uppercase tracking-widest text-[var(--text-muted)]">{isDark ? 'Dark' : 'Light'}</span>
-    </button>
+    <button onClick={() => setUiTheme(isDark ? 'light' : 'dark')} className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-lg hover:bg-[var(--surface-2)] transition-all text-xl">{isDark ? '🌙' : '☀️'}</button>
   )
 }
 
 function NotificationToast() {
   const { notification, setNotification } = useGameStore()
   if (!notification) return null
-  const bg = {
-    success: 'bg-[var(--accent-green)]',
-    error: 'bg-red-500',
-    info: 'bg-[var(--accent-cyan)]',
-  }[notification.type]
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50, x: '-50%' }}
-      animate={{ opacity: 1, y: 0, x: '-50%' }}
-      exit={{ opacity: 0, y: 50, x: '-50%' }}
-      className={`fixed bottom-10 left-1/2 z-[200] flex items-center gap-3 rounded-2xl px-8 py-4 text-white shadow-2xl ${bg}`}
-    >
-      <span className="text-sm font-black uppercase tracking-widest">{notification.text}</span>
-      <button onClick={() => setNotification(null)} className="text-white/60 hover:text-white">✕</button>
-    </motion.div>
-  )
-}
-
-// --- Main App Logic ---
-
-export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t } = useGameStore()
-  
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', uiTheme)
-    const saved = localStorage.getItem('shaxmat_user')
-    const token = localStorage.getItem('shaxmat_token')
-    const savedLang = localStorage.getItem('shaxmat_lang') as Language
-    
-    if (savedLang) setLanguage(savedLang)
-    if (saved && token && !user) {
-      const u = JSON.parse(saved)
-      useGameStore.setState({ user: u, token })
-      initSocket(u.public_id)
-    }
-  }, [user, initSocket, setLanguage, uiTheme])
-
-  useEffect(() => {
-    if (gameId) {
-      fetchGame()
-      const interval = setInterval(() => {
-        if (useGameStore.getState().game?.status === 'active') fetchGame()
-      }, 5000)
-      return () => clearInterval(interval)
-    }
-  }, [gameId, fetchGame])
-
-  if (error && !gameId) return (
-    <div className="flex min-h-screen items-center justify-center p-6 text-center">
-      <div className="arena-card p-12 max-w-md">
-        <h2 className="text-2xl font-black mb-4">⚠️ Arena Error</h2>
-        <p className="text-[var(--text-muted)] mb-8">{error}</p>
-        <button onClick={() => { localStorage.clear(); window.location.reload() }} className="btn-primary">Restart Application</button>
-      </div>
-    </div>
-  )
-
-  if (!user) return <AuthScreen />
-  if (!gameId) return <Lobby />
-
-  const isGameOver = game && game.status !== 'active'
-  const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
-  
-  return (
-    <div className="flex h-screen w-full flex-col bg-[var(--bg)] overflow-hidden">
-      {/* Game Header */}
-      <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-8 py-4 shadow-xl">
-        <div className="flex cursor-pointer items-center gap-4 group" onClick={goBackToMenu}>
-          <Logo size="sm" />
-          <span className="text-xl font-black tracking-tight text-white transition-colors group-hover:text-[var(--accent-green)]">SHAXMAT+</span>
-        </div>
-        <div className="flex items-center gap-8">
-          <div className="flex flex-col items-end leading-none">
-            <span className="text-xs font-black uppercase text-[var(--text-muted)]">{user.username}</span>
-            <span className="text-[10px] font-mono font-bold text-[var(--accent-green)]">ID: {user.public_id}</span>
-          </div>
-          <button onClick={goBackToMenu} className="btn-secondary !py-2 !px-4 text-[10px]">Exit Arena</button>
-        </div>
-      </header>
-
-      {/* Game Layout */}
-      <main className="flex flex-1 overflow-hidden p-6 gap-8">
-        <section className="flex flex-1 flex-col items-center justify-center">
-          <div className="flex w-full max-w-[650px] flex-col gap-4">
-            <PlayerBadge 
-              color={isFlipped ? "white" : "black"} 
-              isActive={game?.turn === (isFlipped ? "white" : "black") && !isGameOver} 
-            />
-            <div className="rounded-xl bg-[var(--surface-3)] p-2 shadow-2xl border border-[var(--border)] overflow-hidden">
-              <Board />
-            </div>
-            <PlayerBadge 
-              color={isFlipped ? "black" : "white"} 
-              isActive={game?.turn === (isFlipped ? "black" : "white") && !isGameOver} 
-            />
-          </div>
-        </section>
-
-        <aside className="flex w-[400px] flex-col gap-6">
-          <GameControls />
-          <div className="flex flex-1 flex-col gap-6 overflow-hidden">
-            <MoveHistory />
-            {game?.game_mode === 'Person' && <Chat />}
-          </div>
-        </aside>
-      </main>
-
-      <PromotionModal />
-      <AnimatePresence><NotificationToast /></AnimatePresence>
-      <InviteModal />
-      <SearchingModal />
-      <GameOverModal />
-    </div>
-  )
+  return ( <motion.div initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 50, x: '-50%' }} className={`fixed bottom-10 left-1/2 z-[200] flex items-center gap-4 rounded-2xl px-10 py-5 text-white shadow-2xl font-black uppercase tracking-widest text-sm ${notification.type === 'error' ? 'bg-red-500' : 'bg-[#81b64c]'}`}>{notification.text}<button onClick={() => setNotification(null)} className="ml-4 opacity-50 hover:opacity-100">✕</button></motion.div> )
 }
 
 function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: boolean }) {
   const { t, game } = useGameStore()
   if (!game) return null
-  
-  const isWhite = color === 'white'
-  const capturedPieces = game.captured_pieces?.[color] || []
-  const avatar = isWhite ? game.white_avatar : game.black_avatar
-  const timeLeft = isWhite ? game.white_time_left : game.black_time_left
-  const formatTime = (s: number) => {
-    const mins = Math.floor(s / 60)
-    const secs = s % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
+  const isWhite = color === 'white'; const avatar = isWhite ? game.white_avatar : game.black_avatar; const timeLeft = isWhite ? game.white_time_left : game.black_time_left;
+  const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
   return (
-    <div className={`flex items-center justify-between rounded-xl p-3 transition-all ${isActive ? 'bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30' : 'bg-[var(--surface)] opacity-60'}`}>
-      <div className="flex items-center gap-4">
-        <Avatar src={avatar || ''} size="sm" />
-        <div className="flex flex-col">
-          <span className="text-sm font-black uppercase text-white">{isWhite ? t.white : t.black}</span>
-          <div className="flex gap-0.5 mt-1">
-            {capturedPieces.map((p, i) => <span key={i} className="text-[10px] opacity-40">{p}</span>)}
-          </div>
-        </div>
-      </div>
-      <div className={`rounded-lg px-4 py-2 font-mono text-2xl font-black ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[var(--surface-2)] text-white') : 'text-[var(--text-muted)]'}`}>
-        {formatTime(timeLeft)}
-      </div>
-    </div>
+    <div className={`flex items-center justify-between rounded-2xl p-4 transition-all ${isActive ? 'bg-[#81b64c]/10 border border-[#81b64c]/30 shadow-lg' : 'bg-[var(--surface)] opacity-60'}`}><div className="flex items-center gap-5"><Avatar src={avatar || ''} size="md" /><div className="flex flex-col"><span className="text-lg font-black uppercase text-white tracking-tight">{isWhite ? t.white : t.black}</span><div className="flex gap-1 mt-1 opacity-30">{game.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div><div className={`rounded-xl px-6 py-3 font-mono text-3xl font-black shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[var(--surface-2)] text-white') : 'text-[var(--text-muted)]'}`}>{formatTime(timeLeft)}</div></div>
   )
 }
-
-// --- Modals (Simplified versions for App.tsx integration) ---
 
 function InviteModal() {
   const { inviteRequest, respondToInvite, t } = useGameStore()
   if (!inviteRequest) return null
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="arena-card p-10 max-w-sm w-full text-center">
-        <div className="text-5xl mb-6">🎮</div>
-        <h2 className="text-xl font-black uppercase tracking-widest mb-2">Game Challenge</h2>
-        <p className="text-[var(--text-muted)] mb-8"><span className="text-[var(--accent-green)]">{inviteRequest.from_username}</span> invited you to a match!</p>
-        <div className="flex gap-4">
-          <button onClick={() => respondToInvite(false)} className="btn-secondary flex-1">Decline</button>
-          <button onClick={() => respondToInvite(true)} className="btn-primary flex-1">Accept</button>
-        </div>
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-md p-6">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border)] p-12 max-w-sm w-full text-center shadow-2xl">
+        <div className="text-7xl mb-8">🎮</div>
+        <h2 className="text-2xl font-black uppercase tracking-widest mb-4">Challenge</h2>
+        <p className="text-[var(--text-muted)] text-base mb-10"><span className="text-[#81b64c] font-black">{inviteRequest.from_username}</span> invited you to a match!</p>
+        <div className="flex gap-4"><button onClick={() => respondToInvite(false)} className="btn-secondary flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="btn-primary flex-1 py-4 text-base shadow-2xl">Accept</button></div>
       </motion.div>
     </div>
   )
 }
 
 function SearchingModal() {
-  const { isSearching, cancelMatchmaking, matchedOpponent, matchOffer, acceptMatchOffer, t } = useGameStore()
+  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer, t } = useGameStore()
   if (!isSearching) return null
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-xl p-6 text-center">
-      <div className="max-w-md w-full">
-        {!matchedOpponent ? (
-          <div className="space-y-8">
-            <div className="mx-auto h-24 w-24 rounded-full border-4 border-t-[var(--accent-green)] border-white/5 animate-spin" />
-            <h2 className="text-3xl font-black uppercase tracking-tighter">Searching...</h2>
-            <p className="text-[var(--text-muted)] uppercase tracking-[0.3em] text-xs">Entering the Global Arena</p>
-            <button onClick={cancelMatchmaking} className="btn-secondary !py-4">Cancel Queue</button>
-          </div>
-        ) : (
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="arena-card p-10">
-            <div className="mb-10 text-xs font-black text-[var(--accent-green)] uppercase tracking-[0.5em]">Opponent Found</div>
-            <div className="flex items-center justify-center gap-10 mb-10">
-              <Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" />
-              <div className="text-4xl font-black text-[var(--accent-green)] animate-pulse">VS</div>
-              <Avatar src={matchedOpponent.avatar} size="lg" />
-            </div>
-            <button onClick={acceptMatchOffer} className="btn-primary w-full text-xl py-6">Accept Battle</button>
-          </motion.div>
-        )}
-      </div>
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/95 backdrop-blur-2xl p-6 text-center">
+      {!matchedOpponent ? ( <div className="space-y-10"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Entering the Arena</p><button onClick={cancelMatchmaking} className="btn-secondary mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
+        <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="rounded-[3rem] bg-[var(--surface)] border border-[#81b64c]/30 p-16 max-w-lg w-full shadow-[0_50px_150px_rgba(0,0,0,1)]"><div className="mb-12 text-xs font-black text-[#81b64c] uppercase tracking-[0.6em]">Opponent Found</div><div className="flex items-center justify-center gap-12 mb-16"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><div className="text-6xl font-black text-[#81b64c] animate-pulse drop-shadow-[0_0_20px_rgba(129,182,76,0.5)]">VS</div><Avatar src={matchedOpponent.avatar} size="lg" /></div><button onClick={acceptMatchOffer} className="btn-primary w-full text-2xl py-8 shadow-[0_20px_60px_rgba(129,182,76,0.4)]">Accept Battle</button></motion.div>
+      )}
     </div>
   )
 }
@@ -748,15 +345,45 @@ function GameOverModal() {
   const { game, user, t, goBackToMenu } = useGameStore()
   if (!game || game.status === 'active') return null
   const isWinner = (game.winner === 'white' && user?.id === game.white_player_id) || (game.winner === 'black' && user?.id === game.black_player_id)
-  
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-md p-6">
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="arena-card p-12 max-w-md w-full text-center">
-        <div className="text-8xl mb-8">{isWinner ? '🏆' : '🏁'}</div>
-        <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">{isWinner ? t.victory : t.gameOver}</h2>
-        <p className="text-[var(--text-muted)] mb-10 uppercase tracking-widest text-xs">{t.betterLuck}</p>
-        <button onClick={goBackToMenu} className="btn-primary w-full">Return to Lobby</button>
-      </motion.div>
+      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-[3rem] bg-[var(--surface)] border border-[var(--border)] p-16 max-w-md w-full text-center shadow-[0_50px_150px_rgba(0,0,0,1)]"><div className="text-9xl mb-10">{isWinner ? '🏆' : '🏁'}</div><h2 className="text-5xl font-black uppercase tracking-tighter mb-6">{isWinner ? t.victory : t.gameOver}</h2><p className="text-[var(--text-muted)] text-lg mb-12 uppercase tracking-widest font-bold">{t.betterLuck}</p><button onClick={goBackToMenu} className="btn-primary w-full py-6 text-xl shadow-2xl">Return to Lobby</button></motion.div>
+    </div>
+  )
+}
+
+export default function App() {
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t } = useGameStore()
+  useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id) } }, [user, initSocket, setLanguage, uiTheme])
+  useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); return () => clearInterval(interval) } }, [gameId, fetchGame])
+  useEffect(() => { if (!gameId) return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [gameId])
+  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[var(--bg)] text-white"><div className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border)] p-16 max-w-md shadow-2xl"><h2 className="text-3xl font-black mb-6">⚠️ Arena Error</h2><p className="text-[var(--text-muted)] mb-10 text-lg leading-relaxed">{error}</p><button onClick={() => { localStorage.clear(); window.location.reload() }} className="btn-primary px-12">Restart Application</button></div></div>
+  if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
+  if (!gameId) return <div className="min-h-screen flex flex-col bg-[var(--bg)]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /></div>
+  const isGameOver = game && game.status !== 'active'; const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
+  return (
+    <div className="flex h-screen w-full flex-col bg-[var(--bg)] overflow-hidden">
+      <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-10 py-6 shadow-2xl relative z-50">
+        <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="md" /><span className="text-2xl font-black tracking-tight text-[var(--text-main)] group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span></div>
+        <div className="flex items-center gap-10">
+          <div className="flex flex-col items-end leading-none"><span className="text-sm font-black uppercase text-[var(--text-muted)] tracking-widest">{user.username}</span><span className="text-sm font-mono font-bold text-[#81b64c] mt-1.5 opacity-70 tracking-widest">ID: {user.public_id}</span></div>
+          <button onClick={goBackToMenu} className="btn-secondary !py-2.5 !px-6 text-xs shadow-md">Exit Arena</button>
+        </div>
+      </header>
+      <main className="flex flex-1 overflow-hidden p-8 gap-12 max-w-[1800px] mx-auto w-full items-stretch">
+        <section className="flex flex-1 flex-col items-center justify-center overflow-hidden">
+          <div className="flex w-full max-w-[650px] flex-col gap-6">
+            <PlayerBadge color={isFlipped ? "white" : "black"} isActive={game?.turn === (isFlipped ? "white" : "black") && !isGameOver} />
+            <div className="rounded-2xl bg-[var(--surface-3)] p-2 shadow-[0_40px_120px_rgba(0,0,0,0.8)] border border-[var(--border)] overflow-hidden shrink-0"><Board /></div>
+            <PlayerBadge color={isFlipped ? "black" : "white"} isActive={game?.turn === (isFlipped ? "black" : "white") && !isGameOver} />
+          </div>
+        </section>
+        <aside className="flex w-[450px] flex-col gap-8 overflow-hidden shrink-0">
+          <GameControls />
+          <div className="flex flex-1 flex-col gap-8 overflow-hidden"><MoveHistory />{game?.game_mode === 'Person' && <Chat />}</div>
+        </aside>
+      </main>
+      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>
   )
 }
