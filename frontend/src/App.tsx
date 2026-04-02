@@ -272,7 +272,7 @@ function Chat() {
   return (
     <div className="flex flex-col h-[300px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl text-[var(--text-main)]">
       <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-white">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
-      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-white">
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
         {chatMessages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-white">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[#3c3a37] text-white border border-[#403d39]'}`}>{msg.text}</div></div>
         ))}
@@ -310,9 +310,9 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
   const isWhite = color === 'white'; const avatar = isWhite ? game?.white_avatar : game?.black_avatar; const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0);
   const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
   return (
-    <div className={`flex items-center justify-between w-full p-2 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
-      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1 mt-0.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
-      <div className={`px-5 py-1.5 rounded-lg font-mono text-xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
+    <div className={`flex items-center justify-between w-full p-2.5 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
+      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1.5 mt-1 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
+      <div className={`px-6 py-2 rounded-lg font-mono text-2xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
     </div>
   )
 }
@@ -333,7 +333,7 @@ function GameOverModal() {
 }
 
 function InviteModal() {
-  const { inviteRequest, respondToInvite, t } = useGameStore()
+  const { inviteRequest, respondToInvite } = useGameStore()
   if (!inviteRequest) return null
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#262421] border border-[#403d39] rounded-[2.5rem] text-center shadow-[0_40px_120px_rgba(0,0,0,1)]"><div className="text-6xl mb-8">🎮</div><h2 className="text-3xl font-black text-white uppercase mb-4 tracking-tighter">Challenge</h2><p className="text-[#bababa] text-base mb-10 font-black uppercase tracking-widest text-white"><span className="text-[#81b64c]">{inviteRequest.from_username}</span> wants to play!</p><div className="flex gap-5"><button onClick={() => respondToInvite(false)} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base shadow-2xl">Accept</button></div></motion.div></div>
@@ -341,7 +341,8 @@ function InviteModal() {
 }
 
 function SearchingModal() {
-  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer, t } = useGameStore()
+  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer } = useGameStore()
+  const { t } = useGameStore.getState()
   if (!isSearching) return null
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
@@ -379,11 +380,11 @@ export default function App() {
       </header>
       <main className="flex flex-1 overflow-hidden p-4 gap-8 max-w-[1800px] mx-auto w-full items-center justify-center">
         <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto min-h-0">
-          {game && <div className="w-full mb-2 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
+          {game && <div className="w-full mb-2.5 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
           <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-170px)]">
             <Board />
           </div>
-          {game && <div className="w-full mt-2 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
+          {game && <div className="w-full mt-2.5 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
         </section>
         <aside className="hidden xl:flex w-[380px] order-2 flex-col gap-4 shrink-0 min-h-0 overflow-hidden h-full">
           <GameControls />
