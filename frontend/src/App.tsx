@@ -262,7 +262,7 @@ function Chat() {
   return (
     <div className="flex flex-col h-[350px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl">
       <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-[var(--text-main)]">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
-      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-[var(--text-main)]">
         {chatMessages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-[var(--text-main)]">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[#3c3a37] text-white border border-[#403d39]'}`}>{msg.text}</div></div>
         ))}
@@ -272,11 +272,11 @@ function Chat() {
   )
 }
 
-function LanguageSwitcher() {
+function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage } = useGameStore()
   const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
   return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
+    <div className={`flex rounded-lg border border-[#403d3a] bg-[#211f1d] p-1 ${compact ? '' : 'shadow-lg'}`}>{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
   )
 }
 
@@ -343,7 +343,7 @@ function GameOverModal() {
 }
 
 export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t } = useGameStore()
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme } = useGameStore()
   useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id) } }, [user, initSocket, setLanguage, uiTheme])
   useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); return () => clearInterval(interval) } }, [gameId, fetchGame])
   useEffect(() => { if (!gameId) return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [gameId])
@@ -356,7 +356,7 @@ export default function App() {
       <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-10 py-8 shadow-2xl relative z-50">
         <div className="flex cursor-pointer items-center gap-8 group" onClick={goBackToMenu}><Logo size="md" /><div className="flex flex-col"><span className="text-3xl font-black tracking-tight text-[var(--text-main)] group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[11px] font-black tracking-[0.5em] text-[#81b64c] mt-2 leading-none uppercase">Arena</span></div></div>
         <div className="flex items-center gap-12">
-          <div className="flex flex-col items-end leading-none"><span className="text-sm text-[var(--text-muted)] uppercase font-black mb-1.5 tracking-widest text-[var(--text-main)]">{user.username}</span><span className="text-sm font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
+          <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[var(--text-muted)] uppercase font-black mb-1.5 tracking-widest text-[var(--text-main)]">{user.username}</span><span className="text-sm font-mono font-bold text-[#81b64c] mt-1.5 opacity-70 tracking-widest">ID: {user.public_id}</span></div>
           <button onClick={goBackToMenu} className="btn-secondary !py-2.5 !px-6 text-xs shadow-md">Exit Arena</button>
         </div>
       </header>
@@ -364,7 +364,7 @@ export default function App() {
         <section className="flex flex-1 flex-col items-center justify-center overflow-hidden">
           <div className="flex w-full max-w-[650px] flex-col gap-6">
             <PlayerBadge color={isFlipped ? "white" : "black"} isActive={game?.turn === (isFlipped ? "white" : "black") && !isGameOver} />
-            <div className="rounded-2xl bg-[var(--surface-3)] p-1.5 md:p-2 rounded border border-[var(--border)] shadow-[0_40px_120px_rgba(0,0,0,0.9)]"><Board /></div>
+            <div className="rounded-2xl bg-[var(--surface-3)] p-1.5 md:p-2 shadow-[0_40px_120px_rgba(0,0,0,0.8)] border border-[var(--border)] overflow-hidden shrink-0"><Board /></div>
             <PlayerBadge color={isFlipped ? "black" : "white"} isActive={game?.turn === (isFlipped ? "black" : "white") && !isGameOver} />
           </div>
         </section>
