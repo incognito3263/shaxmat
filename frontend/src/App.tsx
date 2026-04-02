@@ -206,13 +206,13 @@ function MatchHistorySection() {
   const history = matchHistory || []
   const displayed = showAll ? history : history.slice(0, 5)
   return (
-    <div className="w-full bg-[#262421] border border-[#403d39] rounded-[2rem] p-8 shadow-2xl">
+    <div className="w-full bg-[#262421] border border-[#403d39] rounded-[2rem] p-8 shadow-2xl text-white">
       <h3 className="text-sm font-bold text-white mb-8 uppercase tracking-widest flex items-center gap-3">📜 {t.matchHistory}</h3>
       <div className="space-y-3">
         {history.length === 0 ? <p className="py-10 text-center text-[#bababa] text-xs uppercase opacity-30">No games yet.</p> : 
           displayed.map((m) => {
             const isWhite = m.white === user?.username; const didIWin = m.winner === (isWhite ? 'white' : 'black'); const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement';
-            return ( <div key={m.id} className="p-3 rounded bg-[#211f1d] border border-[#403d3a] flex items-center justify-between text-sm"><div className="flex items-center gap-4 text-white"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[100px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
+            return ( <div key={m.id} className="p-3 rounded bg-[#211f1d] border border-[#403d3a] flex items-center justify-between text-sm"><div className="flex items-center gap-4 text-white"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[120px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
           })
         }
       </div>
@@ -244,7 +244,7 @@ function LeaderboardSection() {
   return (
     <div className="w-full bg-[#262421] border border-[#403d39] rounded-[2rem] p-10 shadow-2xl text-white">
       <h3 className="text-xl font-black uppercase tracking-widest mb-10 flex items-center gap-3">🏆 {t.leaderboard}</h3>
-      <div className="overflow-x-auto"><table className="w-full text-left min-w-[500px]"><thead className="text-xs uppercase tracking-widest opacity-40 border-b border-[#403d3a]"><tr><th className="pb-6 px-4 w-12">#</th><th className="pb-6 px-4">{t.player}</th><th className="pb-6 px-4 text-center">Wins</th><th className="pb-6 px-4 text-right">Action</th></tr></thead><tbody className="text-base font-bold">{leaderboard.map((u, index) => { const isMe = u.id === user?.id; const isFollowing = friendIds.has(u.public_id); return ( <tr key={u.id} className={`border-b border-[#403d3a]/50 hover:bg-[#3c3a37] transition-colors ${isMe ? 'bg-[#81b64c]/5' : ''}`}><td className="py-6 px-4 opacity-30 font-mono text-2xl">{index + 1}</td><td className="py-6 px-4 flex items-center gap-6"><div className="relative"><Avatar src={u.avatar} size="sm" />{u.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#2d2b28]" />}</div><div><div className="flex items-center gap-3 text-lg">{u.username}{isMe && <span className="text-[10px] text-[#81b64c] border border-[#81b64c]/30 px-2 py-0.5 rounded">YOU</span>}</div><div className="text-xs text-[#81b64c] uppercase tracking-widest mt-1">{getUserTitle(u.wins, t)}</div></div></td><td className="py-6 px-4 text-center font-mono text-green-500 text-3xl">{u.wins}</td><td className="py-6 px-4 text-right">{!isMe && !isFollowing && <button onClick={() => { sendFriendRequest(u.public_id); setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' }); }} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-3 rounded transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>}</td></tr> ); })}</tbody></table></div>
+      <div className="overflow-x-auto"><table className="w-full text-left min-w-[500px] text-white"><thead className="text-xs uppercase tracking-widest opacity-40 border-b border-[#403d3a]"><tr><th className="pb-6 px-4 w-12">#</th><th className="pb-6 px-4">{t.player}</th><th className="pb-6 px-4 text-center">Wins</th><th className="pb-6 px-4 text-right">Action</th></tr></thead><tbody className="text-base font-bold">{leaderboard.map((u, index) => { const isMe = u.id === user?.id; const isFollowing = friendIds.has(u.public_id); return ( <tr key={u.id} className={`border-b border-[#403d3a]/50 hover:bg-[#3c3a37] transition-colors ${isMe ? 'bg-[#81b64c]/5' : ''}`}><td className="py-6 px-4 opacity-30 font-mono text-2xl">{index + 1}</td><td className="py-6 px-4 flex items-center gap-6"><div className="relative"><Avatar src={u.avatar} size="sm" />{u.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#2d2b28]" />}</div><div><div className="flex items-center gap-3 text-lg">{u.username}{isMe && <span className="text-[10px] text-[#81b64c] border border-[#81b64c]/30 px-2 py-0.5 rounded">YOU</span>}</div><div className="text-xs text-[#81b64c] uppercase tracking-widest mt-1">{getUserTitle(u.wins, t)}</div></div></td><td className="py-6 px-4 text-center font-mono text-green-500 text-3xl">{u.wins}</td><td className="py-6 px-4 text-right">{!isMe && !isFollowing && <button onClick={() => { sendFriendRequest(u.public_id); setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' }); }} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-3 rounded transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>}</td></tr> ); })}</tbody></table></div>
     </div>
   )
 }
@@ -258,7 +258,7 @@ function Chat() {
   return (
     <div className="flex flex-col h-[350px] rounded-[2rem] overflow-hidden border border-[#403d39] bg-[#262421] shadow-2xl">
       <div className="px-6 py-4 border-b border-[#403d39] bg-[#211f1d] flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-widest opacity-50 text-white">Live Chat</span><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" /></div>
-      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-white">
         {chatMessages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.from === user?.username ? 'items-end' : 'items-start'}`}><span className="text-[10px] opacity-40 mb-1.5 px-1 font-bold uppercase tracking-wider text-white">{msg.from}</span><div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${msg.from === user?.username ? 'bg-[#81b64c] text-white shadow-lg' : 'bg-[#3c3a37] text-white border border-[#403d39]'}`}>{msg.text}</div></div>
         ))}
@@ -287,7 +287,7 @@ function ThemeSwitcher() {
 function ViewSwitcher() {
   const { viewMode, setViewMode, t, setNotification } = useGameStore()
   return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]"><button onClick={() => setViewMode('2d')} className={`px-4 py-2 rounded text-sm font-black transition-all ${viewMode === '2d' ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>2D</button><button onClick={() => setNotification({ text: t.comingSoon, type: 'info' })} className={`px-4 py-2 rounded text-sm font-black opacity-20 flex items-center gap-2`}>3D <span className="w-1.5 h-1.5 bg-[#81b64c] rounded-full animate-pulse" /></button></div>
+    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]"><button onClick={() => setViewMode('2d')} className={`px-4 py-2 rounded text-sm font-black transition-all ${viewMode === '2d' ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>2D</button><button onClick={() => setNotification({ text: t.comingSoon, type: 'info' })} className={`px-4 py-2 rounded text-sm font-black opacity-20 flex items-center gap-2 text-white`}>3D <span className="w-1.5 h-1.5 bg-[#81b64c] rounded-full animate-pulse" /></button></div>
   )
 }
 
@@ -299,44 +299,6 @@ function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: 
     <div className={`flex items-center justify-between w-full p-4 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
       <div className="flex items-center gap-6"><Avatar src={avatar || ''} size="md" /><div><div className="text-xl font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1.5 mt-1.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-base font-bold">{p}</span>)}</div></div></div>
       <div className={`px-8 py-3 rounded-xl font-mono text-3xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
-    </div>
-  )
-}
-
-function EditProfileModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { user, t, uploadAvatar, updateProfile } = useGameStore()
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  if (!isOpen || !user) return null
-  return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 bg-[#262421] border border-[#403d39] rounded-[2rem] relative shadow-2xl"><button onClick={onClose} className="absolute top-8 right-8 text-white/30 hover:text-white transition-colors text-3xl">✕</button><h2 className="text-2xl font-black uppercase tracking-widest mb-10 text-center text-white">{t.editProfile}</h2><div className="flex flex-col items-center gap-10"><Avatar src={user.avatar} size="lg" /><div className="w-full space-y-8"><button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-base">{isUploading ? '...' : t.chooseAvatar}</button><input type="file" ref={fileInputRef} onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setIsUploading(true); const url = await uploadAvatar(f); if (url) await updateProfile(url); setIsUploading(false); } }} className="hidden" accept="image/*" /><div className="grid grid-cols-4 gap-4 bg-[#211f1d] p-4 rounded-xl border border-[#403d3a]">{AVATARS.map(a => <button key={a} onClick={() => updateProfile(a)} className={`text-4xl p-4 rounded hover:bg-[#3c3a37] transition-all ${user.avatar === a ? 'bg-[#3c3a37] shadow-xl scale-110' : 'opacity-30 hover:opacity-100'}`}>{a}</button>)}</div></div></div></motion.div></div>
-  )
-}
-
-export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t, tickClock } = useGameStore()
-  useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id)
-    if (localStorage.getItem('shaxmat_game_id')) { useGameStore.setState({ gameId: parseInt(localStorage.getItem('shaxmat_game_id')!, 10) }) }
-  } }, [user, initSocket, setLanguage, uiTheme])
-  useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); const clockInterval = setInterval(() => { tickClock() }, 1000); return () => { clearInterval(interval); clearInterval(clockInterval); } } }, [gameId, fetchGame, tickClock])
-  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[#1b1a17] text-white"><div className="text-center bg-[#262421] border border-[#403d39] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload() }} className="btn-primary py-4 px-10">Reset Application</button></div></div>
-  if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
-  if (!gameId) return <div className="min-h-screen flex flex-col bg-[#1b1a17]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /></div>
-  const isGameOver = game && game.status !== 'active'; const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
-  return (
-    <div className="flex h-screen w-full flex-col bg-[#1b1a17] overflow-hidden text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-8 shadow-2xl relative z-50">
-        <div className="flex cursor-pointer items-center gap-8 group" onClick={goBackToMenu}><Logo size="md" /><div className="flex flex-col"><span className="text-3xl font-black tracking-tight text-white group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[11px] font-black tracking-[0.5em] text-[#81b64c] mt-2 leading-none uppercase">Arena</span></div></div>
-        <div className="flex items-center gap-12">
-          <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1.5 tracking-widest">{user.username}</span><span className="text-sm font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
-          <button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-2.5 px-6 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-xs shadow-md">Exit Arena</button>
-        </div>
-      </header>
-      <main className="flex flex-1 overflow-hidden p-8 gap-12 max-w-[1700px] mx-auto w-full items-start justify-center">
-        <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto">{game && <div className="w-full mb-6 flex items-end"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}<div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)]"><Board /></div>{game && <div className="w-full mt-6 flex items-start"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}</section>
-        <aside className="w-full xl:w-[450px] order-2 flex flex-col gap-8 shrink-0"><GameControls /><div className="flex flex-1 flex-col gap-8 flex-1 overflow-hidden"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
-      </main>
-      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>
   )
 }
@@ -369,9 +331,44 @@ function SearchingModal() {
   if (!isSearching) return null
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
-      {!matchedOpponent ? ( <div className="space-y-10"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black text-white uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
-        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)]"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
+      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
+        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
       )}
+    </div>
+  )
+}
+
+export default function App() {
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, t, tickClock } = useGameStore()
+  const { isSpectator } = useGameStore.getState()
+  
+  useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id)
+    if (localStorage.getItem('shaxmat_game_id')) { useGameStore.setState({ gameId: parseInt(localStorage.getItem('shaxmat_game_id')!, 10) }) }
+  } }, [user, initSocket, setLanguage, uiTheme])
+  
+  useEffect(() => { if (gameId) { fetchGame(); const interval = setInterval(() => { if (useGameStore.getState().game?.status === 'active') fetchGame() }, 5000); const clockInterval = setInterval(() => { tickClock() }, 1000); return () => { clearInterval(interval); clearInterval(clockInterval); } } }, [gameId, fetchGame, tickClock])
+  
+  useEffect(() => { if (!gameId) return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [gameId])
+  
+  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[#1b1a17] text-white"><div className="text-center bg-[#262421] border border-[#403d39] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload(); }} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-10 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide">Reset Application</button></div></div>
+  if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
+  if (!gameId) return <div className="min-h-screen flex flex-col bg-[#1b1a17]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /></div>
+  const isGameOver = game && game.status !== 'active'; const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
+  
+  return (
+    <div className="min-h-screen flex flex-col bg-[#1b1a17] overflow-hidden text-white">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-8 shadow-2xl relative z-50">
+        <div className="flex cursor-pointer items-center gap-8 group" onClick={goBackToMenu}><Logo size="md" /><div className="flex flex-col text-white"><span className="text-3xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[11px] font-black tracking-[0.5em] text-[#81b64c] mt-2 leading-none uppercase">Arena</span></div></div>
+        <div className="flex items-center gap-12">
+          <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1.5 tracking-widest">{user.username}</span><span className="text-sm font-mono font-bold text-[#81b64c] mt-1.5 opacity-70 tracking-widest">ID: {user.public_id}</span></div>
+          <button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-2.5 px-6 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-xs shadow-md">Exit Arena</button>
+        </div>
+      </header>
+      <main className="flex flex-1 overflow-hidden p-8 gap-12 max-w-[1700px] mx-auto w-full items-start justify-center">
+        <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto">{game && <div className="w-full mb-6 flex items-end"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}<div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)]"><Board /></div>{game && <div className="w-full mt-6 flex items-start"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}</section>
+        <aside className="w-full xl:w-[450px] order-2 flex flex-col gap-8 shrink-0"><GameControls /><div className="flex flex-1 flex-col gap-8 flex-1 overflow-hidden"><MoveHistory />{game?.game_mode === 'Person' && !isSpectator && <Chat />}</div></aside>
+      </main>
+      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>
   )
 }
