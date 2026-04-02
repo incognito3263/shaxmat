@@ -27,7 +27,7 @@ function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' |
   }[size]
   const isImage = src && (src.startsWith('/') || src.startsWith('http'))
   return (
-    <div className={`${sizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-2)] shadow-inner`}>
+    <div className={`${sizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#403d3a] bg-[#2c2c2c] shadow-inner`}>
       {isImage ? <img src={src} alt="avatar" className="h-full w-full object-cover" /> : <span>{src || '👤'}</span>}
     </div>
   )
@@ -96,8 +96,6 @@ function AuthScreen() {
   )
 }
 
-const LOBBY_BTN = 'rounded-md bg-[#81b64c] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-none disabled:opacity-50 sm:px-4 sm:py-2 sm:text-xs'
-
 function ModeSelection() {
   const [lobbyPage, setLobbyPage] = useState<LobbyPage>('home')
   const [opponentId, setOpponentId] = useState('')
@@ -163,9 +161,9 @@ function ModeSelection() {
                 <div className="space-y-4">
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-5 shadow-inner">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-black uppercase tracking-widest">🤖 {t.singlePlayer}</span><div className="flex gap-1">{['easy', 'normal', 'hard'].map((d) => ( <button key={d} onClick={() => setDifficulty(d)} className={`rounded px-3 py-1 text-[10px] font-black uppercase transition-all ${difficulty === d ? 'bg-[#81b64c] text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-main)] opacity-30 hover:opacity-100'}`}>{(t as any)[d]}</button> ))}</div></div>
-                    <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="bg-[#81b64c] text-white font-bold py-3 px-6 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-sm">Battle AI</button>
+                    <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="rounded-md bg-[#81b64c] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-none w-full">Battle AI</button>
                   </div>
-                  <button onClick={startMatchmaking} className="bg-[#81b64c] text-white font-bold py-5 px-8 rounded-xl shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full flex items-center justify-center gap-4 text-xl"><span className="text-2xl">🌍</span>{t.quickPlay}</button>
+                  <button onClick={startMatchmaking} className="rounded-md bg-[#81b64c] px-4 py-5 text-xl font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-none w-full flex items-center justify-center gap-4"><span className="text-2xl">🌍</span>{t.quickPlay}</button>
                   <PlayOpponentCard opponentId={opponentId} onOpponentIdChange={setOpponentId} onInviteById={inviteById} />
                 </div>
               </div>
@@ -203,7 +201,7 @@ function FriendsSection() {
             friends.map((f) => (
               <div key={f.id} className="flex items-center justify-between rounded-xl p-4 transition-all hover:bg-[var(--surface-2)] group text-[var(--text-main)]">
                 <div className="flex items-center gap-4"><div className="relative"><Avatar src={f.avatar} size="sm" />{f.is_online && <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-lg" />}</div><div><div className="text-base font-bold">{f.username}</div><div className="text-[10px] uppercase font-bold text-[#81b64c]">{getUserTitle(f.wins, t)}</div></div></div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all text-white">
                   <button onClick={() => sendInvite(f.public_id)} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-2 rounded transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>
                   <button onClick={() => unfollowUser(f.public_id)} className="text-red-500 hover:bg-red-500/10 p-2 rounded transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
@@ -288,7 +286,7 @@ function LanguageSwitcher() {
   const { language, setLanguage } = useGameStore()
   const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
   return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a]">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100 text-white'}`}>{l.label}</button> ))}</div>
+    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a] text-white">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
   )
 }
 
@@ -372,7 +370,7 @@ export default function App() {
   
   return (
     <div className="h-screen w-full flex flex-col bg-[#1b1a17] overflow-hidden text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2.5 shadow-2xl relative z-50">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2 shadow-2xl relative z-50">
         <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col text-white"><span className="text-2xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[9px] font-black tracking-[0.4em] text-[#81b64c] mt-1 leading-none uppercase">Arena</span></div></div>
         <div className="flex items-center gap-8">
           <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1 tracking-widest">{user.username}</span><span className="text-[11px] font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
@@ -381,11 +379,11 @@ export default function App() {
       </header>
       <main className="flex flex-1 overflow-hidden p-4 gap-8 max-w-[1800px] mx-auto w-full items-center justify-center">
         <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto min-h-0">
-          {game && <div className="w-full mb-2.5 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
-          <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-170px)]">
+          {game && <div className="w-full mb-2 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
+          <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-160px)]">
             <Board />
           </div>
-          {game && <div className="w-full mt-2.5 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
+          {game && <div className="w-full mt-2 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
         </section>
         <aside className="hidden xl:flex w-[380px] order-2 flex-col gap-4 shrink-0 min-h-0 overflow-hidden h-full">
           <GameControls />

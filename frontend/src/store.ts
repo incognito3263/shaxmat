@@ -190,71 +190,30 @@ const SOUNDS: Record<string, HTMLAudioElement> = {
 
 function playSound(type: keyof typeof SOUNDS) {
   const { soundSettings } = useGameStore.getState()
-  const settingKeyMap: Record<string, keyof typeof soundSettings> = {
-    move: 'move',
-    capture: 'capture',
-    check: 'check',
-    end: 'end',
-    start: 'move'
-  }
-  const settingKey = settingKeyMap[type]
-  if (settingKey && !soundSettings[settingKey]) return
   const audio = SOUNDS[type];
-  if (audio) {
-    audio.currentTime = 0;
-    audio.play().catch(() => {}); 
+  if (audio && soundSettings[type as keyof typeof soundSettings] !== false) {
+    audio.currentTime = 0; audio.play().catch(() => {});
   }
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  user: null,
-  token: null,
-  gameId: null,
-  game: null,
-  selectedSquare: null,
-  legalMoves: [],
-  pendingPromotion: null,
-  loading: false,
-  error: null,
-  authError: null,
-  vsAI: true,
-  socket: null,
-  inviteRequest: null,
-  language: 'uz',
-  t: translations.uz,
-  leaderboard: [],
-  opponentResignedName: null,
-  chatMessages: [],
-  isSearching: false,
-  matchedOpponent: null,
-  matchOffer: null,
-  isInviting: null,
+  user: null, token: null, gameId: null, game: null, selectedSquare: null, legalMoves: [],
+  pendingPromotion: null, loading: false, error: null, authError: null, vsAI: true,
+  socket: null, inviteRequest: null, language: 'uz', t: translations.uz,
+  leaderboard: [], opponentResignedName: null, chatMessages: [],
+  isSearching: false, matchedOpponent: null, matchOffer: null, isInviting: null,
   soundSettings: { move: true, capture: true, check: true, end: true },
   boardTheme: localStorage.getItem('shaxmat_theme') || 'wood',
-  pieceTheme: 'classic',
-  uiTheme: (localStorage.getItem('shaxmat_ui_theme') as 'dark' | 'light') || 'dark',
+  pieceTheme: 'classic', uiTheme: (localStorage.getItem('shaxmat_ui_theme') as 'dark' | 'light') || 'dark',
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
-  drawOffer: null,
-  friendRequest: null,
-  reviewMode: false,
-  reviewIndex: 0,
-  reviewBoardData: null,
-  liveGames: [],
-  isSpectator: false,
-  matchHistory: [],
-  friends: [],
-  notification: null,
-  pendingRequests: [],
-  notifications: [],
+  drawOffer: null, friendRequest: null, reviewMode: false, reviewIndex: 0,
+  reviewBoardData: null, liveGames: [], isSpectator: false, matchHistory: [],
+  friends: [], notification: null, pendingRequests: [], notifications: [],
 
   tickClock: () => {
-    const { game } = get()
-    if (!game || game.status !== 'active') return
-    if (game.turn === 'white') {
-      set({ game: { ...game, white_time_left: Math.max(0, game.white_time_left - 1) } })
-    } else {
-      set({ game: { ...game, black_time_left: Math.max(0, game.black_time_left - 1) } })
-    }
+    const { game } = get(); if (!game || game.status !== 'active') return;
+    if (game.turn === 'white') set({ game: { ...game, white_time_left: Math.max(0, game.white_time_left - 1) } })
+    else set({ game: { ...game, black_time_left: Math.max(0, game.black_time_left - 1) } })
   },
 
   clearAuthError: () => set({ authError: null }),
@@ -262,57 +221,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
   signup: async (username, password, avatar) => {
     set({ loading: true, authError: null })
     try {
-      const res = await fetch(`/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, avatar }),
-      })
+      const res = await fetch(`/game/signup`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password, avatar }) })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(getApiErrorMessage(data, 'Signup failed'))
-      set({ user: data.user, token: data.access_token })
-      localStorage.setItem('shaxmat_token', data.access_token)
-      localStorage.setItem('shaxmat_user', JSON.stringify(data.user))
-      get().initSocket(data.user.public_id)
+      set({ user: data.user, token: data.access_token }); localStorage.setItem('shaxmat_token', data.access_token); localStorage.setItem('shaxmat_user', JSON.stringify(data.user)); get().initSocket(data.user.public_id)
     } catch (e: any) { set({ authError: e.message }) } finally { set({ loading: false }) }
   },
 
   login: async (username, password) => {
     set({ loading: true, authError: null })
     try {
-      const res = await fetch(`/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
+      const res = await fetch(`/game/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(getApiErrorMessage(data, 'Login failed'))
-      set({ user: data.user, token: data.access_token })
-      localStorage.setItem('shaxmat_token', data.access_token)
-      localStorage.setItem('shaxmat_user', JSON.stringify(data.user))
-      get().initSocket(data.user.public_id)
+      set({ user: data.user, token: data.access_token }); localStorage.setItem('shaxmat_token', data.access_token); localStorage.setItem('shaxmat_user', JSON.stringify(data.user)); get().initSocket(data.user.public_id)
     } catch (e: any) { set({ authError: e.message }) } finally { set({ loading: false }) }
   },
 
   uploadAvatar: async (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
+    const formData = new FormData(); formData.append('file', file)
     try {
-      const res = await fetch('/upload-avatar', { method: 'POST', body: formData })
+      const res = await fetch('/game/upload-avatar', { method: 'POST', body: formData })
       if (!res.ok) throw new Error('Upload failed')
-      const data = await res.json()
-      return data.url
+      const data = await res.json(); return data.url
     } catch (e) { console.error(e); return null }
   },
 
   updateProfile: async (avatar, countryCode) => {
-    const { user } = get()
-    if (!user) return
+    const { user } = get(); if (!user) return
     try {
-      const res = await fetch('/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id: user.public_id, avatar: avatar || user.avatar, country_code: countryCode ?? user.country_code })
-      })
+      const res = await fetch('/game/update-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ public_id: user.public_id, avatar: avatar || user.avatar, country_code: countryCode ?? user.country_code }) })
       if (res.ok) { const updated = await res.json(); set({ user: updated }); localStorage.setItem('shaxmat_user', JSON.stringify(updated)) }
     } catch (e) { console.error(e) }
   },
@@ -346,7 +284,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   fetchLeaderboard: async () => {
     try {
-      const res = await fetch(`/leaderboard`)
+      const res = await fetch(`/game/leaderboard`)
       if (res.ok) { const data = await res.json(); set({ leaderboard: data }) }
     } catch (e) { console.error(e) }
   },
@@ -354,7 +292,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchFriends: async () => {
     const { user } = get(); if (!user) return
     try {
-      const res = await fetch(`/users/friends/${user.id}`)
+      const res = await fetch(`/game/users/friends/${user.id}`)
       if (res.ok) { const data = await res.json(); set({ friends: data }) }
     } catch (e) { console.error(e) }
   },
@@ -362,7 +300,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchFriendRequests: async () => {
     const { user } = get(); if (!user) return
     try {
-      const res = await fetch(`/users/friend-requests/${user.id}`)
+      const res = await fetch(`/game/users/friend-requests/${user.id}`)
       if (res.ok) { const data = await res.json(); set({ pendingRequests: data }) }
     } catch (e) { console.error(e) }
   },
@@ -370,19 +308,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchNotifications: async () => {
     const { user } = get(); if (!user) return
     try {
-      const res = await fetch(`/notifications/${user.id}`)
+      const res = await fetch(`/game/notifications/${user.id}`)
       if (res.ok) { const data = await res.json(); set({ notifications: data }) }
+    } catch (e) { console.error(e) }
+  },
+
+  fetchLiveGames: async () => {
+    try {
+      const res = await fetch(`/game/live`)
+      if (res.ok) { const data = await res.json(); set({ liveGames: data }) }
     } catch (e) { console.error(e) }
   },
 
   createGame: async (mode, opponentId, aiDifficulty, timeLimit, timeIncrement) => {
     set({ loading: true, error: null })
     try {
-      const res = await fetch(`/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game_mode: mode, opponent_public_id: opponentId, creator_public_id: get().user?.public_id, time_limit: timeLimit, time_increment: timeIncrement, ai_difficulty: aiDifficulty })
-      })
+      const res = await fetch(`/game/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ game_mode: mode, opponent_public_id: opponentId, creator_public_id: get().user?.public_id, time_limit: timeLimit, time_increment: timeIncrement, ai_difficulty: aiDifficulty }) })
       if (res.ok) { const data = await res.json(); set({ gameId: data.id }); localStorage.setItem('shaxmat_game_id', data.id.toString()); get().fetchGame() }
     } catch (e: any) { set({ error: e.message }) } finally { set({ loading: false }) }
   },
@@ -390,14 +331,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchGame: async () => {
     const { gameId } = get(); if (!gameId) return
     try {
-      const res = await fetch(`/${gameId}`)
+      const res = await fetch(`/game/${gameId}`)
       if (res.ok) {
         const data = await res.json()
         const oldHistoryLen = get().game?.move_history?.length || 0
         if (data.move_history?.length > oldHistoryLen) {
           if (data.status !== 'active') playSound('end')
           else if (data.in_check) playSound('check')
-          else if (data.move_history[data.move_history.length-1].includes('x')) playSound('capture')
           else playSound('move')
         }
         set({ game: data, error: null })
@@ -409,7 +349,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchMatchHistory: async () => {
     const { user } = get(); if (!user) return
     try {
-      const res = await fetch(`/history/${user.id}`)
+      const res = await fetch(`/game/history/${user.id}`)
       if (res.ok) { const data = await res.json(); set({ matchHistory: data }) }
     } catch (e) { console.error(e) }
   },
@@ -433,64 +373,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   makeMove: async (from, to, promotion) => {
     try {
-      const res = await fetch(`/${get().gameId}/move`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from_square: from, to_square: to, promotion })
-      })
+      const res = await fetch(`/game/${get().gameId}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from_square: from, to_square: to, promotion }) })
       if (res.ok) { set({ selectedSquare: null, legalMoves: [], pendingPromotion: null }); get().fetchGame() }
     } catch (e) { console.error(e) }
   },
 
   aiMove: async () => {
-    try { await fetch(`/${get().gameId}/ai-move`, { method: 'POST' }); get().fetchGame() }
+    try { await fetch(`/game/${get().gameId}/ai-move`, { method: 'POST' }); get().fetchGame() }
     catch (e) { console.error(e) }
   },
 
-  goBackToMenu: () => {
-    localStorage.removeItem('shaxmat_game_id'); localStorage.removeItem('shaxmat_spectator')
-    set({ gameId: null, game: null, selectedSquare: null, legalMoves: [], reviewMode: false, isSpectator: false })
-  },
-
-  searchUser: async (pid) => {
-    try { const res = await fetch(`/users/search/${pid}`); return res.ok ? await res.json() : null }
-    catch { return null }
-  },
-
-  sendInvite: (pid, limit, inc) => get().socket?.send(JSON.stringify({ type: 'invite', target_id: pid, time_limit: limit || 600, time_increment: inc || 0 })),
-  respondToInvite: (accept) => {
-    const { inviteRequest, socket } = get(); if (!inviteRequest || !socket) return;
-    if (accept) { socket.send(JSON.stringify({ type: 'accept_invite', target_id: inviteRequest.from_id })); get().createGame('Person', inviteRequest.from_id, undefined, inviteRequest.time_limit, inviteRequest.time_increment) }
-    set({ inviteRequest: null })
-  },
+  toggleAI: () => set(s => ({ vsAI: !s.vsAI })),
+  goBackToMenu: () => { localStorage.removeItem('shaxmat_game_id'); set({ gameId: null, game: null, isSpectator: false }) },
+  searchUser: async (pid) => { try { const res = await fetch(`/game/users/search/${pid}`); return res.ok ? await res.json() : null } catch { return null } },
+  sendInvite: (pid, limit, inc) => get().socket?.send(JSON.stringify({ type: 'invite', target_id: pid, time_limit: limit, time_increment: inc })),
+  respondToInvite: (accept) => { if (accept && get().inviteRequest) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().inviteRequest!.from_id })); get().createGame('Person', get().inviteRequest!.from_id) }; set({ inviteRequest: null }) },
   startMatchmaking: () => get().socket?.send(JSON.stringify({ type: 'find_match' })),
-  cancelMatchmaking: () => { get().socket?.send(JSON.stringify({ type: 'leave_queue' })); set({ isSearching: false, matchedOpponent: null }) },
-  acceptMatchOffer: () => {
-    const { matchOffer, socket } = get(); if (!matchOffer || !socket) return;
-    socket.send(JSON.stringify({ type: 'accept_invite', target_id: matchOffer.from_id }));
-    get().createGame('Person', matchOffer.from_id, undefined, matchOffer.time_limit, matchOffer.time_increment);
-    set({ matchedOpponent: null, matchOffer: null, isSearching: false })
-  },
-  spectateGame: async (gid) => { set({ isSpectator: true, gameId: gid }); localStorage.setItem('shaxmat_game_id', gid.toString()); localStorage.setItem('shaxmat_spectator', 'true'); get().fetchGame() },
-  resign: async () => { await fetch(`/${get().gameId}/resign?user_id=${get().user?.id}`, { method: 'POST' }); get().goBackToMenu() },
-  startReview: () => set({ reviewMode: true, reviewIndex: get().game?.move_history?.length || 0 }),
-  setReviewIndex: async (idx) => {
-    const gid = get().gameId; if (!gid) return
-    const res = await fetch(`/${gid}/review/${idx}`)
-    if (res.ok) set({ reviewIndex: idx, reviewBoardData: await res.json() })
-  },
-  resolvePromotion: async (p) => { const { pendingPromotion } = get(); if (pendingPromotion) get().makeMove(pendingPromotion.from, pendingPromotion.to, p) },
-  cancelPromotion: () => set({ pendingPromotion: null, selectedSquare: null, legalMoves: [] }),
-  setPieceTheme: () => {},
-  setSoundSettings: () => {},
-  markNotificationRead: async () => {},
-  sendFriendRequest: async () => {},
-  respondToFriendRequest: async () => {},
-  followUser: async () => {},
-  unfollowUser: async () => {},
-  offerDraw: () => {},
-  respondToDraw: () => {},
-  sendChatMessage: () => {},
-  sendMatchStart: () => {},
-  newGame: async () => {}
+  cancelMatchmaking: () => { get().socket?.send(JSON.stringify({ type: 'leave_queue' })); set({ isSearching: false }) },
+  acceptMatchOffer: () => { if (get().matchOffer) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().matchOffer!.from_id })); get().createGame('Person', get().matchOffer!.from_id) }; set({ matchOffer: null, isSearching: false }) },
+  spectateGame: async (gid) => { set({ isSpectator: true, gameId: gid }); get().fetchGame() },
+  resign: async () => { await fetch(`/game/${get().gameId}/resign?user_id=${get().user?.id}`, { method: 'POST' }); get().goBackToMenu() },
+  startReview: () => set({ reviewMode: true }),
+  setReviewIndex: async (idx) => { const res = await fetch(`/game/${get().gameId}/review/${idx}`); if (res.ok) set({ reviewIndex: idx, reviewBoardData: await res.json() }) },
+  resolvePromotion: async (p) => { if (get().pendingPromotion) get().makeMove(get().pendingPromotion!.from, get().pendingPromotion!.to, p) },
+  cancelPromotion: () => set({ pendingPromotion: null }),
+  setPieceTheme: () => {}, setSoundSettings: () => {}, markNotificationRead: async () => {}, sendFriendRequest: async () => {}, respondToFriendRequest: async () => {}, followUser: async () => {}, unfollowUser: async () => {}, offerDraw: () => {}, respondToDraw: () => {}, sendChatMessage: () => {}, sendMatchStart: () => {}, newGame: async () => {}
 }))
