@@ -99,6 +99,9 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(heartbeat())
     yield
 
+# Ensure upload directories exist
+os.makedirs("uploads/avatars", exist_ok=True)
+
 app = FastAPI(title="CHESS NEXUS API", lifespan=lifespan)
 
 # Mount uploads directory
