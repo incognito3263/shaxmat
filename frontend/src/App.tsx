@@ -283,45 +283,6 @@ function Chat() {
   )
 }
 
-function LanguageSwitcher() {
-  const { language, setLanguage } = useGameStore()
-  const langs = [{ id: 'uz', label: 'UZ' }, { id: 'ru', label: 'RU' }, { id: 'en', label: 'EN' }]
-  return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a] text-white">{langs.map(l => ( <button key={l.id} onClick={() => setLanguage(l.id as any)} className={`px-4 py-2 rounded text-sm font-black transition-all ${language === l.id ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>{l.label}</button> ))}</div>
-  )
-}
-
-function ThemeSwitcher() {
-  const { uiTheme, setUiTheme } = useGameStore()
-  const isDark = uiTheme === 'dark'
-  return (
-    <div className="flex p-1 rounded-xl bg-[#211f1d] border border-[#403d3a] shadow-inner relative group h-12">
-      <div 
-        className={`absolute inset-1 w-[calc(50%-4px)] bg-[#81b64c] rounded-lg transition-all duration-300 ease-out shadow-[0_0_15px_rgba(129,182,76,0.3)] ${isDark ? 'left-1' : 'left-[calc(50%+4.5px)]'}`}
-      />
-      <button 
-        onClick={() => setUiTheme('dark')}
-        className={`relative z-10 flex-1 flex items-center justify-center gap-2 text-[10px] font-black tracking-widest transition-colors duration-300 ${isDark ? 'text-white' : 'text-[#bababa]'}`}
-      >
-        <span className="text-sm">🌙</span> DARK
-      </button>
-      <button 
-        onClick={() => setUiTheme('light')}
-        className={`relative z-10 flex-1 flex items-center justify-center gap-2 text-[10px] font-black tracking-widest transition-colors duration-300 ${!isDark ? 'text-white' : 'text-[#bababa]'}`}
-      >
-        LIGHT <span className="text-sm">☀️</span>
-      </button>
-    </div>
-  )
-}
-
-function ViewSwitcher() {
-  const { viewMode, setViewMode, t, setNotification } = useGameStore()
-  return (
-    <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a] text-white"><button onClick={() => setViewMode('2d')} className={`px-4 py-2 rounded text-sm font-black transition-all ${viewMode === '2d' ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>2D</button><button onClick={() => setNotification({ text: t.comingSoon, type: 'info' })} className={`px-4 py-2 rounded text-sm font-black opacity-20 flex items-center gap-2 text-white`}>3D <span className="w-1.5 h-1.5 bg-[#81b64c] rounded-full animate-pulse" /></button></div>
-  )
-}
-
 function NotificationToast() {
   const { notification, setNotification } = useGameStore()
   if (!notification) return null
