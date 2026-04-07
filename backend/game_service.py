@@ -59,6 +59,10 @@ def save_game_to_db(game_id: int, gs: GameState):
         # Calculate time spent on the move
         now = datetime.utcnow()
         elapsed = int((now - game.last_move_at).total_seconds())
+        # Ensure at least 1 second is subtracted if any time passed at all, 
+        # especially for AI moves which are near-instant.
+        if elapsed == 0:
+            elapsed = 1
         
         # Subtract time from the player who just MOVED
         # gs.turn has already switched to the next player

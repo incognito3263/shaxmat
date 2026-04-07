@@ -308,11 +308,28 @@ def ai_move(game_id: int, db: Session = Depends(get_db)):
     if not game:
         raise HTTPException(404, "Game not found")
 
+    # Debug info
+    print(f"DEBUG: AI move requested for game {game_id}. Mode: {game.game_mode}, Turn: {game.turn}")
+
+    # Simplify check: If turn is 'black', and it's an AI game, let it move.
+    # We don't strictly check white_player_id/black_player_id here to avoid configuration issues.
+    if game.game_mode.upper() != "AI":
+        raise HTTPException(400, f"This is not an AI game (Mode: {game.game_mode})")
+
     gs = get_or_create_game_state(game_id, game)
     if gs is None:
         raise HTTPException(500, "Could not load game state")
+    
     if gs.game_over or game.status != "active":
         raise HTTPException(400, "Game is already over")
+
+    # Only allow AI to move if it's the current turn's color
+    # In standard AI mode, AI is 'black'.
+    if gs.turn == "white":
+         # If white is the human, and it's currently white's turn, AI shouldn't move.
+         # But if the game is set up where AI is white, we'd need to know that.
+         # For now, assume AI is always 'black' in AI mode.
+         raise HTTPException(400, "It is currently the human player's (White) turn")
 
     # Determine depth based on difficulty
     depth = 2
@@ -330,6 +347,7 @@ def ai_move(game_id: int, db: Session = Depends(get_db)):
     if not gs.apply_move(move):
         raise HTTPException(500, "AI generated an illegal move")
 
+    # We manually set a small delay or ensure time is subtracted in save_game_to_db
     put_game_state(game_id, gs)
     db.refresh(game)
 

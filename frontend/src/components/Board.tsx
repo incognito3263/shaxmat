@@ -58,9 +58,9 @@ export default function Board() {
   const displayCols = isFlipped ? [...COLS].reverse() : COLS
 
   return (
-    <div className="flex w-full items-stretch justify-center gap-1">
+    <div className="flex h-full w-full items-center justify-center gap-1 md:gap-3">
       <EvalBar />
-      <div className="relative flex-1 bg-[#2a2420] rounded-r-sm overflow-hidden shadow-2xl aspect-[8/10]">
+      <div className="relative h-full w-full max-w-[calc((100vh-40px)*0.85)] bg-[#2a2420] rounded-lg overflow-hidden shadow-[0_40px_150px_rgba(0,0,0,1)] aspect-[17/20] flex-shrink-0">
         <div className="grid grid-cols-8 grid-rows-10 h-full w-full">
           {displayRows.flatMap((row, rIndex) =>
             displayCols.map((col, cIndex) => {

@@ -343,7 +343,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
         set({ game: data, error: null })
         if (data.game_mode === 'AI' && data.turn === 'black' && data.status === 'active' && !isAiMoving) {
-          setTimeout(() => get().aiMove(), 600)
+          setTimeout(() => get().aiMove(), 3000)
         }
       }
     } catch (e: any) { set({ error: e.message }) }

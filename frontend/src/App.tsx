@@ -6,6 +6,7 @@ import Board from './components/Board'
 import GameControls from './components/GameControls'
 import MoveHistory from './components/MoveHistory'
 import PromotionModal from './components/PromotionModal'
+import { PlayerBadge } from './components/game/PlayerBadge'
 import { PlayOpponentCard } from './components/arena/PlayOpponentCard'
 import { HowToPlayModal } from './components/arena/HowToPlayModal'
 import { EditProfileModal } from './components/EditProfileModal'
@@ -27,8 +28,8 @@ function Avatar({ src, size = 'sm' }: { src: string; size?: 'sm' | 'md' | 'lg' |
   }[size]
   const isImage = src && (src.startsWith('/') || src.startsWith('http'))
   return (
-    <div className={`${sizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#403d3a] bg-[#2c2c2c] shadow-inner`}>
-      {isImage ? <img src={src} alt="avatar" className="h-full w-full object-cover" /> : <span>{src || '👤'}</span>}
+    <div className={`${sizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-2)] shadow-inner`}>
+      {isImage ? <img src={src} alt="avatar" className="h-full w-full object-cover" /> : <span className="text-[var(--text-main)]">{src || '👤'}</span>}
     </div>
   )
 }
@@ -62,7 +63,6 @@ function AuthScreen() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-screen bg-[var(--bg)]">
-      <div className="mb-8 flex gap-4"><LanguageSwitcher /><ThemeSwitcher /></div>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-10 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl">
         <div className="text-center mb-10">
             <div className="flex justify-center mb-6"><Logo size="lg" /></div>
@@ -144,8 +144,8 @@ function ModeSelection() {
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"><div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.winRate}</div><div className="mt-1 text-3xl font-black text-[#81b64c]">{winRate}%</div></div>
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"><div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.totalGames}</div><div className="mt-1 text-3xl font-black">{totalGames}</div></div>
-                <button onClick={() => setLobbyPage('play')} className="rounded-xl bg-[#81b64c] p-6 text-white shadow-lg hover:brightness-110 transition-all font-black uppercase text-sm">Play Now</button>
-                <button onClick={() => setLobbyPage('guide')} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--text-main)] hover:bg-[var(--surface-2)] transition-all font-black uppercase text-sm">Guide</button>
+                <button onClick={() => setLobbyPage('play')} className="rounded-xl bg-[#81b64c] p-6 text-white shadow-lg hover:brightness-110 transition-all font-black uppercase text-sm">{t.lobbyNavPlay}</button>
+                <button onClick={() => setLobbyPage('guide')} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--text-main)] hover:bg-[var(--surface-2)] transition-all font-black uppercase text-sm">{t.howToPlayButton}</button>
               </div>
               <div className="grid gap-8 lg:grid-cols-2"><LiveGamesSection /><MatchHistorySection /></div>
             </div>
@@ -162,7 +162,7 @@ function ModeSelection() {
                 <div className="space-y-4">
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-5 shadow-inner">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-black uppercase tracking-widest">🤖 {t.singlePlayer}</span><div className="flex gap-1">{['easy', 'normal', 'hard'].map((d) => ( <button key={d} onClick={() => setDifficulty(d)} className={`rounded px-3 py-1 text-[10px] font-black uppercase transition-all ${difficulty === d ? 'bg-[#81b64c] text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-main)] opacity-30 hover:opacity-100'}`}>{(t as any)[d]}</button> ))}</div></div>
-                    <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="rounded-md bg-[#81b64c] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-none w-full">Battle AI</button>
+                    <button onClick={() => createGame('AI', undefined, difficulty, timeLimit, timeIncrement)} className="rounded-md bg-[#81b64c] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-none w-full">{t.lobbyBattleAi}</button>
                   </div>
                   <button onClick={startMatchmaking} className="rounded-md bg-[#81b64c] px-4 py-5 text-xl font-bold uppercase tracking-wide text-white shadow-[0_2px_0_0_#457528] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-none w-full flex items-center justify-center gap-4"><span className="text-2xl">🌍</span>{t.quickPlay}</button>
                   <PlayOpponentCard opponentId={opponentId} onOpponentIdChange={setOpponentId} onInviteById={inviteById} />
@@ -198,7 +198,7 @@ function FriendsSection() {
           </div>
         )}
         <div className="space-y-2 text-[var(--text-main)]">
-          {(!friends || friends.length === 0) ? <p className="py-10 text-center text-[var(--text-muted)] italic">No friends yet.</p> : 
+          {(!friends || friends.length === 0) ? <p className="py-10 text-center text-[var(--text-muted)] italic">{t.noFriends || 'Do\'stlar yo\'q.'}</p> : 
             friends.map((f) => (
               <div key={f.id} className="flex items-center justify-between rounded-xl p-4 transition-all hover:bg-[var(--surface-2)] group text-[var(--text-main)]">
                 <div className="flex items-center gap-4"><div className="relative"><Avatar src={f.avatar} size="sm" />{f.is_online && <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-lg" />}</div><div><div className="text-base font-bold">{f.username}</div><div className="text-[10px] uppercase font-bold text-[#81b64c]">{getUserTitle(f.wins, t)}</div></div></div>
@@ -225,7 +225,7 @@ function MatchHistorySection() {
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-2xl text-[var(--text-main)]">
       <h3 className="mb-8 text-lg font-black uppercase tracking-widest">📜 {t.matchHistory}</h3>
       <div className="space-y-3">
-        {history.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">No games yet.</p> : 
+        {history.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">{t.noHistory}</p> : 
           displayed.map((m) => {
             const isWhite = m.white === user?.username; const didIWin = m.winner === (isWhite ? 'white' : 'black'); const isDraw = m.status.startsWith('draw') || m.status === 'stalemate' || m.status === 'draw_agreement';
             return ( <div key={m.id} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 shadow-sm"><div className="flex items-center gap-4 text-[var(--text-main)]"><div className="flex -space-x-2"><Avatar src={m.white_avatar} size="sm" /><Avatar src={m.black_avatar} size="sm" /></div><div className="font-bold truncate max-w-[120px]">{m.white} vs {m.black}</div></div><div className={`font-black uppercase tracking-wider text-xs ${isDraw ? 'opacity-40' : didIWin ? 'text-green-500' : 'text-red-500'}`}>{isDraw ? t.draw : didIWin ? t.victory : t.defeat}</div></div> );
@@ -242,10 +242,10 @@ function LiveGamesSection() {
   const games = liveGames || []
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-2xl text-[var(--text-main)]">
-      <div className="mb-8 flex items-center justify-between"><h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" /> {t.liveGames}</h3><span className="rounded-full bg-red-500/10 px-3 py-1 text-[10px] font-black text-red-500 uppercase">{games.length} Live</span></div>
+      <div className="mb-8 flex items-center justify-between"><h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" /> {t.liveGames}</h3><span className="rounded-full bg-red-500/10 px-3 py-1 text-[10px] font-black text-red-500 uppercase">{games.length} {t.liveGames}</span></div>
       <div className="space-y-4">
-        {games.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">No matches right now.</p> : 
-          games.map((g) => ( <div key={g.game_id} onClick={() => spectateGame(g.game_id)} className="flex cursor-pointer items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-5 transition-all hover:border-[#81b64c] group shadow-sm"><div className="flex items-center gap-6 text-[var(--text-main)]"><div className="flex -space-x-3"><Avatar src={g.white_avatar} size="sm" /><Avatar src={g.black_avatar} size="sm" /></div><div className="flex flex-col"><div className="text-base font-bold">{g.white} vs {g.black}</div><div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">{g.move_count} moves • {g.game_mode}</div></div></div><span className="text-xs font-black text-[#81b64c] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">Watch Arena →</span></div> ))
+        {games.length === 0 ? <p className="py-10 text-center text-[var(--text-muted)] italic">{t.noLiveGames}</p> : 
+          games.map((g) => ( <div key={g.game_id} onClick={() => spectateGame(g.game_id)} className="flex cursor-pointer items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-5 transition-all hover:border-[#81b64c] group shadow-sm"><div className="flex items-center gap-6 text-[var(--text-main)]"><div className="flex -space-x-3"><Avatar src={g.white_avatar} size="sm" /><Avatar src={g.black_avatar} size="sm" /></div><div className="flex flex-col"><div className="text-base font-bold">{g.white} vs {g.black}</div><div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">{g.move_count} {t.move} • {g.game_mode}</div></div></div><span className="text-xs font-black text-[#81b64c] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">{t.spectate} →</span></div> ))
         }
       </div>
     </div>
@@ -259,7 +259,7 @@ function LeaderboardSection() {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl overflow-hidden text-[var(--text-main)]">
       <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-10 py-8"><h3 className="text-xl font-black uppercase tracking-widest">🏆 {t.leaderboard}</h3></div>
-      <div className="overflow-x-auto"><table className="w-full text-left min-w-[500px] text-[var(--text-main)]"><thead className="bg-[var(--surface-3)] text-[10px] uppercase tracking-widest text-[var(--text-muted)]"><tr><th className="px-10 py-5 w-12">Rank</th><th className="px-10 py-5">Player</th><th className="px-10 py-5 text-center">Wins</th><th className="px-10 py-5 text-right">Action</th></tr></thead><tbody className="divide-y divide-[var(--border)] font-bold">{leaderboard.map((u, index) => { const isMe = u.id === user?.id; const isFollowing = friendIds.has(u.public_id); return ( <tr key={u.id} className={`transition-colors hover:bg-[var(--surface-hover)] ${isMe ? 'bg-[#81b64c]/5' : ''}`}><td className="py-6 px-4 opacity-30 font-mono text-xl">{index + 1}</td><td className="py-6 px-4 flex items-center gap-6"><div className="relative"><Avatar src={u.avatar} size="sm" />{u.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--surface)]" />}</div><div><div className="flex items-center gap-3 text-lg">{u.username}{isMe && <span className="rounded bg-[#81b64c] px-2 py-0.5 text-[9px] uppercase text-white shadow-md">You</span>}</div><div className="text-xs text-[#81b64c] uppercase tracking-widest mt-1">{getUserTitle(u.wins, t)}</div></div></td><td className="py-6 px-4 text-center font-mono text-green-500 text-2xl">{u.wins}</td><td className="py-6 px-4 text-right">{!isMe && !isFollowing && <button onClick={() => { sendFriendRequest(u.public_id); setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' }); }} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-3 rounded transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>}</td></tr> ); })}</tbody></table></div>
+      <div className="overflow-x-auto"><table className="w-full text-left min-w-[500px] text-[var(--text-main)]"><thead className="bg-[var(--surface-3)] text-[10px] uppercase tracking-widest text-[var(--text-muted)]"><tr><th className="px-10 py-5 w-12">{t.rank}</th><th className="px-10 py-5">{t.player}</th><th className="px-10 py-5 text-center">{t.wins}</th><th className="px-10 py-5 text-right">{t.actions}</th></tr></thead><tbody className="divide-y divide-[var(--border)] font-bold">{leaderboard.map((u, index) => { const isMe = u.id === user?.id; const isFollowing = friendIds.has(u.public_id); return ( <tr key={u.id} className={`transition-colors hover:bg-[var(--surface-hover)] ${isMe ? 'bg-[#81b64c]/5' : ''}`}><td className="py-6 px-4 opacity-30 font-mono text-xl">{index + 1}</td><td className="py-6 px-4 flex items-center gap-6"><div className="relative"><Avatar src={u.avatar} size="sm" />{u.is_online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--surface)]" />}</div><div><div className="flex items-center gap-3 text-lg">{u.username}{isMe && <span className="rounded bg-[#81b64c] px-2 py-0.5 text-[9px] uppercase text-white shadow-md">{t.you}</span>}</div><div className="text-xs text-[#81b64c] uppercase tracking-widest mt-1">{getUserTitle(u.wins, t)}</div></div></td><td className="py-6 px-4 text-center font-mono text-green-500 text-2xl">{u.wins}</td><td className="py-6 px-4 text-right">{!isMe && !isFollowing && <button onClick={() => { sendFriendRequest(u.public_id); setNotification({ text: t.friendRequestSent.replace('{name}', u.username), type: 'success' }); }} className="text-[#81b64c] hover:bg-[#81b64c]/10 p-3 rounded transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></button>}</td></tr> ) })}</tbody></table></div>
     </div>
   )
 }
@@ -295,7 +295,23 @@ function ThemeSwitcher() {
   const { uiTheme, setUiTheme } = useGameStore()
   const isDark = uiTheme === 'dark'
   return (
-    <div className="flex items-center p-1 rounded-lg bg-[#211f1d] border border-[#403d3a] cursor-pointer text-white" onClick={() => setUiTheme(isDark ? 'light' : 'dark')}><div className={`px-4 py-2 rounded text-sm font-black transition-all ${isDark ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30'}`}>DARK</div><div className={`px-4 py-2 rounded text-sm font-black transition-all ${!isDark ? 'bg-white text-black shadow-lg' : 'opacity-30'}`}>LIGHT</div></div>
+    <div className="flex p-1 rounded-xl bg-[#211f1d] border border-[#403d3a] shadow-inner relative group h-12">
+      <div 
+        className={`absolute inset-1 w-[calc(50%-4px)] bg-[#81b64c] rounded-lg transition-all duration-300 ease-out shadow-[0_0_15px_rgba(129,182,76,0.3)] ${isDark ? 'left-1' : 'left-[calc(50%+4.5px)]'}`}
+      />
+      <button 
+        onClick={() => setUiTheme('dark')}
+        className={`relative z-10 flex-1 flex items-center justify-center gap-2 text-[10px] font-black tracking-widest transition-colors duration-300 ${isDark ? 'text-white' : 'text-[#bababa]'}`}
+      >
+        <span className="text-sm">🌙</span> DARK
+      </button>
+      <button 
+        onClick={() => setUiTheme('light')}
+        className={`relative z-10 flex-1 flex items-center justify-center gap-2 text-[10px] font-black tracking-widest transition-colors duration-300 ${!isDark ? 'text-white' : 'text-[#bababa]'}`}
+      >
+        LIGHT <span className="text-sm">☀️</span>
+      </button>
+    </div>
   )
 }
 
@@ -303,18 +319,6 @@ function ViewSwitcher() {
   const { viewMode, setViewMode, t, setNotification } = useGameStore()
   return (
     <div className="flex p-1 rounded-lg bg-[#211f1d] border border-[#403d3a] text-white"><button onClick={() => setViewMode('2d')} className={`px-4 py-2 rounded text-sm font-black transition-all ${viewMode === '2d' ? 'bg-[#3c3a37] text-[#81b64c] shadow-lg' : 'opacity-30 hover:opacity-100'}`}>2D</button><button onClick={() => setNotification({ text: t.comingSoon, type: 'info' })} className={`px-4 py-2 rounded text-sm font-black opacity-20 flex items-center gap-2 text-white`}>3D <span className="w-1.5 h-1.5 bg-[#81b64c] rounded-full animate-pulse" /></button></div>
-  )
-}
-
-function PlayerBadge({ color, isActive }: { color: 'white' | 'black'; isActive: boolean }) {
-  const { t, game } = useGameStore()
-  const isWhite = color === 'white'; const avatar = isWhite ? game?.white_avatar : game?.black_avatar; const timeLeft = isWhite ? (game?.white_time_left || 0) : (game?.black_time_left || 0);
-  const formatTime = (s: number) => { const mins = Math.floor(s / 60); const secs = s % 60; return `${mins}:${secs.toString().padStart(2, '0')}` }
-  return (
-    <div className={`flex items-center justify-between w-full p-2 rounded-xl transition-all ${isActive ? 'bg-[#3c3a37]/50 shadow-inner border border-[#403d39]' : ''}`}>
-      <div className="flex items-center gap-4"><Avatar src={avatar || ''} size="md" /><div><div className="text-lg font-black uppercase tracking-wider text-white" style={{ color: isWhite ? 'white' : '#bababa' }}>{isWhite ? t.white : t.black}</div><div className="flex gap-1 mt-0.5 opacity-40 text-white">{game?.captured_pieces?.[color]?.map((p, i) => <span key={i} className="text-sm font-bold">{p}</span>)}</div></div></div>
-      <div className={`px-6 py-2 rounded-lg font-mono text-2xl font-black tracking-tighter shadow-2xl ${isActive ? (timeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#3c3a37] text-white') : 'bg-[#211f1d] text-[#bababa] opacity-50'}`}>{formatTime(timeLeft)}</div>
-    </div>
   )
 }
 
@@ -347,15 +351,15 @@ function SearchingModal() {
   if (!isSearching) return null
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
-      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">Searching...</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">Regional Grandmaster Arena</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">Cancel Queue</button></div> ) : (
-        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">Match Found</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
+      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">{t.searching}</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">{t.arenaSubtitle}</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">{t.cancel}</button></div> ) : (
+        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">{t.matchFound}</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
       )}
     </div>
   )
 }
 
 export default function App() {
-  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, tickClock, isSpectator } = useGameStore()
+  const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, tickClock, isSpectator, t } = useGameStore()
   
   useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id)
     if (localStorage.getItem('shaxmat_game_id')) { useGameStore.setState({ gameId: parseInt(localStorage.getItem('shaxmat_game_id')!, 10) }) }
@@ -365,29 +369,72 @@ export default function App() {
   
   useEffect(() => { if (!gameId) return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [gameId])
   
-  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[#1b1a17] text-white"><div className="text-center bg-[#262421] border border-[#403d39] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload(); }} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-10 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide">Reset Application</button></div></div>
+  if (error && !gameId) return <div className="flex min-h-screen items-center justify-center p-6 text-center bg-[var(--bg)] text-[var(--text-main)]"><div className="text-center bg-[var(--surface)] border border-[var(--border)] p-12 rounded-[2rem] shadow-2xl"><h2 className="text-3xl font-black mb-8 tracking-tight">Error: {error}</h2><button onClick={() => { localStorage.clear(); window.location.reload(); }} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-10 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide">Reset Application</button></div></div>
   if (!user) return <div className="min-h-screen flex flex-col"><AuthScreen /><AnimatePresence><NotificationToast /></AnimatePresence></div>
-  if (!gameId) return <div className="min-h-screen flex flex-col bg-[#1b1a17]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /></div>
+  if (!gameId) return <div className="min-h-screen flex flex-col bg-[var(--bg)]"><ModeSelection /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /></div>
   const isGameOver = game && game.status !== 'active'; const isFlipped = game?.game_mode === 'Person' && user?.id === game?.black_player_id
   
   return (
-    <div className="h-screen w-full flex flex-col bg-[#1b1a17] overflow-hidden text-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-[#403d3a] bg-[#262421] px-10 py-2 shadow-2xl relative z-50">
-        <div className="flex cursor-pointer items-center gap-6 group" onClick={goBackToMenu}><Logo size="sm" /><div className="flex flex-col text-white"><span className="text-2xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors leading-none">SHAXMAT+</span><span className="text-[9px] font-black tracking-[0.4em] text-[#81b64c] mt-1 leading-none uppercase">Arena</span></div></div>
-        <div className="flex items-center gap-10">
-          <ViewSwitcher /><LanguageSwitcher /><ThemeSwitcher /><div className="flex flex-col items-end leading-none"><span className="text-sm text-[#bababa] uppercase font-black mb-1 tracking-widest">{user.username}</span><span className="text-[11px] font-mono text-[#81b64c] font-black opacity-70 tracking-widest">ID: {user.public_id}</span></div>
-          <button onClick={goBackToMenu} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-2 px-5 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-[10px] shadow-md">Exit</button>
-        </div>
-      </header>
-      <main className="flex flex-1 overflow-hidden p-4 gap-8 max-w-[1800px] mx-auto w-full items-center justify-center">
-        <section className="flex flex-1 flex-col items-center justify-center order-1 w-full max-w-[650px] mx-auto min-h-0">
-          {game && <div className="w-full mb-2.5 flex items-end shrink-0"><PlayerBadge color={isFlipped ? "white" : "black"} isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver} /></div>}
-          <div className="w-full bg-[#211f1d] p-1.5 md:p-2 rounded border border-[#403d3a] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col items-center justify-center max-h-[calc(100vh-170px)]">
+    <div className="h-screen w-full flex flex-col bg-[var(--bg)] overflow-hidden text-[var(--text-main)] transition-colors duration-300">
+      <main className="flex flex-1 overflow-hidden p-4 gap-4 max-w-[1920px] mx-auto w-full items-center justify-center">
+        {/* Left Sidebar: Logo, Player Info & Settings */}
+        <aside className="hidden lg:flex w-[260px] flex-col gap-6 shrink-0 h-full py-6 bg-[var(--bg)]">
+          {/* Top: Logo & App Info */}
+          <div className="flex flex-col items-center gap-2 mb-2">
+             <div className="flex items-center gap-3 group cursor-pointer" onClick={goBackToMenu}>
+               <Logo size="sm" />
+               <div className="flex flex-col leading-none">
+                 <span className="text-xl font-black tracking-tight group-hover:text-[#81b64c] transition-colors uppercase text-[var(--text-main)]">SHAXMAT+</span>
+                 <span className="text-[8px] font-black tracking-[0.4em] text-[#81b64c] mt-1 uppercase">Arena</span>
+               </div>
+             </div>
+          </div>
+
+          {/* Opponent Info */}
+          <div className="flex flex-col gap-3">
+             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-[#81b64c]/60 px-2">{t.opponent}</div>
+             {game && (
+                <PlayerBadge 
+                  color={isFlipped ? "white" : "black"} 
+                  isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver}
+                  displayName={game.game_mode === 'AI' ? 'AI' : (isFlipped ? game.white_username : game.black_username) || (isFlipped ? t.white : t.black)}
+                  countryCode={isFlipped ? game.white_country_code : game.black_country_code}
+                />
+             )}
+          </div>
+          
+          {/* Middle Spacer/Separator */}
+          <div className="flex-1 flex flex-col justify-center items-center">
+             <div className="w-full h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent opacity-30" />
+          </div>
+
+          {/* User Info & Badge */}
+          <div className="flex flex-col gap-3">
+             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-[#81b64c]/60 px-2">{t.you}</div>
+             {game && (
+                <PlayerBadge 
+                  color={isFlipped ? "black" : "white"} 
+                  isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver}
+                  displayName={isFlipped ? game.black_username || t.black : game.white_username || t.white}
+                  countryCode={isFlipped ? game.black_country_code : game.white_country_code}
+                />
+             )}
+             <div className="flex flex-col items-center mt-2 opacity-50">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">{user.username}</span>
+                <span className="text-[8px] font-mono font-black text-[#81b64c] tracking-widest">ID: {user.public_id}</span>
+             </div>
+          </div>
+        </aside>
+
+        {/* Center: Chess Board - Max vertical space! */}
+        <section className="flex-[2] flex flex-col items-center justify-center order-1 w-full max-w-[1400px] h-full mx-auto min-h-0 relative px-2 py-2">
+          <div className="h-full w-full flex items-center justify-center overflow-visible">
             <Board />
           </div>
-          {game && <div className="w-full mt-2.5 flex items-start shrink-0"><PlayerBadge color={isFlipped ? "black" : "white"} isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver} /></div>}
         </section>
-        <aside className="hidden xl:flex w-[380px] order-2 flex-col gap-4 shrink-0 min-h-0 overflow-hidden h-full">
+
+        {/* Right Sidebar: Game Controls & History */}
+        <aside className="hidden xl:flex w-[320px] order-2 flex-col gap-4 shrink-0 min-h-0 overflow-hidden h-full py-2">
           <GameControls />
           <div className="flex flex-1 flex-col gap-4 min-h-0 overflow-hidden">
             <MoveHistory />

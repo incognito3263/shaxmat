@@ -4,11 +4,11 @@
 
 :root {
   /* Premium Dark Theme (Default) */
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --surface-2: #2c2c2c;
-  --surface-3: #333333;
-  --border: #383838;
+  --bg: #1b1a17;
+  --surface: #262421;
+  --surface-2: #3c3a37;
+  --surface-3: #4a4844;
+  --border: #403d3a;
   
   /* Arena Colors */
   --accent-green: #81b64c;
@@ -26,15 +26,14 @@
 }
 
 [data-theme="light"] {
-  --bg: #f5f5f5;
+  --bg: #f8f9fa;
   --surface: #ffffff;
-  --surface-2: #eeeeee;
-  --surface-3: #e0e0e0;
-  --border: #dddddd;
+  --surface-2: #f1f3f5;
+  --surface-3: #e9ecef;
+  --border: #dee2e6;
   
-  --accent-white: #2c2b29;
-  --text-main: #2c2b29;
-  --text-muted: #737271;
+  --text-main: #212529;
+  --text-muted: #868e96;
 }
 
 * {
@@ -57,7 +56,7 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-main)] font-bold py-3 px-6 rounded-lg shadow-[0_3px_0_0_rgba(0,0,0,0.2)] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-sm;
+    @apply bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-main)] font-bold py-3 px-6 rounded-lg shadow-[0_3px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-sm;
   }
 
   .arena-card {

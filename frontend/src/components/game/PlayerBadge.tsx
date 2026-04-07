@@ -48,30 +48,52 @@ export function PlayerBadge({ color, isActive, displayName, countryCode }: Playe
   }
 
   return (
-    <div className="flex w-full max-w-full items-center gap-2 py-1 md:gap-3 md:py-1.5">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded bg-[#5c5c5c] md:h-9 md:w-9">
-        {avatar && (avatar.startsWith('/') || avatar.startsWith('http')) ? (
-          <img src={avatar} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <span className="text-lg md:text-xl">{avatar || '👤'}</span>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-sm font-semibold text-white md:text-[15px]">{displayName}</span>
-          <CountryFlag code={countryCode} />
+    <div className={`flex w-full items-center gap-3 p-3 rounded-xl border transition-all duration-300 ${
+      isActive 
+        ? 'bg-[var(--surface-3)] border-[#81b64c]/40 shadow-[0_0_20px_rgba(129,182,76,0.1)] ring-1 ring-[#81b64c]/20' 
+        : 'bg-[var(--surface)] border-[var(--border)] opacity-80'
+    }`}>
+      {/* Avatar Section */}
+      <div className="relative shrink-0">
+        <div className={`h-11 w-11 overflow-hidden rounded-lg border-2 ${isActive ? 'border-[#81b64c]' : 'border-[var(--border)]'} bg-[var(--surface-2)] shadow-lg`}>
+          {avatar && (avatar.startsWith('/') || avatar.startsWith('http')) ? (
+            <img src={avatar} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xl text-[var(--text-main)]">{avatar || '👤'}</div>
+          )}
         </div>
-        {capturedPieces.length > 0 && (
-          <div className="mt-0.5 flex flex-wrap gap-0.5 text-[10px] leading-none text-white/45 md:text-[11px]">
-            {capturedPieces.map((p: string, i: number) => (
-              <span key={i}>{p}</span>
-            ))}
+        {isActive && (
+          <div className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#81b64c] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#81b64c]"></span>
           </div>
         )}
       </div>
+
+      {/* Info Section */}
+      <div className="min-w-0 flex-1 flex flex-col justify-center">
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          <span className={`truncate text-[13px] font-black uppercase tracking-tight ${isActive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
+            {displayName}
+          </span>
+          <div className="shrink-0"><CountryFlag code={countryCode} /></div>
+        </div>
+        {capturedPieces.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-0.5 opacity-60 overflow-hidden">
+            {capturedPieces.slice(0, 8).map((p: string, i: number) => (
+              <span key={i} className="text-[9px] font-black text-[var(--text-main)] bg-[var(--surface-2)] px-1 rounded">{p}</span>
+            ))}
+            {capturedPieces.length > 8 && <span className="text-[9px] font-black text-[var(--text-muted)]">+{capturedPieces.length - 8}</span>}
+          </div>
+        )}
+      </div>
+
+      {/* Timer Section */}
       <div
-        className={`min-w-[4rem] shrink-0 rounded border border-black/30 px-2 py-1.5 text-center font-mono text-sm tabular-nums text-white shadow-inner md:min-w-[4.75rem] md:px-2.5 md:text-base ${
-          isActive ? (localTimeLeft < 30 ? 'bg-red-600 animate-pulse' : 'bg-[#312e2b]') : 'bg-[#262421] text-white/55'
+        className={`w-[5.2rem] shrink-0 rounded-lg py-2.5 text-center font-mono text-lg font-black tabular-nums transition-all duration-300 shadow-xl ${
+          isActive 
+            ? (localTimeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#81b64c] text-white') 
+            : 'bg-[var(--surface-2)] text-[var(--text-muted)]'
         }`}
       >
         {formatTime(localTimeLeft)}

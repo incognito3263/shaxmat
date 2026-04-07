@@ -93,31 +93,47 @@ class GameState:
 
     # ── Attack detection ──────────────────────────────────────────────────────
     def is_square_attacked_by(self, row: int, col: int, attacker_color: str) -> bool:
-        """Optimized attack detection: scan outwards from the square."""
+        """Checks if a square (row, col) is attacked by any piece of attacker_color."""
         board = self.board
         opp = attacker_color
         
         # 1. Pawns & Suppliers
+        # If attacker is white, they come from row-1 (moving forward to row+1)
+        # If attacker is black, they come from row+1 (moving forward to row-1)
         pawn_dir = -1 if opp == 'white' else 1
-        # Attacking pawns
+        
+        # Attacking pawns (diagonal capture)
         for dc in [-1, 1]:
-            p = board.get_piece_at(row + pawn_dir, col + dc)
-            if p and p.type == 'P' and p.color == opp: return True
-        # Attacking suppliers
-        p_sup = board.get_piece_at(row + pawn_dir, col)
-        if p_sup and p_sup.type == 'S' and p_sup.color == opp: return True
+            r_p, c_p = row + pawn_dir, col + dc
+            if board.is_valid_position(r_p, c_p):
+                p = board.get_piece_at(r_p, c_p)
+                if p and p.type == 'P' and p.color == opp:
+                    return True
+        
+        # Attacking suppliers (straight forward capture)
+        r_s, c_s = row + pawn_dir, col
+        if board.is_valid_position(r_s, c_s):
+            p = board.get_piece_at(r_s, c_s)
+            if p and p.type == 'S' and p.color == opp:
+                return True
 
         # 2. Knights
         for dr, dc in [(2,1),(2,-1),(-2,1),(-2,-1),(1,2),(1,-2),(-1,2),(-1,-2)]:
-            p = board.get_piece_at(row + dr, col + dc)
-            if p and p.type == 'N' and p.color == opp: return True
+            r_n, c_n = row + dr, col + dc
+            if board.is_valid_position(r_n, c_n):
+                p = board.get_piece_at(r_n, c_n)
+                if p and p.type == 'N' and p.color == opp:
+                    return True
 
         # 3. King (adjacent squares)
         for dr in [-1, 0, 1]:
             for dc in [-1, 0, 1]:
                 if dr == 0 and dc == 0: continue
-                p = board.get_piece_at(row + dr, col + dc)
-                if p and p.type == 'K' and p.color == opp: return True
+                r_k, c_k = row + dr, col + dc
+                if board.is_valid_position(r_k, c_k):
+                    p = board.get_piece_at(r_k, c_k)
+                    if p and p.type == 'K' and p.color == opp:
+                        return True
 
         # 4. Sliders (Rook, Bishop, Queen)
         # Orthogonal (Rook, Queen)
@@ -126,7 +142,11 @@ class GameState:
             while board.is_valid_position(r, c):
                 p = board.get_piece_at(r, c)
                 if p:
-                    if p.color == opp and p.type in ('R', 'Q'): return True
+                    # If we hit a piece, it blocks the slider unless it's the King we're checking for
+                    # Actually, for "is attacked", any piece blocks the attack to squares BEHIND it.
+                    if p.color == opp and p.type in ('R', 'Q'):
+                        return True
+                    # If the piece at (r,c) is NOT the target square itself, it blocks
                     break
                 r += dr
                 c += dc
@@ -137,7 +157,8 @@ class GameState:
             while board.is_valid_position(r, c):
                 p = board.get_piece_at(r, c)
                 if p:
-                    if p.color == opp and p.type in ('B', 'Q'): return True
+                    if p.color == opp and p.type in ('B', 'Q'):
+                        return True
                     break
                 r += dr
                 c += dc
