@@ -14,6 +14,7 @@ export default defineConfig({
             '/upload-avatar': { target: 'http://localhost:8000', changeOrigin: true },
             '/update-profile': { target: 'http://localhost:8000', changeOrigin: true },
             '/uploads': { target: 'http://localhost:8000', changeOrigin: true },
+            '/ws': { target: 'ws://localhost:8000', ws: true },
         },
     },
 });

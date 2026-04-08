@@ -329,6 +329,7 @@ def ai_move(game_id: int, db: Session = Depends(get_db)):
          # If white is the human, and it's currently white's turn, AI shouldn't move.
          # But if the game is set up where AI is white, we'd need to know that.
          # For now, assume AI is always 'black' in AI mode.
+         print(f"DEBUG: AI move rejected - it is white's turn (human)")
          raise HTTPException(400, "It is currently the human player's (White) turn")
 
     # Determine depth based on difficulty

@@ -99,6 +99,7 @@ interface GameStore {
   notification: { text: string; type: 'success' | 'info' | 'error' } | null
   pendingRequests: any[]
   notifications: any[]
+  aiTimeout: any
 
   signup: (username: string, password: string, avatar: string) => Promise<void>
   login: (username: string, password: string) => Promise<void>
@@ -209,7 +210,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
   drawOffer: null, friendRequest: null, reviewMode: false, reviewIndex: 0,
   reviewBoardData: null, liveGames: [], isSpectator: false, matchHistory: [],
-  friends: [], notification: null, pendingRequests: [], notifications: [],
+  friends: [], notification: null, pendingRequests: [], notifications: [], aiTimeout: null,
 
   tickClock: () => {
     const { game } = get(); if (!game || game.status !== 'active') return;
@@ -343,7 +344,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
         set({ game: data, error: null })
         if (data.game_mode === 'AI' && data.turn === 'black' && data.status === 'active' && !isAiMoving) {
-          setTimeout(() => get().aiMove(), 3000)
+          if (get().aiTimeout) clearTimeout(get().aiTimeout)
+          const timeout = setTimeout(() => get().aiMove(), 3000)
+          set({ aiTimeout: timeout })
         }
       }
     } catch (e: any) { set({ error: e.message }) }
@@ -382,8 +385,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   aiMove: async () => {
-    const { gameId, isAiMoving } = get();
+    const { gameId, isAiMoving, aiTimeout } = get();
     if (!gameId || isAiMoving) return;
+    if (aiTimeout) { clearTimeout(aiTimeout); set({ aiTimeout: null }) }
     set({ isAiMoving: true });
     try { 
       const res = await fetch(`/game/${gameId}/ai-move`, { method: 'POST' }); 
