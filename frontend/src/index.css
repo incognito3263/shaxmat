@@ -23,6 +23,13 @@
   
   /* Layout */
   --lobby-sidebar-w: 260px;
+  --header-h: 60px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --lobby-sidebar-w: 0px;
+  }
 }
 
 [data-theme="light"] {

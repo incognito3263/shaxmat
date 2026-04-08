@@ -17,6 +17,8 @@ type LobbySidebarProps = {
   onSetLanguage: (lang: Language) => void
   onToggleTheme: () => void
   onCopyPublicId: () => void
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 const langs: { id: Language; label: string }[] = [
@@ -64,12 +66,34 @@ export function LobbySidebar({
   onSetLanguage,
   onToggleTheme,
   onCopyPublicId,
+  isOpen,
+  onClose,
 }: LobbySidebarProps) {
   const isDark = uiTheme === 'dark'
 
   return (
-    <aside className="fixed left-0 top-0 z-30 flex h-screen w-[var(--lobby-sidebar-w)] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--lobby-side)] text-[var(--text-main)]">
-      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" 
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={`fixed left-0 top-0 z-50 flex h-screen w-[260px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] text-[var(--text-main)] transition-transform duration-300 lg:translate-x-0 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex items-center justify-between px-4 py-4 lg:hidden">
+           <span className="font-black tracking-tighter text-[#81b64c]">SHAXMAT+</span>
+           <button onClick={onClose} className="p-2 text-[var(--text-muted)]">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                 <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+           </button>
+        </div>
+
+        <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         <NavItem
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -180,6 +204,7 @@ export function LobbySidebar({
         </button>
       </div>
     </aside>
+    </>
   )
 }
 

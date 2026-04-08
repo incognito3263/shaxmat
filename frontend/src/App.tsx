@@ -100,6 +100,8 @@ function ModeSelection() {
   const [lobbyPage, setLobbyPage] = useState<LobbyPage>('home')
   const [opponentId, setOpponentId] = useState('')
   const [difficulty, setDifficulty] = useState('normal')
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false)
   const [timeLimit, setTimeLimit] = useState(600)
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -132,22 +134,50 @@ function ModeSelection() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[var(--bg)] text-[var(--text-main)]">
-      <LobbySidebar user={user} activePage={lobbyPage} t={t as any} language={language} uiTheme={uiTheme} onNavigate={setLobbyPage} onEditProfile={() => setIsEditModalOpen(true)} onLogout={logout} onSetLanguage={setLanguage} onToggleTheme={() => setUiTheme(uiTheme === 'dark' ? 'light' : 'dark')} onCopyPublicId={() => { void navigator.clipboard.writeText(user.public_id); setNotification({ text: t.idCopied, type: 'success' }) }} />
-      <div className="custom-scrollbar min-h-screen flex-1 overflow-y-auto pl-[var(--lobby-sidebar-w)]">
-        <div className="p-8 lg:p-12">
+      <LobbySidebar 
+        user={user} 
+        activePage={lobbyPage} 
+        t={t as any} 
+        language={language} 
+        uiTheme={uiTheme} 
+        onNavigate={(p) => { setLobbyPage(p); setIsMobileSidebarOpen(false) }} 
+        onEditProfile={() => setIsEditModalOpen(true)} 
+        onLogout={logout} 
+        onSetLanguage={setLanguage} 
+        onToggleTheme={() => setUiTheme(uiTheme === 'dark' ? 'light' : 'dark')} 
+        onCopyPublicId={() => { void navigator.clipboard.writeText(user.public_id); setNotification({ text: t.idCopied, type: 'success' }) }}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
+      
+      <div className="custom-scrollbar relative flex min-h-screen flex-1 flex-col overflow-y-auto lg:pl-[260px]">
+        {/* Mobile Header */}
+        <header className="sticky top-0 z-20 flex h-[60px] w-full items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/80 px-4 backdrop-blur-md lg:hidden">
+          <div className="flex items-center gap-3">
+             <Logo size="xs" />
+             <span className="font-black tracking-tight text-[#81b64c] uppercase text-sm">SHAXMAT+</span>
+          </div>
+          <button onClick={() => setIsMobileSidebarOpen(true)} className="p-2 text-[var(--text-main)]">
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+             </svg>
+          </button>
+        </header>
+
+        <div className="p-4 sm:p-8 lg:p-12">
           {lobbyPage === 'home' && (
-            <div className="mx-auto max-w-5xl space-y-10">
-              <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-[var(--surface)] to-[var(--bg)] p-10 shadow-2xl">
-                <h2 className="text-3xl font-black tracking-tight">{t.lobbyBannerTitle}</h2>
-                <p className="mt-3 max-w-2xl text-base leading-relaxed text-[var(--text-muted)]">{t.lobbyBannerSub}</p>
+            <div className="mx-auto max-w-5xl space-y-6 sm:space-y-10">
+              <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-[var(--surface)] to-[var(--bg)] p-6 sm:p-10 shadow-2xl">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight">{t.lobbyBannerTitle}</h2>
+                <p className="mt-2 sm:mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-[var(--text-muted)]">{t.lobbyBannerSub}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"><div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.winRate}</div><div className="mt-1 text-3xl font-black text-[#81b64c]">{winRate}%</div></div>
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"><div className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.totalGames}</div><div className="mt-1 text-3xl font-black">{totalGames}</div></div>
-                <button onClick={() => setLobbyPage('play')} className="rounded-xl bg-[#81b64c] p-6 text-white shadow-lg hover:brightness-110 transition-all font-black uppercase text-sm">{t.lobbyNavPlay}</button>
-                <button onClick={() => setLobbyPage('guide')} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--text-main)] hover:bg-[var(--surface-2)] transition-all font-black uppercase text-sm">{t.howToPlayButton}</button>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 text-center"><div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.winRate}</div><div className="mt-1 text-2xl sm:text-3xl font-black text-[#81b64c]">{winRate}%</div></div>
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 text-center"><div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.totalGames}</div><div className="mt-1 text-2xl sm:text-3xl font-black">{totalGames}</div></div>
+                <button onClick={() => setLobbyPage('play')} className="rounded-xl bg-[#81b64c] p-4 sm:p-6 text-white shadow-lg hover:brightness-110 transition-all font-black uppercase text-xs sm:text-sm">{t.lobbyNavPlay}</button>
+                <button onClick={() => setLobbyPage('guide')} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 text-[var(--text-main)] hover:bg-[var(--surface-2)] transition-all font-black uppercase text-xs sm:text-sm">{t.howToPlayButton}</button>
               </div>
-              <div className="grid gap-8 lg:grid-cols-2"><LiveGamesSection /><MatchHistorySection /></div>
+              <div className="grid gap-6 sm:gap-8 lg:grid-cols-2"><LiveGamesSection /><MatchHistorySection /></div>
             </div>
           )}
           {lobbyPage === 'play' && (
@@ -321,6 +351,7 @@ function SearchingModal() {
 
 export default function App() {
   const { user, gameId, game, fetchGame, error, initSocket, goBackToMenu, setLanguage, uiTheme, tickClock, isSpectator, t } = useGameStore()
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false)
   
   useEffect(() => { document.documentElement.setAttribute('data-theme', uiTheme); const saved = localStorage.getItem('shaxmat_user'); const token = localStorage.getItem('shaxmat_token'); const savedLang = localStorage.getItem('shaxmat_lang') as Language; if (savedLang) setLanguage(savedLang); if (saved && token && !user) { const u = JSON.parse(saved); useGameStore.setState({ user: u, token }); initSocket(u.public_id)
     if (localStorage.getItem('shaxmat_game_id')) { useGameStore.setState({ gameId: parseInt(localStorage.getItem('shaxmat_game_id')!, 10) }) }
@@ -337,8 +368,27 @@ export default function App() {
   
   return (
     <div className="h-screen w-full flex flex-col bg-[var(--bg)] overflow-hidden text-[var(--text-main)] transition-colors duration-300">
-      <main className="flex flex-1 overflow-hidden p-4 gap-4 max-w-[1920px] mx-auto w-full items-center justify-center">
-        {/* Left Sidebar: Logo, Player Info & Settings */}
+      <main className="flex flex-1 flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-2 sm:p-4 gap-2 max-w-[1920px] mx-auto w-full items-center justify-center">
+        {/* Mobile Top Info: Opponent Timer & Name */}
+        <div className="flex w-full items-center justify-between px-2 lg:hidden shrink-0 order-1">
+           <div className="flex items-center gap-2" onClick={goBackToMenu}>
+              <Logo size="xs" />
+              <span className="text-[10px] font-black text-[#81b64c] uppercase">SHAXMAT+</span>
+           </div>
+           {game && (
+              <div className="flex-1 max-w-[200px]">
+                <PlayerBadge 
+                  color={isFlipped ? "white" : "black"} 
+                  isActive={game.turn === (isFlipped ? "white" : "black") && !isGameOver}
+                  displayName={game.game_mode === 'AI' ? 'AI' : (isFlipped ? game.white_username : game.black_username) || (isFlipped ? t.white : t.black)}
+                  countryCode={isFlipped ? game.white_country_code : game.black_country_code}
+                  isMobile
+                />
+              </div>
+           )}
+        </div>
+
+        {/* Left Sidebar (Desktop) */}
         <aside className="hidden lg:flex w-[260px] flex-col gap-6 shrink-0 h-full py-6 bg-[var(--bg)]">
           {/* Top: Logo & App Info */}
           <div className="flex flex-col items-center gap-2 mb-2">
@@ -364,12 +414,12 @@ export default function App() {
              )}
           </div>
           
-          {/* Middle Spacer/Separator */}
+          {/* Middle Spacer */}
           <div className="flex-1 flex flex-col justify-center items-center">
              <div className="w-full h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent opacity-30" />
           </div>
 
-          {/* User Info & Badge */}
+          {/* User Info */}
           <div className="flex flex-col gap-3">
              <div className="text-[9px] font-black uppercase tracking-[0.3em] text-[#81b64c]/60 px-2">{t.you}</div>
              {game && (
@@ -377,31 +427,61 @@ export default function App() {
                   color={isFlipped ? "black" : "white"} 
                   isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver}
                   displayName={isFlipped ? game.black_username || t.black : game.white_username || t.white}
-                  countryCode={isFlipped ? game.black_country_code : game.white_country_code}
+                  countryCode={isFlipped ? game.white_country_code : game.white_country_code}
                 />
              )}
-             <div className="flex flex-col items-center mt-2 opacity-50">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">{user.username}</span>
-                <span className="text-[8px] font-mono font-black text-[#81b64c] tracking-widest">ID: {user.public_id}</span>
-             </div>
           </div>
         </aside>
 
-        {/* Center: Chess Board - Max vertical space! */}
-        <section className="flex-[2] flex flex-col items-center justify-center order-1 w-full max-w-[1400px] h-full mx-auto min-h-0 relative px-2 py-2">
-          <div className="h-full w-full flex items-center justify-center overflow-visible">
-            <Board />
-          </div>
+        {/* Center: Chess Board */}
+        <section className="flex-[2] flex flex-col items-center justify-center order-2 lg:order-none w-full max-w-[1400px] lg:h-full mx-auto min-h-0 relative px-2">
+          <Board />
         </section>
 
-        {/* Right Sidebar: Game Controls & History */}
-        <aside className="hidden xl:flex w-[320px] order-2 flex-col gap-4 shrink-0 min-h-0 overflow-hidden h-full py-2">
+        {/* Right Sidebar (Desktop) */}
+        <aside className="hidden xl:flex w-[320px] lg:order-none flex-col gap-4 shrink-0 min-h-0 overflow-hidden h-full py-2">
           <GameControls />
           <div className="flex flex-1 flex-col gap-4 min-h-0 overflow-hidden">
             <MoveHistory />
             {game?.game_mode === 'Person' && !isSpectator && <Chat />}
           </div>
         </aside>
+
+        {/* Mobile Bottom Info: Your Timer & Actions */}
+        <div className="flex w-full flex-col gap-2 lg:hidden px-2 pb-4 shrink-0 order-3">
+           <div className="flex items-center gap-2">
+              {game && (
+                 <div className="flex-1">
+                   <PlayerBadge 
+                     color={isFlipped ? "black" : "white"} 
+                     isActive={game.turn === (isFlipped ? "black" : "white") && !isGameOver}
+                     displayName={isFlipped ? game.black_username || t.black : game.white_username || t.white}
+                     countryCode={isFlipped ? game.black_country_code : game.white_country_code}
+                     isMobile
+                   />
+                 </div>
+              )}
+              <button 
+                onClick={() => setIsMobileControlsOpen(!isMobileControlsOpen)}
+                className="h-11 w-11 flex items-center justify-center bg-[var(--surface-2)] border border-[var(--border)] rounded-xl text-xl shadow-lg"
+              >
+                 ⚙️
+              </button>
+           </div>
+           
+           <AnimatePresence>
+             {isMobileControlsOpen && (
+               <motion.div 
+                 initial={{ height: 0, opacity: 0 }} 
+                 animate={{ height: 'auto', opacity: 1 }} 
+                 exit={{ height: 0, opacity: 0 }}
+                 className="overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 shadow-2xl"
+               >
+                  <GameControls />
+               </motion.div>
+             )}
+           </AnimatePresence>
+        </div>
       </main>
       <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
     </div>

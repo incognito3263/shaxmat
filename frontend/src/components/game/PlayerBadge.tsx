@@ -7,9 +7,10 @@ type PlayerBadgeProps = {
   isActive: boolean
   displayName: string
   countryCode?: string | null
+  isMobile?: boolean
 }
 
-export function PlayerBadge({ color, isActive, displayName, countryCode }: PlayerBadgeProps) {
+export function PlayerBadge({ color, isActive, displayName, countryCode, isMobile }: PlayerBadgeProps) {
   const { game } = useGameStore()
   const isWhite = color === 'white'
   const capturedPieces = game?.captured_pieces?.[color] || []
@@ -48,18 +49,18 @@ export function PlayerBadge({ color, isActive, displayName, countryCode }: Playe
   }
 
   return (
-    <div className={`flex w-full items-center gap-3 p-3 rounded-xl border transition-all duration-300 ${
+    <div className={`flex w-full items-center ${isMobile ? 'gap-2 p-1.5' : 'gap-3 p-3'} rounded-xl border transition-all duration-300 ${
       isActive 
         ? 'bg-[var(--surface-3)] border-[#81b64c]/40 shadow-[0_0_20px_rgba(129,182,76,0.1)] ring-1 ring-[#81b64c]/20' 
         : 'bg-[var(--surface)] border-[var(--border)] opacity-80'
     }`}>
       {/* Avatar Section */}
       <div className="relative shrink-0">
-        <div className={`h-11 w-11 overflow-hidden rounded-lg border-2 ${isActive ? 'border-[#81b64c]' : 'border-[var(--border)]'} bg-[var(--surface-2)] shadow-lg`}>
+        <div className={`${isMobile ? 'h-8 w-8' : 'h-11 w-11'} overflow-hidden rounded-lg border-2 ${isActive ? 'border-[#81b64c]' : 'border-[var(--border)]'} bg-[var(--surface-2)] shadow-lg`}>
           {avatar && (avatar.startsWith('/') || avatar.startsWith('http')) ? (
             <img src={avatar} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-xl text-[var(--text-main)]">{avatar || '👤'}</div>
+            <div className={`flex h-full w-full items-center justify-center ${isMobile ? 'text-sm' : 'text-xl'} text-[var(--text-main)]`}>{avatar || '👤'}</div>
           )}
         </div>
         {isActive && (
@@ -73,12 +74,12 @@ export function PlayerBadge({ color, isActive, displayName, countryCode }: Playe
       {/* Info Section */}
       <div className="min-w-0 flex-1 flex flex-col justify-center">
         <div className="flex items-center gap-1.5 overflow-hidden">
-          <span className={`truncate text-[13px] font-black uppercase tracking-tight ${isActive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
+          <span className={`truncate ${isMobile ? 'text-[11px]' : 'text-[13px]'} font-black uppercase tracking-tight ${isActive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
             {displayName}
           </span>
-          <div className="shrink-0"><CountryFlag code={countryCode} /></div>
+          <div className="shrink-0 scale-75 lg:scale-100"><CountryFlag code={countryCode} /></div>
         </div>
-        {capturedPieces.length > 0 && (
+        {!isMobile && capturedPieces.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-0.5 opacity-60 overflow-hidden">
             {capturedPieces.slice(0, 8).map((p: string, i: number) => (
               <span key={i} className="text-[9px] font-black text-[var(--text-main)] bg-[var(--surface-2)] px-1 rounded">{p}</span>
@@ -90,7 +91,7 @@ export function PlayerBadge({ color, isActive, displayName, countryCode }: Playe
 
       {/* Timer Section */}
       <div
-        className={`w-[5.2rem] shrink-0 rounded-lg py-2.5 text-center font-mono text-lg font-black tabular-nums transition-all duration-300 shadow-xl ${
+        className={`${isMobile ? 'w-16 text-sm py-1.5' : 'w-[5.2rem] text-lg py-2.5'} shrink-0 rounded-lg text-center font-mono font-black tabular-nums transition-all duration-300 shadow-xl ${
           isActive 
             ? (localTimeLeft < 30 ? 'bg-red-500 text-white animate-pulse' : 'bg-[#81b64c] text-white') 
             : 'bg-[var(--surface-2)] text-[var(--text-muted)]'

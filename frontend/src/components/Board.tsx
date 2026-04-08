@@ -28,7 +28,7 @@ function EvalBar() {
   const clampedEval = Math.max(-5, Math.min(5, evaluation || 0))
   const percentage = ((clampedEval + 5) / 10) * 100
   return (
-    <div className="w-2 md:w-3 shrink-0 self-stretch bg-[#262421] rounded-l-md overflow-hidden flex flex-col-reverse relative border-y border-l border-[#403d3a]">
+    <div className="hidden sm:flex w-2 md:w-3 shrink-0 self-stretch bg-[#262421] rounded-l-md overflow-hidden flex-col-reverse relative border-y border-l border-[#403d3a]">
       <motion.div className="w-full bg-[#ffffff] shadow-[0_0_10px_rgba(255,255,255,0.8)]" animate={{ height: `${percentage}%` }} transition={{ type: "spring", stiffness: 50, damping: 20 }} />
       <div className="absolute inset-0 flex flex-col justify-between items-center py-2 pointer-events-none">
         <span className="text-[9px] font-black text-black mix-blend-difference">{(evaluation || 0) > 0 ? `+${(evaluation || 0).toFixed(1)}` : (evaluation || 0).toFixed(1)}</span>
@@ -58,10 +58,10 @@ export default function Board() {
   const displayCols = isFlipped ? [...COLS].reverse() : COLS
 
   return (
-    <div className="flex h-full w-full items-center justify-center gap-1 md:gap-3">
+    <div className="flex h-full w-full flex-col lg:flex-row items-center justify-center gap-1 md:gap-3 p-1 sm:p-2 overflow-hidden">
       <EvalBar />
-      <div className="relative h-full w-full max-w-[calc((100vh-40px)*0.85)] bg-[#2a2420] rounded-lg overflow-hidden shadow-[0_40px_150px_rgba(0,0,0,1)] aspect-[17/20] flex-shrink-0">
-        <div className="grid grid-cols-8 grid-rows-10 h-full w-full">
+      <div className="relative w-full max-w-[95vw] sm:max-w-[80vw] lg:max-w-[calc((100vh-120px)*0.85)] max-h-[55vh] lg:max-h-none bg-[#2a2420] rounded-lg overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.5)] lg:shadow-[0_40px_150px_rgba(0,0,0,1)] aspect-[8/10] flex-shrink-0 flex flex-col">
+        <div className="grid grid-cols-8 grid-rows-10 h-full w-full flex-1">
           {displayRows.flatMap((row, rIndex) =>
             displayCols.map((col, cIndex) => {
               const actualColIdx = COLS.indexOf(col)
