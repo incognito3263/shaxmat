@@ -172,7 +172,7 @@ function ModeSelection() {
           )}
           {lobbyPage === 'leaderboard' && <div className="mx-auto max-w-4xl"><LeaderboardSection /></div>}
           {lobbyPage === 'friends' && <div className="mx-auto max-w-5xl"><FriendsSection /></div>}
-          {lobbyPage === 'guide' && <div className="mx-auto max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--surface)] p-10 shadow-2xl"><h1 className="text-2xl font-black uppercase tracking-widest">{t.howToPlayTitle}</h1><p className="mt-4 text-base text-[var(--text-muted)]">{t.howToPlayIntro}</p><div className="mt-8"><HowToPlaySections /></div><button onClick={() => setManualOpen(true)} className="btn-primary mt-10">{t.howToPlayButton} (Full Guide)</button></div>}
+          {lobbyPage === 'guide' && <div className="mx-auto max-w-6xl rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-2xl lg:p-10"><h1 className="text-2xl font-black uppercase tracking-widest">{t.howToPlayTitle}</h1><p className="mt-4 text-base text-[var(--text-muted)]">{t.howToPlayIntro}</p><div className="mt-8"><HowToPlaySections /></div><button onClick={() => setManualOpen(true)} className="btn-primary mt-10">{t.howToPlayButton} (To'liq qo'llanma)</button></div>}
         </div>
       </div>
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />

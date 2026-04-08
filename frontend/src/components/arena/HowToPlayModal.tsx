@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { useGameStore } from '../../store'
 import { HowToPlaySections } from '../lobby/HowToPlayContent'
 
@@ -11,7 +11,7 @@ export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex max-h-[min(90dvh,800px)] w-full max-w-2xl flex-col rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl"
+        className="flex max-h-[min(92dvh,920px)] w-full max-w-6xl flex-col rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl"
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--border)] p-6 sm:p-8">
           <div>
@@ -24,7 +24,7 @@ export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
             className="shrink-0 text-2xl leading-none text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)]"
             aria-label={t.cancel}
           >
-            ✕
+            ×
           </button>
         </div>
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-6 sm:px-8">
@@ -39,3 +39,4 @@ export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
     </div>
   )
 }
+
