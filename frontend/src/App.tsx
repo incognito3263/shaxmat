@@ -101,7 +101,6 @@ function ModeSelection() {
   const [opponentId, setOpponentId] = useState('')
   const [difficulty, setDifficulty] = useState('normal')
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false)
   const [timeLimit, setTimeLimit] = useState(600)
   const [timeIncrement, setTimeIncrement] = useState(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -154,7 +153,7 @@ function ModeSelection() {
         {/* Mobile Header */}
         <header className="sticky top-0 z-20 flex h-[60px] w-full items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/80 px-4 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-3">
-             <Logo size="xs" />
+             <Logo size="sm" />
              <span className="font-black tracking-tight text-[#81b64c] uppercase text-sm">SHAXMAT+</span>
           </div>
           <button onClick={() => setIsMobileSidebarOpen(true)} className="p-2 text-[var(--text-main)]">
@@ -372,7 +371,7 @@ export default function App() {
         {/* Mobile Top Info: Opponent Timer & Name */}
         <div className="flex w-full items-center justify-between px-2 lg:hidden shrink-0 order-1">
            <div className="flex items-center gap-2" onClick={goBackToMenu}>
-              <Logo size="xs" />
+              <Logo size="sm" />
               <span className="text-[10px] font-black text-[#81b64c] uppercase">SHAXMAT+</span>
            </div>
            {game && (
