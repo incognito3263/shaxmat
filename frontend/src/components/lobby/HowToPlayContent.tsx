@@ -305,21 +305,20 @@ function PieceDiagramSet({ id, pieceType }: { id: Exclude<LessonId, 'overview' |
   )
 }
 
+function overviewPieceAt(r: number, c: number): string | null {
+  const back = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'] as const
+  if (r === 0 || r === 9) return back[c] ?? null
+  if (r === 1 || r === 8) return 'P'
+  if (r === 2 || r === 7) {
+    if (c === 1 || c === 3 || c === 5 || c === 7) return 'S'
+    return null
+  }
+  return null
+}
+
 function OverviewBoard() {
   const rows = 10
   const cols = 8
-  const pieces = [
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
-    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    ['S', null, 'S', null, 'S', null, 'S', null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ['S', null, 'S', null, 'S', null, 'S', null],
-    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
-  ]
 
   return (
     <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-2xl">
@@ -329,32 +328,46 @@ function OverviewBoard() {
           <div className="mt-1 text-lg font-black text-[var(--text-main)]">Shaxmat+ taxtasining ko'rinishi</div>
         </div>
         <div className="rounded-full border border-[#8bc34a]/20 bg-[#8bc34a]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-[#8bc34a]">
-          10 x 8
+          8 × 10
         </div>
       </div>
 
       <div className="overflow-hidden rounded-[1.4rem] border border-[var(--border)] bg-[#2b231e]">
-        <div className="grid grid-cols-8 grid-rows-10">
-          {Array.from({ length: rows * cols }).map((_, index) => {
-            const r = Math.floor(index / cols)
-            const c = index % cols
-            const light = (r + c) % 2 === 0
-            const piece = pieces[r]?.[c]
-            const isSupplier = piece === 'S'
-            const pieceType = piece && piece !== 'S' ? piece : isSupplier ? 'S' : null
-            const isBlackSide = r < 5
-            return (
-              <div key={index} className={`relative aspect-square ${light ? 'bg-[#edd6ae]' : 'bg-[#b8865b]'}`}>
-                {pieceType && (
-                  <div className="absolute inset-0 flex items-center justify-center p-[10%]">
-                    <div className="h-full w-full">
-                      <PieceSvg type={pieceType} color={isBlackSide ? 'black' : 'white'} />
-                    </div>
+        <div className="mx-auto w-full max-w-full aspect-[8/10] min-w-0" dir="ltr" style={{ direction: 'ltr' }}>
+          <div
+            className="grid h-full w-full grid-cols-8"
+            style={{
+              gridTemplateRows: 'repeat(10, minmax(0, 1fr))',
+              gridAutoFlow: 'row',
+              direction: 'ltr',
+            }}
+          >
+            {Array.from({ length: rows }, (_, r) =>
+              Array.from({ length: cols }, (_, c) => {
+                const rankFromBottom = rows - 1 - r
+                const rankNumber = rankFromBottom + 1
+                const light = (rankNumber + c) % 2 === 0
+                const piece = overviewPieceAt(r, c)
+                const isSupplier = piece === 'S'
+                const pieceType = piece && piece !== 'S' ? piece : isSupplier ? 'S' : null
+                const isBlackSide = r < 3
+                return (
+                  <div
+                    key={`ov-${r}-${c}`}
+                    className={`relative min-h-0 min-w-0 ${light ? 'bg-[#edd6ae]' : 'bg-[#b8865b]'}`}
+                  >
+                    {pieceType && (
+                      <div className="absolute inset-0 flex items-center justify-center p-[8%]">
+                        <div className="h-full w-full max-h-full max-w-full">
+                          <PieceSvg type={pieceType} color={isBlackSide ? 'black' : 'white'} />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )
-          })}
+                )
+              })
+            ).flat()}
+          </div>
         </div>
       </div>
     </div>
@@ -597,25 +610,25 @@ export function HowToPlaySections() {
   const { t } = useGameStore()
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <div className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(29,26,23,1),rgba(19,17,15,0.96))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[#8bc34a]">Shaxmat+ o'rganish markazi</div>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-[var(--text-main)] sm:text-4xl">{t.howToPlayTitle}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--text-muted)]">{t.howToPlayIntro}</p>
+            <p className="mt-3 max-w-none text-sm leading-7 text-[var(--text-muted)]">{t.howToPlayIntro}</p>
           </div>
-          <div className="rounded-2xl border border-[#8bc34a]/20 bg-[#8bc34a]/10 px-4 py-3 text-right">
+          <div className="rounded-2xl border border-[#8bc34a]/20 bg-[#8bc34a]/10 px-4 py-3 text-right shrink-0">
             <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[#8bc34a]">Doska</div>
-            <div className="mt-1 text-2xl font-black text-[var(--text-main)]">10 x 8</div>
+            <div className="mt-1 text-2xl font-black text-[var(--text-main)]">8 × 10</div>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid w-full min-w-0 gap-5 xl:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
         <LessonMenu active={active} onSelect={setActive} />
 
-        <div className="min-w-0 space-y-5">
+        <div className="min-w-0 w-full max-w-full space-y-5">
           <AnimatePresence mode="wait">
             <motion.div
               key={active}

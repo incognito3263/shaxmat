@@ -11,7 +11,7 @@ export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex max-h-[min(92dvh,920px)] w-full max-w-6xl flex-col rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl"
+        className="flex max-h-[min(92dvh,920px)] w-full max-w-[min(96vw,1600px)] flex-col rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl"
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--border)] p-6 sm:p-8">
           <div>
