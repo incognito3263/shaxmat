@@ -59,19 +59,19 @@ body {
 /* Premium Components */
 @layer components {
   .btn-primary {
-    @apply bg-[var(--accent-green)] hover:bg-[var(--accent-green-hover)] text-white font-bold py-3 px-6 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide disabled:opacity-50;
+    @apply bg-[var(--accent-green)] hover:bg-[var(--accent-green-hover)] text-white font-bold py-3 px-6 rounded-none transition-all uppercase tracking-wide disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-main)] font-bold py-3 px-6 rounded-lg shadow-[0_3px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide text-sm;
+    @apply bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-main)] font-bold py-3 px-6 rounded-none transition-all uppercase tracking-wide text-sm;
   }
 
   .arena-card {
-    @apply bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg hover:border-[var(--accent-green)]/30 transition-all;
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-none hover:border-[var(--accent-green)]/30 transition-all;
   }
 
   .glass-panel {
-    @apply bg-[var(--surface)]/80 backdrop-blur-md border border-[var(--border)] rounded-2xl;
+    @apply bg-[var(--surface)]/80 backdrop-blur-md border border-[var(--border)] rounded-none;
   }
 }
 
@@ -85,7 +85,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 10px;
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
@@ -111,4 +111,16 @@ body {
   animation: checkPulse 1.5s ease-in-out infinite;
   z-index: 10;
   pointer-events: none;
+}
+
+/* Flat UI: barcha soyalar olib tashlangan */
+*,
+*::before,
+*::after {
+  box-shadow: none !important;
+}
+
+/* Yumaloq burchaklar olib tashlangan; faqat to‘liq doira (avatar va h.k.) saqlanadi */
+[class*='rounded']:not([class*='rounded-full']) {
+  border-radius: 0 !important;
 }

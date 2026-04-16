@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useGameStore } from '../../store'
 import { HowToPlaySections } from '../lobby/HowToPlayContent'
 
@@ -27,8 +27,8 @@ export function HowToPlayModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
             ×
           </button>
         </div>
-        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-6 sm:px-8">
-          <HowToPlaySections />
+        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-4 sm:px-6">
+          <HowToPlaySections hideHeroBanner />
         </div>
         <div className="shrink-0 border-t border-[var(--border)] p-4 sm:p-6">
           <button type="button" onClick={onClose} className="btn-primary w-full py-3 font-bold">

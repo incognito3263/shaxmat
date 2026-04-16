@@ -113,6 +113,7 @@ server {
     listen 80;
     server_name newchess.uz www.newchess.uz;
 
+    # SPA: upstream (Docker frontend) index.html keshlanmasin — yangi JS hashlari ishlashi uchun
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -120,6 +121,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
     }
 
     location /game { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
@@ -269,4 +271,39 @@ Batafsil debug uchun: [DEBUG.md](DEBUG.md)
 | 502 Bad Gateway | `docker compose ps` — backend ishlayaptimi? `docker compose logs backend` |
 | Login ishlamaydi | [DEBUG.md](DEBUG.md) — baza jadvallari bormi? `init_db.py` ishlatildimi? |
 | WebSocket ulanishi yo'q | Nginx `/ws` proxy to'g'ri sozlanganini tekshiring |
-| Frontend yangilanmaydi | `docker compose up -d --build` — frontend qayta build qiling |
+| Frontend yangilanmaydi | Quyidagi **tekshiruv** bo‘limiga qarang (build tugashi, `up -d`, `git pull`, CDN). |
+
+---
+
+### 7.1 Frontend yangilanmaydi — ketma-ket tekshiruv
+
+1. **Kod serverda yangimi?** (eng ko‘p xato: eski kod bilan build)
+   ```bash
+   cd /var/www/shaxmat
+   git fetch origin && git log -1 --oneline
+   git status
+   ```
+   Kerak bo‘lsa: `git pull origin main` (yoki deploy qilinadigan branch).
+
+2. **Build tugagan va konteyner yangi imageni ishlatayaptimi?**
+   ```bash
+   docker compose build --no-cache frontend
+   docker compose up -d --force-recreate frontend
+   docker compose ps
+   ```
+   `frontend` **Up** va yangi **IMAGE ID** bo‘lishi kerak.
+
+3. **Konteyner ichida yangi `index.html` bormi?** (skript nomidagi hash o‘zgarishi kerak)
+   ```bash
+   docker compose exec frontend head -20 /usr/share/nginx/html/index.html
+   ```
+
+4. **Server o‘zi 3000-portda nima berayapti?**
+   ```bash
+   curl -sI http://127.0.0.1:3000/ | tr -d '\r'
+   ```
+   `Cache-Control` da `no-cache` / `no-store` bo‘lishi yaxshi (frontend nginx sozlamasiga qarab).
+
+5. **Domen orqali Cloudflare** ishlatilsa: **Caching → Configuration → Purge Everything** (yoki faqat HTML) — bir marta.
+
+6. **Brauzer**: qattiq yangilash (Ctrl+Shift+R) yoki inkognito oyna.

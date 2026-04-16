@@ -163,9 +163,10 @@ function ModeSelection() {
           </button>
         </header>
 
-        <div className="p-4 sm:p-8 lg:p-12">
+        <div className="p-4 sm:p-6 lg:p-10">
+          <div className="mx-auto w-full max-w-5xl">
           {lobbyPage === 'home' && (
-            <div className="mx-auto max-w-5xl space-y-6 sm:space-y-10">
+            <div className="space-y-6 sm:space-y-10">
               <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-[var(--surface)] to-[var(--bg)] p-6 sm:p-10 shadow-2xl">
                 <h2 className="text-2xl sm:text-3xl font-black tracking-tight">{t.lobbyBannerTitle}</h2>
                 <p className="mt-2 sm:mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-[var(--text-muted)]">{t.lobbyBannerSub}</p>
@@ -180,7 +181,7 @@ function ModeSelection() {
             </div>
           )}
           {lobbyPage === 'play' && (
-            <div className="mx-auto max-w-3xl space-y-8">
+            <div className="space-y-8">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl">
                 <div className="mb-4 text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{t.timeControl}</div>
                 <div className="mb-6 grid grid-cols-4 gap-2 sm:grid-cols-7">
@@ -199,20 +200,17 @@ function ModeSelection() {
               </div>
             </div>
           )}
-          {lobbyPage === 'leaderboard' && <div className="mx-auto max-w-4xl"><LeaderboardSection /></div>}
-          {lobbyPage === 'friends' && <div className="mx-auto max-w-5xl"><FriendsSection /></div>}
+          {lobbyPage === 'leaderboard' && <LeaderboardSection />}
+          {lobbyPage === 'friends' && <FriendsSection />}
           {lobbyPage === 'guide' && (
-            <div className="w-full max-w-none rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl sm:p-6 lg:p-8">
-              <h1 className="text-2xl font-black uppercase tracking-widest">{t.howToPlayTitle}</h1>
-              <p className="mt-4 text-base text-[var(--text-muted)]">{t.howToPlayIntro}</p>
-              <div className="mt-8">
-                <HowToPlaySections />
-              </div>
-              <button type="button" onClick={() => setManualOpen(true)} className="btn-primary mt-10">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-2xl sm:p-5 lg:p-6">
+              <HowToPlaySections />
+              <button type="button" onClick={() => setManualOpen(true)} className="btn-primary mt-8 w-full sm:mt-10 sm:w-auto">
                 {t.howToPlayButton} (To'liq qo'llanma)
               </button>
             </div>
           )}
+          </div>
         </div>
       </div>
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
