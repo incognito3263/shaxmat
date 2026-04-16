@@ -66,18 +66,20 @@ export function GameHistoryPage() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-2 lg:flex-row lg:items-start lg:gap-6">
+    <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-start lg:gap-6">
       <div className="min-w-0 flex-1">
-        <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-[var(--border)] pb-3">
-          <span className="text-lg text-[var(--text-muted)]" aria-hidden>
-            📁
-          </span>
-          <h1 className="text-xl font-black tracking-tight text-[var(--text-main)]">
-            {t.gameHistoryTitle} ({count})
-          </h1>
+        <div className="border-b border-[var(--border)] pb-3">
+          <div className="flex min-h-[48px] flex-wrap items-center gap-3">
+            <span className="text-lg text-[var(--text-muted)]" aria-hidden>
+              📁
+            </span>
+            <h1 className="text-xl font-black tracking-tight text-[var(--text-main)]">
+              {t.gameHistoryTitle} ({count})
+            </h1>
+          </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap gap-0 border-b border-[var(--border)]">
+        <div className="mt-4 flex flex-wrap gap-0 border-b border-[var(--border)]">
           {TABS.map((tab) => {
             const active = apiTab === tab
             return (
@@ -97,7 +99,7 @@ export function GameHistoryPage() {
           })}
         </div>
 
-        <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
+        <div className="mt-4 overflow-x-auto border border-[var(--border)] bg-[var(--surface)]">
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-2)] text-[11px] font-black uppercase tracking-wider text-[var(--text-muted)]">
@@ -174,8 +176,12 @@ export function GameHistoryPage() {
       </div>
 
       <aside className="w-full shrink-0 border border-[var(--border)] bg-[var(--surface-2)] p-4 lg:w-[280px]">
-        <div className="mb-4 text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">{t.gameHistoryTitle}</div>
-        <ul className="mb-6 space-y-2 text-sm text-[var(--text-muted)]">
+        <div className="border-b border-[var(--border)] pb-3">
+          <div className="flex min-h-[48px] items-center">
+            <div className="text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">{t.gameHistoryTitle}</div>
+          </div>
+        </div>
+        <ul className="mb-6 mt-6 space-y-2 text-sm text-[var(--text-muted)]">
           <li className="flex justify-between">
             <span>{t.ghSidebarMyGames}</span>
             <span>→</span>

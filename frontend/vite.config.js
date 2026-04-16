@@ -5,6 +5,7 @@ export default defineConfig({
     server: {
         port: 5173,
         proxy: {
+            '/api': { target: 'http://localhost:8000', changeOrigin: true },
             '/game': { target: 'http://localhost:8000', changeOrigin: true },
             '/signup': { target: 'http://localhost:8000', changeOrigin: true },
             '/login': { target: 'http://localhost:8000', changeOrigin: true },

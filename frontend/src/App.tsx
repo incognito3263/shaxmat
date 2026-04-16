@@ -15,6 +15,7 @@ import type { LobbyPage } from './components/lobby/LobbyPage'
 import { HowToPlaySections } from './components/lobby/HowToPlayContent'
 import { GameHistoryPage } from './components/lobby/GameHistoryPage'
 import { LobbyFooter } from './components/lobby/LobbyFooter'
+import { SearchingModal } from './components/arena/SearchingModal'
 
 // --- Constants ---
 const AVATARS = ['👨‍🚀', '🥷', '🧙‍♂️', '🧛', '🤖', '👾', '👽', '🦊']
@@ -134,7 +135,7 @@ function ModeSelection() {
   if (!user) return null
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg)] text-[var(--text-main)]">
+    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg)] text-[var(--text-main)] lg:flex-row">
       <LobbySidebar 
         user={user} 
         activePage={lobbyPage} 
@@ -151,7 +152,7 @@ function ModeSelection() {
         onClose={() => setIsMobileSidebarOpen(false)}
       />
       
-      <div className="custom-scrollbar relative flex min-h-screen flex-1 flex-col overflow-y-auto lg:pl-[260px]">
+      <div className="custom-scrollbar relative flex min-h-0 flex-1 flex-col overflow-y-auto lg:min-h-screen lg:min-w-0">
         {/* Mobile Header */}
         <header className="sticky top-0 z-20 flex h-[60px] w-full items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/80 px-4 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-3">
@@ -226,6 +227,7 @@ function ModeSelection() {
       </div>
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
       <HowToPlayModal isOpen={manualOpen} onClose={() => setManualOpen(false)} />
+      <SearchingModal />
     </div>
   )
 }
@@ -355,19 +357,6 @@ function InviteModal() {
   if (!inviteRequest) return null
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"><motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full p-12 bg-[#262421] border border-[#403d39] rounded-[2.5rem] text-center shadow-[0_40px_120px_rgba(0,0,0,1)]"><div className="text-6xl mb-8">🎮</div><h2 className="text-3xl font-black text-white uppercase mb-4 tracking-tighter">Challenge</h2><p className="text-[#bababa] text-base mb-10 font-black uppercase tracking-widest text-white"><span className="text-[#81b64c]">{inviteRequest.from_username}</span> wants to play!</p><div className="flex gap-5"><button onClick={() => respondToInvite(false)} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-4 px-8 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base">Decline</button><button onClick={() => respondToInvite(true)} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-4 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide flex-1 py-4 text-base shadow-2xl">Accept</button></div></motion.div></div>
-  )
-}
-
-function SearchingModal() {
-  const { isSearching, cancelMatchmaking, matchedOpponent, acceptMatchOffer } = useGameStore()
-  const t = useGameStore.getState().t
-  if (!isSearching) return null
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl text-center">
-      {!matchedOpponent ? ( <div className="space-y-10 text-white"><div className="mx-auto h-32 w-32 rounded-full border-[6px] border-t-[#81b64c] border-white/5 animate-spin shadow-[0_0_50px_rgba(129,182,76,0.2)]" /><h2 className="text-5xl font-black uppercase tracking-tighter">{t.searching}</h2><p className="text-[#81b64c] uppercase tracking-[0.5em] text-sm font-black animate-pulse">{t.arenaSubtitle}</p><button onClick={cancelMatchmaking} className="bg-[#3c3a37] hover:bg-[#4a4844] text-white font-bold py-5 px-12 rounded-lg shadow-[0_3px_0_0_#262421] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide mt-10 !py-5 !px-12 text-base shadow-2xl">{t.cancel}</button></div> ) : (
-        <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-lg w-full p-16 bg-[#262421] border border-[#81b64c]/20 rounded-[3rem] shadow-[0_60px_180px_rgba(0,0,0,1)] text-white"><div className="text-sm font-black text-[#81b64c] uppercase tracking-[0.7em] mb-12">{t.matchFound}</div><div className="flex items-center justify-center gap-16 py-12 bg-[#211f1d] rounded-2xl border border-[#403d3a] shadow-inner"><div className="flex flex-col items-center gap-6 text-white"><Avatar src={useGameStore.getState().user?.avatar || ''} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest">{t.player}</span></div><div className="text-6xl font-black text-[#81b64c] animate-pulse">VS</div><div className="flex flex-col items-center gap-6 text-white"><Avatar src={matchedOpponent.avatar} size="lg" /><span className="text-sm text-[#bababa] uppercase font-black tracking-widest truncate max-w-[120px]">{matchedOpponent.username}</span></div></div><button onClick={acceptMatchOffer} className="bg-[#81b64c] hover:bg-[#a3d160] text-white font-bold py-6 px-8 rounded-lg shadow-[0_4px_0_0_#457528] active:shadow-none active:translate-y-[2px] transition-all uppercase tracking-wide w-full text-xl shadow-2xl mt-12">{t.acceptAndStart}</button></motion.div>
-      )}
-    </div>
   )
 }
 
@@ -505,7 +494,7 @@ export default function App() {
            </AnimatePresence>
         </div>
       </main>
-      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><SearchingModal /><GameOverModal />
+      <PromotionModal /><AnimatePresence><NotificationToast /></AnimatePresence><InviteModal /><GameOverModal />
     </div>
   )
 }

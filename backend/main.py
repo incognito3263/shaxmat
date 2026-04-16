@@ -17,7 +17,7 @@ from jose import JWTError, jwt
 
 from database import engine, Base, get_db
 from models import User, Game, Notification
-from routers import game
+from routers import game, site_pages
 import schemas
 from websocket_manager import manager
 
@@ -86,6 +86,17 @@ async def lifespan(app: FastAPI):
                 conn.execute(text("ALTER TABLE games ADD COLUMN clock_initial_seconds INTEGER DEFAULT 600"))
                 conn.commit()
                 print("DEBUG: clock_initial_seconds added.")
+
+            # users.online (bool) — prefer over legacy is_online
+            user_columns = [c['name'] for c in inspector.get_columns('users')]
+            if 'online' not in user_columns:
+                print("DEBUG: Adding online column to users...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN online BOOLEAN DEFAULT 0"))
+                conn.commit()
+                if 'is_online' in user_columns:
+                    conn.execute(text("UPDATE users SET online = COALESCE(is_online, 0)"))
+                    conn.commit()
+                print("DEBUG: online column added.")
     except Exception as e:
         print(f"DEBUG: Migration error: {e}")
     
@@ -274,12 +285,34 @@ def search_user(public_id: str, db: Session = Depends(get_db)):
     if not user: raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
+async def send_match_found_pair(p1_id: str, p2_id: str, db: Session):
+    p1_obj = db.query(User).filter(User.public_id == p1_id).first()
+    p2_obj = db.query(User).filter(User.public_id == p2_id).first()
+    if not p1_obj or not p2_obj:
+        return
+    await manager.send_personal_message(json.dumps({
+        "type": "match_found",
+        "opponent_id": p2_id,
+        "opponent_username": p2_obj.username,
+        "opponent_avatar": p2_obj.avatar,
+        "opponent_country_code": p2_obj.country_code,
+    }), p1_id)
+    await manager.send_personal_message(json.dumps({
+        "type": "match_found",
+        "opponent_id": p1_id,
+        "opponent_username": p1_obj.username,
+        "opponent_avatar": p1_obj.avatar,
+        "opponent_country_code": p1_obj.country_code,
+    }), p2_id)
+
+
 @app.websocket("/ws/{public_id}")
 async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session = Depends(get_db)):
     await manager.connect(public_id, websocket)
     user = db.query(User).filter(User.public_id == public_id).first()
     if user:
-        user.is_online = True
+        user.online = True
         db.commit()
         await manager.broadcast(json.dumps({"type": "user_status", "public_id": public_id, "online": True}))
     try:
@@ -311,30 +344,37 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
             elif message.get("type") == "friend_respond":
                 await manager.send_personal_message(json.dumps({"type": "friend_respond", "from_id": public_id, "from_username": user.username if user else "Unknown", "accepted": message.get("accepted")}), message.get("target_id"))
             elif message.get("type") == "find_match":
-                if public_id not in manager.matchmaking_queue: 
+                def q_remove(pid: str):
+                    if pid in manager.matchmaking_queue:
+                        manager.matchmaking_queue.remove(pid)
+
+                if public_id not in manager.matchmaking_queue:
                     manager.matchmaking_queue.append(public_id)
+
                 if len(manager.matchmaking_queue) >= 2:
                     p1_id = manager.matchmaking_queue.pop(0)
                     p2_id = manager.matchmaking_queue.pop(0)
-                    
-                    p1_obj = db.query(User).filter(User.public_id == p1_id).first()
-                    p2_obj = db.query(User).filter(User.public_id == p2_id).first()
-                    
-                    if p1_obj and p2_obj:
-                        await manager.send_personal_message(json.dumps({
-                            "type": "match_found",
-                            "opponent_id": p2_id,
-                            "opponent_username": p2_obj.username,
-                            "opponent_avatar": p2_obj.avatar,
-                            "opponent_country_code": p2_obj.country_code,
-                        }), p1_id)
-                        await manager.send_personal_message(json.dumps({
-                            "type": "match_found",
-                            "opponent_id": p1_id,
-                            "opponent_username": p1_obj.username,
-                            "opponent_avatar": p1_obj.avatar,
-                            "opponent_country_code": p1_obj.country_code,
-                        }), p2_id)
+                    await send_match_found_pair(p1_id, p2_id, db)
+                else:
+                    # Solo in queue: pair with another connected user who is online and not in an active game
+                    other_ids = [pid for pid in list(manager.active_connections.keys()) if pid != public_id]
+                    busy_user_ids = set()
+                    for g in db.query(Game).filter(Game.status == "active").all():
+                        if g.white_player_id:
+                            busy_user_ids.add(g.white_player_id)
+                        if g.black_player_id:
+                            busy_user_ids.add(g.black_player_id)
+                    random.shuffle(other_ids)
+                    for cand_pid in other_ids:
+                        cand = db.query(User).filter(User.public_id == cand_pid).first()
+                        if not cand or not cand.online:
+                            continue
+                        if cand.id in busy_user_ids:
+                            continue
+                        q_remove(public_id)
+                        q_remove(cand_pid)
+                        await send_match_found_pair(public_id, cand_pid, db)
+                        break
             elif message.get("type") == "match_start":
                 # One player sends this after selecting time
                 await manager.send_personal_message(json.dumps({
@@ -357,8 +397,9 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
         manager.disconnect(public_id, websocket)
         user = db.query(User).filter(User.public_id == public_id).first()
         if user and public_id not in manager.active_connections:
-            user.is_online = False
+            user.online = False
             db.commit()
             await manager.broadcast(json.dumps({"type": "user_status", "public_id": public_id, "online": False}))
 
 app.include_router(game.router)
+app.include_router(site_pages.router)

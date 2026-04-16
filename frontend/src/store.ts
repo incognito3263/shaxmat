@@ -43,6 +43,7 @@ export interface User {
   id: number
   username: string
   public_id: string
+  online?: boolean
   is_online: boolean
   wins: number
   losses: number
@@ -322,12 +323,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
       else if (msg.type === 'game_start') { set({ gameId: msg.game_id }); localStorage.setItem('shaxmat_game_id', msg.game_id.toString()); get().fetchGame(); playSound('start') }
       else if (msg.type === 'move_made') get().fetchGame()
       else if (msg.type === 'chat') set(state => ({ chatMessages: [...state.chatMessages, { from: msg.from_username, text: msg.text }] }))
-      else if (msg.type === 'match_found') set({ matchedOpponent: { public_id: msg.opponent_id, username: msg.opponent_username, avatar: msg.opponent_avatar } })
+      else if (msg.type === 'match_found')
+        set({
+          isSearching: true,
+          matchedOpponent: {
+            public_id: msg.opponent_id,
+            username: msg.opponent_username,
+            avatar: msg.opponent_avatar,
+            country_code: msg.opponent_country_code ?? null,
+          },
+          matchOffer: null,
+        })
       else if (msg.type === 'match_offer') set({ matchOffer: msg })
       else if (msg.type === 'draw_offer') set({ drawOffer: { from_id: msg.from_id, from_username: msg.from_username } })
       else if (msg.type === 'draw_respond') {
         if (msg.accepted) await get().fetchGame()
         set({ drawOffer: null })
+      }
+      else if (msg.type === 'ping') {
+        /* server heartbeat */
       }
     }
     set({ socket })
@@ -469,13 +483,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
   goBackToMenu: () => { localStorage.removeItem('shaxmat_game_id'); set({ gameId: null, game: null, isSpectator: false, isAiMoving: false }) },
   searchUser: async (pid) => { try { const res = await fetch(`/users/search/${pid}`); return res.ok ? await res.json() : null } catch { return null } },
   sendInvite: (pid, limit, inc) => get().socket?.send(JSON.stringify({ type: 'invite', target_id: pid, time_limit: limit, time_increment: inc })),
-  respondToInvite: (accept) => { if (accept && get().inviteRequest) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().inviteRequest!.from_id })); get().createGame('Person', get().inviteRequest!.from_id) }; set({ inviteRequest: null }) },
+  respondToInvite: (accept) => {
+    const inv = get().inviteRequest
+    if (accept && inv) {
+      get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: inv.from_id }))
+      get().createGame('Person', inv.from_id, undefined, inv.time_limit ?? 600, inv.time_increment ?? 0)
+    }
+    set({ inviteRequest: null })
+  },
   startMatchmaking: () => {
     get().socket?.send(JSON.stringify({ type: 'find_match' }))
-    set({ isSearching: true })
+    set({ isSearching: true, matchedOpponent: null, matchOffer: null })
   },
-  cancelMatchmaking: () => { get().socket?.send(JSON.stringify({ type: 'leave_queue' })); set({ isSearching: false }) },
-  acceptMatchOffer: () => { if (get().matchOffer) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().matchOffer!.from_id })); get().createGame('Person', get().matchOffer!.from_id) }; set({ matchOffer: null, isSearching: false }) },
+  cancelMatchmaking: () => {
+    get().socket?.send(JSON.stringify({ type: 'leave_queue' }))
+    set({ isSearching: false, matchedOpponent: null, matchOffer: null })
+  },
+  acceptMatchOffer: () => {
+    const mo = get().matchOffer
+    if (mo) {
+      get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: mo.from_id }))
+      get().createGame('Person', mo.from_id, undefined, mo.time_limit ?? 600, mo.time_increment ?? 0)
+    }
+    set({ matchOffer: null, isSearching: false, matchedOpponent: null })
+  },
   spectateGame: async (gid) => { set({ isSpectator: true, gameId: gid }); get().fetchGame() },
   resign: async () => { await fetch(`/game/${get().gameId}/resign?user_id=${get().user?.id}`, { method: 'POST' }); get().goBackToMenu() },
   startReview: () => set({ reviewMode: true }),

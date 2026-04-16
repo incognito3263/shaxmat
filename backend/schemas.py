@@ -1,6 +1,6 @@
 """Pydantic schemas for SHAXMAT+ API."""
 from typing import Dict, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, computed_field
 from datetime import datetime
 
 
@@ -15,16 +15,20 @@ class UserLogin(UserBase):
     password: str
 
 class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     public_id: str
-    is_online: bool
+    online: bool
     wins: int = 0
     losses: int = 0
     draws: int = 0
     avatar: str
     country_code: Optional[str] = None
-    class Config:
-        from_attributes = True
+
+    @computed_field
+    @property
+    def is_online(self) -> bool:
+        return self.online
 
 class FriendRequestResponse(BaseModel):
     id: int
