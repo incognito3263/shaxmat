@@ -12,8 +12,8 @@ class User(Base):
     username = Column(String(64), unique=True, index=True)
     password_hash = Column(String(128)) # Hash for security
     public_id = Column(String(8), unique=True, index=True)
-  # 8-digit unique ID
-    online = Column(Boolean, default=False)
+  # 8-digit unique ID (DB column name is is_online — matches existing PostgreSQL/SQLite)
+    is_online = Column(Boolean, default=False)
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
     draws = Column(Integer, default=0)

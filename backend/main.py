@@ -87,16 +87,13 @@ async def lifespan(app: FastAPI):
                 conn.commit()
                 print("DEBUG: clock_initial_seconds added.")
 
-            # users.online (bool) — prefer over legacy is_online
+            # Legacy SQLite: ensure is_online exists
             user_columns = [c['name'] for c in inspector.get_columns('users')]
-            if 'online' not in user_columns:
-                print("DEBUG: Adding online column to users...")
-                conn.execute(text("ALTER TABLE users ADD COLUMN online BOOLEAN DEFAULT 0"))
+            if 'is_online' not in user_columns:
+                print("DEBUG: Adding is_online column to users...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN is_online BOOLEAN DEFAULT 0"))
                 conn.commit()
-                if 'is_online' in user_columns:
-                    conn.execute(text("UPDATE users SET online = COALESCE(is_online, 0)"))
-                    conn.commit()
-                print("DEBUG: online column added.")
+                print("DEBUG: is_online column added.")
     except Exception as e:
         print(f"DEBUG: Migration error: {e}")
     
@@ -319,7 +316,7 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
     await manager.connect(public_id, websocket)
     user = db.query(User).filter(User.public_id == public_id).first()
     if user:
-        user.online = True
+        user.is_online = True
         db.commit()
         await manager.broadcast(json.dumps({"type": "user_status", "public_id": public_id, "online": True}))
     try:
@@ -374,7 +371,7 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
                     random.shuffle(other_ids)
                     for cand_pid in other_ids:
                         cand = db.query(User).filter(User.public_id == cand_pid).first()
-                        if not cand or not cand.online:
+                        if not cand or not cand.is_online:
                             continue
                         if cand.id in busy_user_ids:
                             continue
@@ -404,7 +401,7 @@ async def websocket_endpoint(websocket: WebSocket, public_id: str, db: Session =
         manager.disconnect(public_id, websocket)
         user = db.query(User).filter(User.public_id == public_id).first()
         if user and public_id not in manager.active_connections:
-            user.online = False
+            user.is_online = False
             db.commit()
             await manager.broadcast(json.dumps({"type": "user_status", "public_id": public_id, "online": False}))
 

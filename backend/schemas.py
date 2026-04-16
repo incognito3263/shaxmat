@@ -18,7 +18,7 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     public_id: str
-    online: bool
+    is_online: bool
     wins: int = 0
     losses: int = 0
     draws: int = 0
@@ -27,8 +27,8 @@ class UserResponse(UserBase):
 
     @computed_field
     @property
-    def is_online(self) -> bool:
-        return self.online
+    def online(self) -> bool:
+        return self.is_online
 
 class FriendRequestResponse(BaseModel):
     id: int
