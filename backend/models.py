@@ -75,6 +75,7 @@ class Game(Base):
     # Timers (in seconds)
     white_time_left = Column(Integer, default=600) # 10 minutes default
     black_time_left = Column(Integer, default=600)
+    clock_initial_seconds = Column(Integer, default=600)  # starting clock per side (for history display)
     time_increment = Column(Integer, default=0) # Fischer increment in seconds
     last_move_at = Column(DateTime, default=datetime.utcnow)
     

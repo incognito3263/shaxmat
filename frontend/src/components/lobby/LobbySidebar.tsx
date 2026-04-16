@@ -102,8 +102,13 @@ export function LobbySidebar({
   const isDark = uiTheme === 'dark'
   const pendingRequests = useGameStore((s) => s.pendingRequests)
   const notifications = useGameStore((s) => s.notifications)
+  const fetchFriendRequests = useGameStore((s) => s.fetchFriendRequests)
+  const fetchNotifications = useGameStore((s) => s.fetchNotifications)
+  const respondToFriendRequest = useGameStore((s) => s.respondToFriendRequest)
+  const markNotificationRead = useGameStore((s) => s.markNotificationRead)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [messagesOpen, setMessagesOpen] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const dockRef = useRef<HTMLDivElement>(null)
 
@@ -112,24 +117,41 @@ export function LobbySidebar({
 
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (!settingsOpen && !notifOpen) return
+      if (!settingsOpen && !notifOpen && !messagesOpen) return
       if (dockRef.current && !dockRef.current.contains(e.target as Node)) {
         setSettingsOpen(false)
         setNotifOpen(false)
+        setMessagesOpen(false)
       }
     }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
-  }, [settingsOpen, notifOpen])
+  }, [settingsOpen, notifOpen, messagesOpen])
+
+  useEffect(() => {
+    if (messagesOpen) void fetchFriendRequests()
+  }, [messagesOpen, fetchFriendRequests])
+
+  useEffect(() => {
+    if (notifOpen) void fetchNotifications()
+  }, [notifOpen, fetchNotifications])
 
   const openSettings = () => {
     setNotifOpen(false)
+    setMessagesOpen(false)
     setSettingsOpen((v) => !v)
   }
 
   const openNotifs = () => {
     setSettingsOpen(false)
+    setMessagesOpen(false)
     setNotifOpen((v) => !v)
+  }
+
+  const openMessages = () => {
+    setSettingsOpen(false)
+    setNotifOpen(false)
+    setMessagesOpen((v) => !v)
   }
 
   const goPlaySearch = () => {
@@ -236,6 +258,19 @@ export function LobbySidebar({
           <NavItem
             icon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 3v18h18" />
+                <path d="M18 17V9" />
+                <path d="M13 17V5" />
+                <path d="M8 17v-3" />
+              </svg>
+            }
+            label={t.lobbyNavHistory}
+            active={activePage === 'history'}
+            onClick={() => onNavigate('history')}
+          />
+          <NavItem
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
@@ -314,6 +349,51 @@ export function LobbySidebar({
             </div>
           )}
 
+          {messagesOpen && (
+            <div className="absolute bottom-full left-2 right-2 z-20 mb-2 max-h-64 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl">
+              <div className="mb-2 px-1 text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">
+                {t.sidebarMessagesTitle}
+              </div>
+              {!pendingRequests || pendingRequests.length === 0 ? (
+                <p className="px-2 py-4 text-center text-xs text-[var(--text-muted)]">{t.sidebarNoMessages}</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {pendingRequests.slice(0, 12).map(
+                    (req: { id: number; from_user: { username: string; avatar: string } }) => (
+                      <li
+                        key={req.id}
+                        className="flex items-center justify-between gap-2 rounded-lg bg-[var(--surface-2)] px-2 py-2"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                          <Avatar src={req.from_user.avatar} size="sm" />
+                          <span className="truncate text-xs font-semibold text-[var(--text-main)]">
+                            {req.from_user.username}
+                          </span>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => void respondToFriendRequest(req.id, false)}
+                            className="rounded-md border border-[var(--border)] px-2 py-1 text-[10px] font-bold uppercase text-[var(--text-muted)] hover:bg-[var(--surface-3)]"
+                          >
+                            {t.decline}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void respondToFriendRequest(req.id, true)}
+                            className="rounded-md bg-[#81b64c] px-2 py-1 text-[10px] font-bold uppercase text-white hover:brightness-110"
+                          >
+                            {t.accept}
+                          </button>
+                        </div>
+                      </li>
+                    )
+                  )}
+                </ul>
+              )}
+            </div>
+          )}
+
           {notifOpen && (
             <div className="absolute bottom-full left-2 right-2 z-20 mb-2 max-h-64 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl">
               <div className="mb-2 px-1 text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">{t.sidebarNotificationsTitle}</div>
@@ -324,7 +404,18 @@ export function LobbySidebar({
                   {notifications.slice(0, 12).map((n: { id: number; text: string; is_read: boolean }) => (
                     <li
                       key={n.id}
-                      className={`rounded-lg px-2 py-2 text-xs leading-snug ${n.is_read ? 'text-[var(--text-muted)]' : 'bg-[var(--surface-2)] text-[var(--text-main)] font-medium'}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        if (!n.is_read) void markNotificationRead(n.id)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          if (!n.is_read) void markNotificationRead(n.id)
+                        }
+                      }}
+                      className={`rounded-lg px-2 py-2 text-left text-xs leading-snug transition-colors ${n.is_read ? 'text-[var(--text-muted)]' : 'cursor-pointer bg-[var(--surface-2)] text-[var(--text-main)] font-medium hover:bg-[var(--surface-3)]'}`}
                     >
                       {n.text}
                     </li>
@@ -350,12 +441,9 @@ export function LobbySidebar({
             </BottomIcon>
 
             <BottomIcon
-              label="Messages"
+              label={t.sidebarMessagesTitle}
               badge={requestCount}
-              onClick={() => {
-                onNavigate('friends')
-                onClose?.()
-              }}
+              onClick={openMessages}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />

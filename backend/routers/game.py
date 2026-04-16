@@ -1,6 +1,7 @@
 """Game API routes."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_, func
 from datetime import datetime
 
 from database import get_db
@@ -18,6 +19,43 @@ from engine.ai import get_best_move
 from websocket_manager import manager
 
 router = APIRouter(prefix="/game", tags=["game"])
+
+
+def _is_draw_status(status: str | None) -> bool:
+    s = (status or "").lower()
+    return s.startswith("draw") or s in ("stalemate", "draw_agreement")
+
+
+def _my_result_for_user(user_id: int, g: Game) -> str:
+    if _is_draw_status(g.status):
+        return "draw"
+    if not g.winner:
+        return "draw"
+    is_white = g.white_player_id == user_id
+    if g.winner == "white":
+        return "win" if is_white else "loss"
+    if g.winner == "black":
+        return "loss" if is_white else "win"
+    return "draw"
+
+
+def _result_symbol(g: Game) -> str:
+    if _is_draw_status(g.status):
+        return "½-½"
+    if g.winner == "white":
+        return "1-0"
+    if g.winner == "black":
+        return "0-1"
+    return "½-½"
+
+
+def _time_control_label(g: Game) -> str:
+    initial = g.clock_initial_seconds or 600
+    inc = g.time_increment or 0
+    mins = max(1, initial // 60)
+    if inc:
+        return f"{mins} | {inc}"
+    return f"{mins} min"
 
 
 @router.post("/create", response_model=CreateGameResponse)
@@ -86,6 +124,120 @@ def get_user_game_history(user_id: int, db: Session = Depends(get_db)):
             "date": g.created_at.strftime("%Y-%m-%d %H:%M")
         })
     return results
+
+
+def _apply_history_result_filter(q, user_id: int, result: str):
+    if result == "any":
+        return q
+    if result == "draw":
+        return q.filter(
+            or_(Game.status.ilike("draw%"), Game.status.in_(["stalemate", "draw_agreement"]))
+        )
+    if result == "win":
+        return q.filter(
+            or_(
+                and_(Game.white_player_id == user_id, Game.winner == "white"),
+                and_(Game.black_player_id == user_id, Game.winner == "black"),
+            )
+        )
+    if result == "loss":
+        return q.filter(
+            or_(
+                and_(Game.white_player_id == user_id, Game.winner == "black"),
+                and_(Game.black_player_id == user_id, Game.winner == "white"),
+            )
+        )
+    return q
+
+
+@router.get("/user/{user_id}/history/full")
+def get_user_game_history_full(
+    user_id: int,
+    db: Session = Depends(get_db),
+    tab: str = Query("recent", description="recent | live | bot | daily"),
+    result: str = Query("any", description="any | win | loss | draw"),
+    opponent: str = Query("", description="filter by opponent username substring"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """Completed games for this user only — rich rows for Game History UI (filters)."""
+    q = db.query(Game).filter(
+        or_(Game.white_player_id == user_id, Game.black_player_id == user_id),
+        Game.status != "active",
+    )
+    if tab == "bot":
+        q = q.filter(Game.game_mode == "AI")
+    elif tab == "live":
+        q = q.filter(Game.game_mode == "Person")
+    elif tab == "daily":
+        q = q.filter(Game.time_increment > 0)
+
+    q = _apply_history_result_filter(q, user_id, result)
+
+    # Opponent name: filter in Python (avoid brittle joins); over-fetch then slice
+    fetch_limit = limit + offset + 80 if opponent.strip() else limit + offset
+    games = q.order_by(Game.updated_at.desc()).limit(min(fetch_limit, 600)).all()
+
+    game_ids = [g.id for g in games]
+    move_counts: dict[int, int] = {}
+    if game_ids:
+        rows = (
+            db.query(MoveModel.game_id, func.count(MoveModel.id))
+            .filter(MoveModel.game_id.in_(game_ids))
+            .group_by(MoveModel.game_id)
+            .all()
+        )
+        move_counts = {gid: int(c) for gid, c in rows}
+
+    out = []
+    for g in games:
+        w_u = db.query(User).filter(User.id == g.white_player_id).first()
+        b_u = db.query(User).filter(User.id == g.black_player_id).first()
+        my_res = _my_result_for_user(user_id, g)
+
+        is_white = g.white_player_id == user_id
+        opp = b_u if is_white else w_u
+        if opponent.strip():
+            oname = (opp.username if opp else "AI") or ""
+            if opponent.lower() not in oname.lower():
+                continue
+
+        out.append(
+            {
+                "id": g.id,
+                "status": g.status,
+                "winner": g.winner,
+                "game_mode": g.game_mode,
+                "result_symbol": _result_symbol(g),
+                "my_result": my_res,
+                "my_color": "white" if is_white else "black",
+                "time_control_label": _time_control_label(g),
+                "time_increment": g.time_increment or 0,
+                "move_count": move_counts.get(g.id, 0),
+                "accuracy_white": None,
+                "accuracy_black": None,
+                "ended_at": g.updated_at.isoformat() if g.updated_at else None,
+                "created_at": g.created_at.isoformat() if g.created_at else None,
+                "white": {
+                    "username": w_u.username if w_u else "AI",
+                    "rating": w_u.rating if w_u else None,
+                    "avatar": w_u.avatar if w_u else "🤖",
+                    "country_code": w_u.country_code if w_u else None,
+                    "public_id": w_u.public_id if w_u else None,
+                },
+                "black": {
+                    "username": b_u.username if b_u else "AI",
+                    "rating": b_u.rating if b_u else None,
+                    "avatar": b_u.avatar if b_u else "🤖",
+                    "country_code": b_u.country_code if b_u else None,
+                    "public_id": b_u.public_id if b_u else None,
+                },
+            }
+        )
+
+    page = out[offset : offset + limit]
+    return {"games": page, "total_returned": len(page), "tab": tab, "result": result}
+
 
 @router.get("/live")
 def get_live_games(db: Session = Depends(get_db)):

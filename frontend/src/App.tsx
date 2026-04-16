@@ -13,6 +13,8 @@ import { EditProfileModal } from './components/EditProfileModal'
 import { LobbySidebar } from './components/lobby/LobbySidebar'
 import type { LobbyPage } from './components/lobby/LobbyPage'
 import { HowToPlaySections } from './components/lobby/HowToPlayContent'
+import { GameHistoryPage } from './components/lobby/GameHistoryPage'
+import { LobbyFooter } from './components/lobby/LobbyFooter'
 
 // --- Constants ---
 const AVATARS = ['👨‍🚀', '🥷', '🧙‍♂️', '🧛', '🤖', '👾', '👽', '🦊']
@@ -163,8 +165,14 @@ function ModeSelection() {
           </button>
         </header>
 
-        <div className="p-4 sm:p-6 lg:p-10">
-          <div className="mx-auto w-full max-w-5xl">
+        <div className="flex min-h-0 flex-1 flex-col">
+          {lobbyPage === 'history' ? (
+            <div className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8">
+              <GameHistoryPage />
+            </div>
+          ) : (
+            <div className="p-4 sm:p-6 lg:p-10">
+              <div className="mx-auto w-full max-w-5xl">
           {lobbyPage === 'home' && (
             <div className="space-y-6 sm:space-y-10">
               <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-r from-[var(--surface)] to-[var(--bg)] p-6 sm:p-10 shadow-2xl">
@@ -210,7 +218,10 @@ function ModeSelection() {
               </button>
             </div>
           )}
-          </div>
+              </div>
+            </div>
+          )}
+          <LobbyFooter />
         </div>
       </div>
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
@@ -230,7 +241,10 @@ function FriendsSection() {
             {pendingRequests.map((req: any) => (
               <div key={req.id} className="flex items-center justify-between rounded-xl bg-[#81b64c]/5 p-4 border border-[#81b64c]/20">
                 <div className="flex items-center gap-4"><Avatar src={req.from_user.avatar} size="sm" /><span className="text-base font-bold text-[var(--text-main)]">{req.from_user.username}</span></div>
-                <div className="flex gap-2"><button onClick={() => respondToFriendRequest(req.id, true)} className="rounded-lg bg-[#81b64c] p-2 text-white shadow-md"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button></div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => respondToFriendRequest(req.id, false)} className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-bold uppercase text-[var(--text-muted)] hover:bg-[var(--surface-3)]">{t.decline}</button>
+                  <button type="button" onClick={() => respondToFriendRequest(req.id, true)} className="rounded-lg bg-[#81b64c] p-2 text-white shadow-md"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+                </div>
               </div>
             ))}
           </div>

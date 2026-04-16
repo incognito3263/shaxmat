@@ -80,6 +80,12 @@ async def lifespan(app: FastAPI):
                 conn.execute(text("ALTER TABLE users ADD COLUMN country_code VARCHAR(2)"))
                 conn.commit()
                 print("DEBUG: country_code column added.")
+
+            if 'clock_initial_seconds' not in columns:
+                print("DEBUG: Adding clock_initial_seconds to games...")
+                conn.execute(text("ALTER TABLE games ADD COLUMN clock_initial_seconds INTEGER DEFAULT 600"))
+                conn.commit()
+                print("DEBUG: clock_initial_seconds added.")
     except Exception as e:
         print(f"DEBUG: Migration error: {e}")
     

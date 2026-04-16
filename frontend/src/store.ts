@@ -58,6 +58,37 @@ export function getUserTitle(wins: number, t: any): string {
   return t.titleNovice;
 }
 
+export interface GameHistoryRow {
+  id: number
+  status: string
+  winner: string | null
+  game_mode: string
+  result_symbol: string
+  my_result: string
+  my_color: string
+  time_control_label: string
+  time_increment: number
+  move_count: number
+  accuracy_white: number | null
+  accuracy_black: number | null
+  ended_at: string | null
+  created_at: string | null
+  white: {
+    username: string
+    rating: number | null
+    avatar: string
+    country_code?: string | null
+    public_id?: string | null
+  }
+  black: {
+    username: string
+    rating: number | null
+    avatar: string
+    country_code?: string | null
+    public_id?: string | null
+  }
+}
+
 interface GameStore {
   user: User | null
   token: string | null
@@ -95,6 +126,12 @@ interface GameStore {
   liveGames: any[]
   isSpectator: boolean
   matchHistory: any[]
+  gameHistoryFull: {
+    games: GameHistoryRow[]
+    total_returned: number
+    tab: string
+    result: string
+  } | null
   friends: User[]
   notification: { text: string; type: 'success' | 'info' | 'error' } | null
   pendingRequests: any[]
@@ -118,6 +155,13 @@ interface GameStore {
   fetchGame: () => Promise<void>
   fetchLiveGames: () => Promise<void>
   fetchMatchHistory: () => Promise<void>
+  fetchGameHistoryFull: (params: {
+    tab?: string
+    result?: string
+    opponent?: string
+    limit?: number
+    offset?: number
+  }) => Promise<void>
   fetchFriends: () => Promise<void>
   fetchFriendRequests: () => Promise<void>
   fetchNotifications: () => Promise<void>
@@ -209,7 +253,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pieceTheme: 'classic', uiTheme: (localStorage.getItem('shaxmat_ui_theme') as 'dark' | 'light') || 'dark',
   viewMode: (localStorage.getItem('shaxmat_view') as '2d' | '3d') || '2d',
   drawOffer: null, friendRequest: null, reviewMode: false, reviewIndex: 0,
-  reviewBoardData: null, liveGames: [], isSpectator: false, matchHistory: [],
+  reviewBoardData: null, liveGames: [], isSpectator: false, matchHistory: [], gameHistoryFull: null,
   friends: [], notification: null, pendingRequests: [], notifications: [], aiTimeout: null,
 
   tickClock: () => {
@@ -280,6 +324,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       else if (msg.type === 'chat') set(state => ({ chatMessages: [...state.chatMessages, { from: msg.from_username, text: msg.text }] }))
       else if (msg.type === 'match_found') set({ matchedOpponent: { public_id: msg.opponent_id, username: msg.opponent_username, avatar: msg.opponent_avatar } })
       else if (msg.type === 'match_offer') set({ matchOffer: msg })
+      else if (msg.type === 'draw_offer') set({ drawOffer: { from_id: msg.from_id, from_username: msg.from_username } })
+      else if (msg.type === 'draw_respond') {
+        if (msg.accepted) await get().fetchGame()
+        set({ drawOffer: null })
+      }
     }
     set({ socket })
   },
@@ -360,6 +409,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } catch (e) { console.error(e) }
   },
 
+  fetchGameHistoryFull: async (params) => {
+    const { user } = get(); if (!user) return
+    const qs = new URLSearchParams()
+    qs.set('tab', params.tab ?? 'recent')
+    qs.set('result', params.result ?? 'any')
+    if (params.opponent?.trim()) qs.set('opponent', params.opponent.trim())
+    qs.set('limit', String(params.limit ?? 50))
+    qs.set('offset', String(params.offset ?? 0))
+    try {
+      const res = await fetch(`/game/user/${user.id}/history/full?${qs.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        set({ gameHistoryFull: data })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
   selectSquare: (square) => {
     const { game, user, isSpectator, selectedSquare, legalMoves, isAiMoving } = get()
     if (!game || game.status !== 'active' || isSpectator || isAiMoving) return
@@ -402,7 +470,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   searchUser: async (pid) => { try { const res = await fetch(`/users/search/${pid}`); return res.ok ? await res.json() : null } catch { return null } },
   sendInvite: (pid, limit, inc) => get().socket?.send(JSON.stringify({ type: 'invite', target_id: pid, time_limit: limit, time_increment: inc })),
   respondToInvite: (accept) => { if (accept && get().inviteRequest) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().inviteRequest!.from_id })); get().createGame('Person', get().inviteRequest!.from_id) }; set({ inviteRequest: null }) },
-  startMatchmaking: () => get().socket?.send(JSON.stringify({ type: 'find_match' })),
+  startMatchmaking: () => {
+    get().socket?.send(JSON.stringify({ type: 'find_match' }))
+    set({ isSearching: true })
+  },
   cancelMatchmaking: () => { get().socket?.send(JSON.stringify({ type: 'leave_queue' })); set({ isSearching: false }) },
   acceptMatchOffer: () => { if (get().matchOffer) { get().socket?.send(JSON.stringify({ type: 'accept_invite', target_id: get().matchOffer!.from_id })); get().createGame('Person', get().matchOffer!.from_id) }; set({ matchOffer: null, isSearching: false }) },
   spectateGame: async (gid) => { set({ isSpectator: true, gameId: gid }); get().fetchGame() },
@@ -411,5 +482,126 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setReviewIndex: async (idx) => { const res = await fetch(`/game/${get().gameId}/review/${idx}`); if (res.ok) set({ reviewIndex: idx, reviewBoardData: await res.json() }) },
   resolvePromotion: async (p) => { if (get().pendingPromotion) get().makeMove(get().pendingPromotion!.from, get().pendingPromotion!.to, p) },
   cancelPromotion: () => set({ pendingPromotion: null }),
-  setPieceTheme: () => {}, setSoundSettings: () => {}, markNotificationRead: async () => {}, sendFriendRequest: async () => {}, respondToFriendRequest: async () => {}, followUser: async () => {}, unfollowUser: async () => {}, offerDraw: () => {}, respondToDraw: () => {}, sendChatMessage: () => {}, sendMatchStart: () => {}, newGame: async () => {}
+
+  setPieceTheme: (theme) => {
+    set({ pieceTheme: theme })
+    localStorage.setItem('shaxmat_piece_theme', theme)
+  },
+  setSoundSettings: (settings) => set((s) => ({ soundSettings: { ...s.soundSettings, ...settings } })),
+
+  markNotificationRead: async (notifId) => {
+    try {
+      const res = await fetch(`/notifications/mark-read/${notifId}`, { method: 'POST' })
+      if (res.ok) {
+        set((s) => ({
+          notifications: (s.notifications || []).map((n: { id: number; is_read?: boolean }) =>
+            n.id === notifId ? { ...n, is_read: true } : n
+          ),
+        }))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
+  sendFriendRequest: async (targetPublicId) => {
+    const { user } = get()
+    if (!user) return
+    try {
+      const res = await fetch(`/users/friend-request/${targetPublicId}?current_user_id=${user.id}`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error(getApiErrorMessage(data, 'Friend request failed'))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
+  respondToFriendRequest: async (requestId, accept) => {
+    try {
+      const res = await fetch(`/users/friend-respond/${requestId}?accept=${accept}`, { method: 'POST' })
+      if (res.ok) {
+        await get().fetchFriendRequests()
+        await get().fetchFriends()
+        if (accept) {
+          const { t } = get()
+          get().setNotification({ text: t.friendAccepted, type: 'success' })
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
+  followUser: async (publicId) => {
+    const { user } = get()
+    if (!user) return
+    try {
+      const res = await fetch(`/users/follow/${publicId}?current_user_id=${user.id}`, { method: 'POST' })
+      if (res.ok) await get().fetchFriends()
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
+  unfollowUser: async (publicId) => {
+    const { user } = get()
+    if (!user) return
+    try {
+      const res = await fetch(`/users/unfollow/${publicId}?current_user_id=${user.id}`, { method: 'POST' })
+      if (res.ok) await get().fetchFriends()
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
+  offerDraw: () => {
+    const { game, user, socket } = get()
+    if (!game || game.status !== 'active' || !user || !socket || socket.readyState !== WebSocket.OPEN) return
+    const w = game.white_player_public_id
+    const b = game.black_player_public_id
+    const targetId = user.public_id === w ? b : w
+    if (!targetId) return
+    socket.send(JSON.stringify({ type: 'draw_offer', target_id: targetId }))
+  },
+
+  respondToDraw: async (accept) => {
+    const { game, user, socket, drawOffer } = get()
+    const gid = game?.id
+    if (!gid || !user || !socket) return
+    if (accept) {
+      const res = await fetch(`/game/${gid}/draw`, { method: 'POST' })
+      if (res.ok) {
+        set({ drawOffer: null })
+        await get().fetchGame()
+      }
+    } else {
+      if (drawOffer?.from_id) {
+        socket.send(JSON.stringify({ type: 'draw_respond', target_id: drawOffer.from_id, accepted: false }))
+      }
+      set({ drawOffer: null })
+    }
+  },
+
+  sendChatMessage: (text) => {
+    const { game, user, socket } = get()
+    if (!game || !user || !socket || socket.readyState !== WebSocket.OPEN) return
+    const w = game.white_player_public_id
+    const b = game.black_player_public_id
+    const targetId = user.public_id === w ? b : w
+    if (!targetId) return
+    socket.send(JSON.stringify({ type: 'chat', target_id: targetId, text }))
+    set((s) => ({ chatMessages: [...s.chatMessages, { from: user.username, text }] }))
+  },
+
+  sendMatchStart: (targetId, timeLimit, timeIncrement) => {
+    get().socket?.send(JSON.stringify({ type: 'match_start', target_id: targetId, time_limit: timeLimit, time_increment: timeIncrement }))
+  },
+
+  newGame: async () => {
+    const { vsAI } = get()
+    get().goBackToMenu()
+    if (vsAI) await get().createGame('AI', undefined, 'normal', 600, 0)
+  },
 }))

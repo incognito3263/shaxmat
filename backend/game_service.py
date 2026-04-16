@@ -145,6 +145,7 @@ def create_new_game(
             black_player_id=black_player_id,
             white_time_left=time_limit,
             black_time_left=time_limit,
+            clock_initial_seconds=time_limit,
             time_increment=time_increment,
             last_move_at=datetime.utcnow(),
             board_state=gs.to_dict(),
