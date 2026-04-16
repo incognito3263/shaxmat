@@ -31,9 +31,10 @@ jobs:
             git fetch --all
             git reset --hard origin/main
             
-            # Docker konteynerlarni yangilash
+            # Docker: keshsiz build (prodda eski frontend qolmasin), keyin ishga tushirish
             docker-compose down
-            docker-compose up -d --build
+            docker-compose build --no-cache
+            docker-compose up -d
             
             # Eskirgan docker image-larni tozalash
             docker image prune -f
