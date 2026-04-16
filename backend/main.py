@@ -132,6 +132,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/health")
+def health_check():
+    """Liveness probe for Docker / reverse proxies (must not be under SPA catch-all)."""
+    return {"status": "ok"}
+
+
 # ── Auth endpoints ───────────────────────────────────────────────────────────
 
 @app.post("/upload-avatar")

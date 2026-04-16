@@ -31,6 +31,12 @@ services:
     environment:
       DATABASE_URL: postgresql://shaxmat_user:shaxmat_password@db:5432/shaxmat_plus_db
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   frontend:
     build:
@@ -40,7 +46,8 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   db_data:
